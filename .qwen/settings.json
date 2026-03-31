@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python *)",
+      "Bash(dir *)",
+      "Bash(del *)",
+      "Bash(netstat *)",
+      "Bash(findstr *)",
+      "Bash(start *)",
+      "Bash(git init)",
+      "Bash(curl *)",
+      "Bash(git config *)",
+      "Bash(git add *)"
+    ]
+  },
+  "$version": 3
+}
