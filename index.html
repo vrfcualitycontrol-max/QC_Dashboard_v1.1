@@ -73,6 +73,249 @@
             left: 0;
         }
 
+        /* ============================================
+           SIDEBAR V2 — Сворачиваемое меню
+           ============================================ */
+
+        .sidebar-v2 {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 240px;
+            height: 100vh;
+            background: linear-gradient(180deg, #1a1f2e 0%, #151820 100%);
+            border-right: 1px solid #2d3748;
+            z-index: 1500;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            transition: width 0s;
+        }
+
+        .sidebar-v2.collapsed {
+            width: 70px;
+        }
+
+        .sidebar-v2 .logo {
+            padding: 20px 16px 16px;
+            border-bottom: 1px solid #2d3748;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-v2 .logo h1 {
+            font-size: 14px;
+            font-weight: 800;
+            color: #a78bfa;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar-v2 .logo p {
+            font-size: 10px;
+            color: #64748b;
+            margin: 4px 0 0;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar-v2.collapsed .logo h1,
+        .sidebar-v2.collapsed .logo p {
+            display: none;
+        }
+
+        .sidebar-v2 .hamburger-v2 {
+            cursor: pointer;
+            font-size: 20px;
+            color: #a78bfa;
+            flex-shrink: 0;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-v2 .nav-section-title {
+            padding: 16px 20px 6px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #4a5568;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar-v2.collapsed .nav-section-title {
+            display: none;
+        }
+
+        .nav-v2-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #94a3b8;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .nav-v2-item:hover {
+            background: rgba(167, 139, 250, 0.08);
+            color: #c4b5fd;
+        }
+
+        .nav-v2-item.active {
+            background: rgba(167, 139, 250, 0.15);
+            color: #a78bfa;
+            border-left-color: #a78bfa;
+        }
+
+        .nav-v2-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+            width: 18px;
+            text-align: center;
+        }
+
+        .nav-v2-text {
+            overflow: hidden;
+            transition: opacity 0.15s;
+        }
+
+        .sidebar-v2.collapsed .nav-v2-text {
+            display: none;
+        }
+
+        .sidebar-v2.collapsed .nav-v2-item {
+            font-size: 0;
+            justify-content: center;
+            padding: 12px 0;
+            border-left: none;
+        }
+
+        .sidebar-v2 .bottom-info {
+            margin-top: auto;
+            padding: 12px 16px;
+            border-top: 1px solid #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-v2 .bottom-info img {
+            width: 52px;
+            height: 36px;
+            object-fit: cover;
+            border-radius: 6px;
+            filter: brightness(0.95) contrast(1.05);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+            flex-shrink: 0;
+        }
+
+        .sidebar-v2 .bottom-text {
+            font-size: 10px;
+            color: #94a3b8;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar-v2 .bottom-subtext {
+            font-size: 9px;
+            color: #4a5568;
+            margin-top: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar-v2.collapsed .bottom-info {
+            padding: 12px 0;
+            justify-content: center;
+        }
+
+        .sidebar-v2.collapsed .bottom-text,
+        .sidebar-v2.collapsed .bottom-subtext,
+        .sidebar-v2.collapsed .bottom-info img {
+            display: none;
+        }
+
+        /* Основной контент с отступом для меню */
+        .main-v2 {
+            margin-left: 240px;
+            min-height: 100vh;
+            transition: margin-left 0s;
+        }
+
+        .main-v2.expanded {
+            margin-left: 70px;
+        }
+
+        /* Light mode поддержка */
+        [data-theme="light"] .sidebar-v2 {
+            background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+            border-right-color: #e2e8f0;
+        }
+
+        [data-theme="light"] .sidebar-v2 .logo h1 {
+            color: #7c3aed;
+        }
+
+        [data-theme="light"] .sidebar-v2 .logo p {
+            color: #94a3b8;
+        }
+
+        [data-theme="light"] .nav-v2-item {
+            color: #475569;
+        }
+
+        [data-theme="light"] .nav-v2-item:hover {
+            background: rgba(124, 58, 237, 0.08);
+            color: #7c3aed;
+        }
+
+        [data-theme="light"] .nav-v2-item.active {
+            background: rgba(124, 58, 237, 0.12);
+            color: #7c3aed;
+            border-left-color: #7c3aed;
+        }
+
+        [data-theme="light"] .sidebar-v2 .nav-section-title {
+            color: #94a3b8;
+        }
+
+        [data-theme="light"] .sidebar-v2 .bottom-info {
+            border-top-color: #e2e8f0;
+        }
+
+        [data-theme="light"] .sidebar-v2 .bottom-text {
+            color: #94a3b8;
+        }
+
+        [data-theme="light"] .sidebar-v2 .bottom-subtext {
+            color: #cbd5e1;
+        }
+
+        /* Скрываем старое меню */
+        .sidebar {
+            display: none !important;
+        }
+
+        .sidebar-overlay {
+            display: none !important;
+        }
+
+        .hamburger-btn {
+            display: none !important;
+        }
+
         /* Закрепленная кнопка гамбургер-меню */
         .hamburger-btn {
             position: fixed;
@@ -209,9 +452,10 @@
         }
 
         .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 20px;
+            max-width: 100%;
+            margin: 0;
+            padding: 20px 24px;
+            width: 100%;
         }
 
         header {
@@ -321,6 +565,7 @@
             border-radius: 20px;
             padding: 25px;
             transition: all 0.3s ease;
+            width: 100%;
         }
 
         .card:hover {
@@ -591,79 +836,569 @@
             color: var(--text-muted);
             font-style: italic;
         }
+
+        /* ============================================
+           SVP HEATMAP PRO — Стили
+           ============================================ */
+
+        /* Контейнер тепловой карты */
+        .svp-heatmap-container {
+            overflow-x: auto;
+            padding: 8px 0;
+        }
+
+        .svp-heatmap-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.85rem;
+        }
+
+        .svp-heatmap-table th,
+        .svp-heatmap-table td {
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 80px;
+            transition: all 0.2s ease;
+        }
+
+        .svp-heatmap-table th {
+            background: rgba(0, 0, 0, 0.3);
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        .svp-heatmap-table th:first-child {
+            text-align: left;
+            min-width: 140px;
+            background: rgba(0, 0, 0, 0.35);
+        }
+
+        .svp-heatmap-table td:first-child {
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .svp-heatmap-table td:first-child:hover {
+            background: rgba(102, 126, 234, 0.2);
+            color: var(--success);
+        }
+
+        /* Ячейка критерия */
+        .svp-cell {
+            position: relative;
+            padding: 14px 10px !important;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 85px !important;
+            border: 2px solid transparent !important;
+        }
+
+        .svp-cell:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+
+        /* Цветовые модификаторы ячеек */
+        .svp-cell.critical {
+            background: linear-gradient(135deg, rgba(248, 113, 113, 0.25), rgba(239, 68, 68, 0.15));
+            border-color: rgba(248, 113, 113, 0.4) !important;
+        }
+
+        .svp-cell.warning {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(234, 179, 8, 0.15));
+            border-color: rgba(251, 191, 36, 0.4) !important;
+        }
+
+        .svp-cell.success {
+            background: linear-gradient(135deg, rgba(74, 222, 128, 0.25), rgba(34, 197, 94, 0.15));
+            border-color: rgba(74, 222, 128, 0.4) !important;
+        }
+
+        .svp-cell.info {
+            background: linear-gradient(135deg, rgba(96, 165, 250, 0.25), rgba(59, 130, 246, 0.15));
+            border-color: rgba(96, 165, 250, 0.4) !important;
+        }
+
+        /* Содержимое ячейки */
+        .svp-cell-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .svp-percentage {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            line-height: 1;
+        }
+
+        .svp-diagnosis {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            opacity: 0.9;
+            line-height: 1.2;
+            text-align: center;
+        }
+
+        /* Тултип (фиксированный) */
+        .svp-tooltip {
+            position: fixed;
+            background: rgba(15, 23, 42, 0.98);
+            border: 1px solid rgba(167, 139, 250, 0.4);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 0.85rem;
+            z-index: 10000;
+            pointer-events: none;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(16px);
+            max-width: 320px;
+            display: none;
+            transition: opacity 0.2s ease;
+        }
+
+        /* Светлая тема для тултипа */
+        [data-theme="light"] .svp-tooltip {
+            background: rgba(255, 255, 255, 0.98);
+            border-color: rgba(124, 58, 237, 0.3);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            color: #1e293b;
+        }
+
+        [data-theme="light"] .svp-tooltip h4 {
+            color: #7c3aed;
+        }
+
+        [data-theme="light"] .svp-tooltip .tooltip-label {
+            color: #64748b;
+        }
+
+        [data-theme="light"] .svp-tooltip .tooltip-value {
+            color: #1e293b;
+        }
+
+        [data-theme="light"] .svp-tooltip .diagnosis-text {
+            border-top-color: rgba(0, 0, 0, 0.1);
+            color: #475569;
+        }
+
+        .svp-tooltip.visible {
+            display: block;
+            opacity: 1;
+        }
+
+        .svp-tooltip h4 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #a78bfa;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .svp-tooltip .tooltip-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 6px 0;
+            font-size: 0.8rem;
+        }
+
+        .svp-tooltip .tooltip-label {
+            color: var(--text-muted);
+        }
+
+        .svp-tooltip .tooltip-value {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .svp-tooltip .diagnosis-text {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* ============================================
+           ВЫЕЗЖАЮЩАЯ ПАНЕЛЬ (Right Slide Panel)
+           ============================================ */
+
+        .svp-side-panel {
+            position: fixed;
+            top: 0;
+            right: -650px;
+            width: 650px;
+            max-width: 90vw;
+            height: 100vh;
+            background: linear-gradient(180deg, rgba(20, 25, 40, 0.98) 0%, rgba(30, 35, 55, 0.98) 100%);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 9999;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            box-shadow: -10px 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .svp-side-panel.open {
+            right: 0;
+        }
+
+        .svp-side-panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 9998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .svp-side-panel-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Заголовок панели */
+        .svp-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .svp-panel-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .svp-panel-title i {
+            color: var(--success);
+        }
+
+        .svp-panel-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 10px;
+            width: 42px;
+            height: 42px;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 1.3rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .svp-panel-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+
+        /* Тело панели */
+        .svp-panel-body {
+            padding: 30px;
+        }
+
+        .svp-panel-section {
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .svp-panel-section-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Pie Chart контейнер */
+        .svp-pie-chart-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            gap: 20px;
+            padding: 10px 0;
+        }
+
+        .svp-pie-legend {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .svp-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .svp-legend-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .svp-legend-label {
+            flex: 1;
+            color: var(--text-secondary);
+        }
+
+        .svp-legend-count {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        /* Таблица периодов */
+        .svp-periods-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .svp-periods-table th,
+        .svp-periods-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .svp-periods-table th {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .svp-periods-table tr:hover td {
+            background: rgba(167, 139, 250, 0.08);
+            cursor: pointer;
+        }
+
+        .svp-period-row {
+            transition: all 0.2s ease;
+        }
+
+        /* Блок диагноза */
+        .svp-diagnosis-box {
+            background: linear-gradient(135deg, rgba(248, 113, 113, 0.1), rgba(239, 68, 68, 0.05));
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            border-radius: 12px;
+            padding: 18px;
+            margin-top: 15px;
+        }
+
+        .svp-diagnosis-box.warning {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(234, 179, 8, 0.05));
+            border-color: rgba(251, 191, 36, 0.3);
+        }
+
+        .svp-diagnosis-box.success {
+            background: linear-gradient(135deg, rgba(74, 222, 128, 0.1), rgba(34, 197, 94, 0.05));
+            border-color: rgba(74, 222, 128, 0.3);
+        }
+
+        .svp-diagnosis-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .svp-diagnosis-status {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .svp-diagnosis-description {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Рекомендации */
+        .svp-recommendations {
+            line-height: 1.8;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .svp-recommendations p {
+            margin-bottom: 12px;
+        }
+
+        .svp-recommendations ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        .svp-recommendations li {
+            margin-bottom: 6px;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 1024px) {
+            .svp-side-panel {
+                width: 100%;
+                right: -100%;
+                max-width: 100vw;
+            }
+            
+            .svp-pie-chart-container {
+                flex-direction: column;
+            }
+        }
+
+        /* Light mode поддержка */
+        [data-theme="light"] .svp-heatmap-table th,
+        [data-theme="light"] .svp-heatmap-table td {
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="light"] .svp-heatmap-table th {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="light"] .svp-heatmap-table td:first-child {
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        [data-theme="light"] .svp-side-panel,
+        [data-theme="light"] .svp-panel-header {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%);
+            border-left-color: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="light"] .svp-panel-section {
+            background: rgba(255, 255, 255, 0.6);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
-    <!-- Боковое меню -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-title">
-                <i class="fas fa-bars"></i>
-                <span>Меню</span>
+    <!-- SIDEBAR V2 — Сворачиваемое меню -->
+    <div class="sidebar-v2" id="sidebarV2">
+        <div class="logo">
+            <div>
+                <h1>QC Dashboard</h1>
+                <p>Variant Retail Finance · SC Unit</p>
             </div>
-            <button class="sidebar-close" onclick="toggleSidebar()">
-                <i class="fas fa-times"></i>
-            </button>
+            <div class="hamburger-v2" onclick="toggleSidebarV2()">☰</div>
         </div>
-        <div class="sidebar-menu">
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">Навигация</div>
-                <div class="sidebar-item" onclick="scrollToSection('dashboard-section'); toggleSidebar();">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Операционные показатели</span>
-                </div>
-                <div class="sidebar-item" onclick="scrollToSection('regulations-section'); toggleSidebar();">
-                    <i class="fas fa-book"></i>
-                    <span>Регламенты и СВП</span>
-                </div>
+        <div style="padding:10px 0; overflow-y: auto; flex: 1;">
+            <div class="nav-section-title">Разделы</div>
+            <div class="nav-v2-item" onclick="scrollToSection('stats-section')">
+                <span class="nav-v2-icon"><i class="fas fa-users"></i></span>
+                <span class="nav-v2-text">Статистика</span>
             </div>
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">Показатели</div>
-                <div class="sidebar-item" onclick="scrollToSection('stats-section'); toggleSidebar();">
-                    <i class="fas fa-users"></i>
-                    <span>Статистика</span>
-                </div>
-                <div class="sidebar-item" onclick="scrollToSection('heatmap-section'); toggleSidebar();">
-                    <i class="fas fa-th"></i>
-                    <span>Тепловая карта СВП</span>
-                </div>
-                <div class="sidebar-item" onclick="scrollToSection('tqs-section'); toggleSidebar();">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Динамика TQS</span>
-                </div>
-                <div class="sidebar-item" onclick="scrollToSection('criteria-section'); toggleSidebar();">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Выработка по критериям</span>
-                </div>
-                <div class="sidebar-item" onclick="scrollToSection('distribution-section'); toggleSidebar();">
-                    <i class="fas fa-chart-pie"></i>
-                    <span>Распределение оценок</span>
-                </div>
+            <div class="nav-v2-item" onclick="scrollToSection('dashboard-section')">
+                <span class="nav-v2-icon"><i class="fas fa-chart-line"></i></span>
+                <span class="nav-v2-text">Опер. показатели</span>
             </div>
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">Документация</div>
-                <div class="sidebar-item" onclick="scrollToSection('mechanics-section'); toggleSidebar();">
-                    <i class="fas fa-clipboard-check"></i>
-                    <span>Механика оценки</span>
-                </div>
-                <div class="sidebar-item" onclick="scrollToSection('architecture-section'); toggleSidebar();">
-                    <i class="fas fa-sitemap"></i>
-                    <span>Архитектура СВП</span>
-                </div>
-                <div class="sidebar-item" onclick="scrollToSection('crm-section'); toggleSidebar();">
-                    <i class="fas fa-database"></i>
-                    <span>Правила CRM</span>
-                </div>
+            <div class="nav-v2-item" onclick="scrollToSection('heatmap-section')">
+                <span class="nav-v2-icon"><i class="fas fa-th"></i></span>
+                <span class="nav-v2-text">Тепловая карта СВП</span>
+            </div>
+            <div class="nav-v2-item" onclick="scrollToSection('tqs-section')">
+                <span class="nav-v2-icon"><i class="fas fa-chart-line"></i></span>
+                <span class="nav-v2-text">Динамика TQS</span>
+            </div>
+            <div class="nav-v2-item" onclick="scrollToSection('criteria-section')">
+                <span class="nav-v2-icon"><i class="fas fa-chart-bar"></i></span>
+                <span class="nav-v2-text">Выработка по критериям</span>
+            </div>
+            <div class="nav-v2-item" onclick="scrollToSection('distribution-section')">
+                <span class="nav-v2-icon"><i class="fas fa-chart-pie"></i></span>
+                <span class="nav-v2-text">Распределение оценок</span>
+            </div>
+            <div class="nav-section-title">Документация</div>
+            <div class="nav-v2-item" onclick="scrollToSection('regulations-section')">
+                <span class="nav-v2-icon"><i class="fas fa-lightbulb"></i></span>
+                <span class="nav-v2-text">Выводы и рекомендации</span>
+            </div>
+            <div class="nav-v2-item" onclick="scrollToSection('mechanics-section')">
+                <span class="nav-v2-icon"><i class="fas fa-clipboard-check"></i></span>
+                <span class="nav-v2-text">Механика оценки</span>
+            </div>
+            <div class="nav-v2-item" onclick="scrollToSection('architecture-section')">
+                <span class="nav-v2-icon"><i class="fas fa-sitemap"></i></span>
+                <span class="nav-v2-text">Архитектура СВП</span>
+            </div>
+            <div class="nav-v2-item" onclick="scrollToSection('crm-section')">
+                <span class="nav-v2-icon"><i class="fas fa-database"></i></span>
+                <span class="nav-v2-text">Правила CRM</span>
+            </div>
+        </div>
+        <div class="bottom-info">
+            <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wgARCADIAMgDASIAAhEBAxEB/8QAHAAAAgMBAQEBAAAAAAAAAAAAAgMABAcIBgEF/8QAGwEAAgMBAQEAAAAAAAAAAAAAAAECAwQGBQf/2gAMAwEAAhADEAAAAfPEBfXLGGs5Bms2MICkMNZsa+s5Fp9V+ctPrPzqzYqvzq0+q/OWn1X5y0+s/OrMGUGAEBdlJhrNszWchhAbDNZyGMUYWbFV9JafVfnVp9Z+dWbFV+ctPqvzlp9V+YtQZSsCYo+ukw1m2ZrOQw1nIM1mxhrKQ99Z9ZafVfnVp9V+ctPrPzq0+q/MWn1X5y1AlKwcgLqpMNZyZmBSGGs2GazYwgKQ11dyLNiq+gtPqvzq0+q/MrT6z85ZsVX5y1AlBhRAXUNhrNlgt09Vzy5gNjOil8nUHhfAjjVitoXtvxyercD8heUfVse5K0+q/MrV2tv/AIixD7peZIsvrPsLUCUGHffn3pAzWcn7ne+UOnuTWSeD3rA/Ye5ewwve+cjzWPt/AdlLq3yFDRfnseV3sR9KnasVX0Gg6x+Bc+d15p+HWd18rT6z4FmDKDE5J0IRrNtmv4/+3jOj+d+isv5qOX9I82an7T9hgvS+C5S90dyR03lM3znojnT1Ha9H5nY7zQ810fAOSit9V/Wu0+q/OWoMoMYknvH0gJthLNnQn6OWbHw8eZv0v2fJ9nLqDO/2P2+Kjzzq+WfodlLqTnDo3NOLjlXTGO7ZoPHY76PzXsuy+s/aWn1X5y1AlBj0k9sn359AjApO30rzF7jxz3GMaDntx7jZOatFxL87yHpvMey+gvacv6jyUdM/O8ZntB+Y6q/t52n1n51ZsVX51agSgyOSewSSARATbDWchhATbDWUhhrNjCApDGpYFp9V9BafVfnVp9Z+dWoEoMoknqkkgffo/RsNZyGEBSbCA2GazkMICYw1nIfYqvqLT6r86tPrPzqzBlBlsk9IkkCffkAzWcmwgJthrKQw1mxhAUhhrNjH13ItPqvzlp9V+dWoEoWZyTeSSBJIH05GzKSQZyMI5JMykYZySDZID3yUlh8mZPklC//EACYQAAIBBAEEAwADAQAAAAAAAAABBAIDBQYUEhMgMBEVQBAWITH/2gAIAQEAAQUC9SEIQhCEIQhCEL2IQhCEIQhCEIXsQhCEIQhCEIQvYhCEIQhCEIQhe1CEIQhCEIQhe1CEIQhCEIQhe1CEIQhCEIQhe5CEIQhCEIQvFW6muipfwv8ATtVjpdP8W7Vd04l8/wCNCEIRRZuVLs3KUhCF46dO5WJlWaZFmRYqjX4siqLIt3qZNjbIXIx5pk7jZI2uDxMshCER7VV+9YsqPZ2KV2ISEIXjqM/h5as2+F2Zpp07kY6/bV23KjuJJsXqrF6JJpmRtvg8nGIQhGqRO7LM7L5WQQhC8aanRVj5iyEDYoXNxhrE7hZas26H0SDSJ3ehXLdN63MjVQpaEIwUPhY3JSuFC+fkQhC8tHnfNFaMvD4GRT+DFzfsMdm4fNx5rU7gZc3WD25SEYSHz8ibXM+a0IQheWHnfXZGr/TcIfVbNLm/FVZmonCyJhJ32OM2CDz8UhGnQu3FrqVumZKcyWhCELz1udzsRPiqZEqpdFWNmOBObVVO2Q+uOaNO6bhnYX1+Uj2qr96LHpiRtom8bHoQhCF56dO7E+o2eHxskazN5eKl2FJj3LbtXMZMcCfTUq6d2g9yPpsHvzjZZvLyaEIQhedi9VHvWb9MqPs8Pk441SbxsjUbPE7E41LIczFVUqpW7VFmnKzljoPV1NCEIQvRi9nuY6HXuFVykt3Har/uVbMpnftLBjsjexkiPvVp03d4jJZTM38vcQhCEIX4kIQhCEL8SEIQhCF+JCEIQhC/GhCEIQvxoQhCEL8iEIQhfkQhCEI//8QAGREAAgMBAAAAAAAAAAAAAAAAAAEQETBQ/9oACAEDAQE/AetcXF4sQ9EMQxQs0MWCmiuz/8QALBEAAQMCBQMDAwUAAAAAAAAAAQACAwQFERITMUEUITAQIHEyQlFhgaHR8f/aAAgBAgEBPwH2lFFFFOR8BRRTkUUfeU5ORRTvAUUUU5OR9ZLsYZTE5m36rHFuLVBd9WURuZh+6qZXQwukaMcFQXbrJdJzcEUVXVnSYDDElU0zqiPUIwRR9bzDle2Yc9lbJtWnAO4Vyh0KkuHPdU0oqIQ/8pwNurO32n+P8WIcMwTlWyGqqjl+AmRiJgYOEUfWsh6iBzOVaZtObKeVdoNSDON2qzTfVCflX+n7tnHwrNPrUuU7t7f0rjP09O53KtEGpNqHZqKcj7KyM01ScvyFG5tRCDwQoiaKp78FVkHVU7oxzsrNPo1OQ7O7K+1GeUQjhW6n0KYY7nuine240jqgNMe4VvjlhjMcoVwoZJpRJEPlUgkbCGy7hXC0zaxkgGIKpbRUSSAzjBqIRRR8RRRR8RTk7xlFHyFORX//xAA1EAABAgMGBAUCBAcAAAAAAAABAgMAESIEECEyQXESMUKBEyAjMMGRoTNwkvA0UWFiY3Kx/9oACAEBAAY/AvzMwSfpGKT9L8p+kYiV1CFL2EfgufpPnmEKI2iZQoDb2fBOdg8PbSFtKyrEjDjSsyDKGnk5kKChCHUYpWOIR4oFTJn21uLJNL4l3HL5uUsCh6sb6+VDacyjIQhtOVIlHhjM6ZdvZQgmh70zvpci0DK6Mdxcqzk1Mn7GFIVilQkYcZVzQZQhxGCkHiENPIyrTxR4oFbB4u2vlU+crYw3uXLK3QPZCgZEQzaB1px31h0AVorTc3M0O+mq5u0DkulW9zlmJqaMxsYUhQmlQkRDrCuaFS8jSSK1Vqh13UDDf237Io8vUT83PNdM5p2uZf6iKt9YdQMwqTvcyomSF+mrvc1agMHBwq3H7+17TfQKlbXNWYaVq+PbYf6QattbmrSBimhW1z1kUefqJ+bnUDKak7XMPdUpK3h5AE1pHGncXuWkjFw8KdoKlGQAmYdePUfcbma2/TVDrJ6xKClWBGBhl8dCsdtYBGIMItA5tmR2uesijmrT83PNgSQTxJ2MIbRipZkIbZTlQmUeGDW8eHtr7qmCaXh9xcVgUO1d9bkpJrZoPxDjSuSxKFIVgpJkYZfHQrHbWAoGYOIMNWpIxbpVt+/+wq0KFDIw/wBrlJBoaoHz7qHUYKQeIQ28jKtPFBWMzVXbW7wiaHhw99LvFGV0T73JbJ9Rig7aRIiYOhjhQkIT/JIlDrx5gU/1MTOJ94WfwQ6EnAlUoKTZEyOGe5K0mSkmYj+FT+uA2WAiRnxTuDzCpK1B5GPXsy0n/GZx6dndUf7pCAXKUDKhPIflv//EACYQAQEAAQIEBgMBAAAAAAAAAAEAESExQYGRoRAgUWHB4XGx8NH/2gAIAQEAAT8hIiIiIiJTnOc5znOc5zlERERERETnOc5znOc5znERERERETnOc5znOc5znERERERESnOc5znOc5znEREREREROc5znOc5znOIiIiIiIic5znOc5znOcREREREREpznOc5znOc4iIiIiIiInOc5znOc5ziIiLKx4kT5CerCCgNVj7NbgfkRZ7QN8ziKrCwmE0RnOc5wNa2RpZAM3VznOfgRFrznq3X5HKM3LfxMDepfK/UygzTYVPZM24LrPT4PKLTW/dXwc/DSqH+j315znOcCeR862J2eVhGx0Bv8dZznPwIi0Mj/g99OcLEnYfy9MdItZLT9Y757QyZAvUbesOfr6Mi2FX3HNsFIe2eFve6h0+DynOc7DfZfl+s+GFLPaN+85zn4kTglZE4NjcyCDhsHXNqCdSPrMWzbvG3fELBvR5Dbt+ov5Wbdc9bMeb1g726bs/U4M5ztEAeY/WSHI7T82hCSrleM5zn4kRbumh9tvh1fCwAY601P85SIRwnGLPZw/w6d1i9kuQ/sc4tUB8n7YfDjZa6XaOdnYynJf7tz8MydOs2+XWc5zn4kRNlMYf5dOyxGRyPG31nmNu+esW2R1O3w6QsaMPzn3k5Q4siOXy/R/3nfJYCdzJznO/QNDv3/VluMjwLczdD0OB0nOc5+QiLeJ2zbti2l1C8Hg9YfstB4NkAwCDjsHTMieFkTiWLveb7/cWy4MfuadmOnh8vgZ225QLYUvdbYFR9/e2vfwHQ5znOc5+QiLS+0/WO2e0dbQmHH+OfOLWuTlfTTlbuV/H3g/yBe5ZVtBBx2DpmIELA4kuTEznr2eTF44A7K27Z7eGr11T7acpznOc/IRExmFT3G21EOdidl8f458otpXROvyOcLGjjojR+IhzXpHH1emnKRm0yGRgI5wgkqDEDxdiyRFNVeM5znOflIiTSI6QHXG3rmU0PIVqdPDFSBvRLjsn5f5IleOM39RcHBagfRIt6hQL1xLfS5i9llrP5o3ZznOc5+UiIiIiIiInOc5znPykREREREREpznOc5+YiIiIiIiPA5znOc/MRERERERETnOc5z85EREREREROc5zn5yIiIiIiIic5znO//2gAMAwEAAgADAAAAEFiPlKgHMITXccVavEqFpHcYTXsb6voKhMDfMRz/AFbjQKpRqAx/Oc5yt57UP3gdTDMPuBaZwdBSLcfPP+oa8lHgbigd/P8AIfVrf12v7zHP/wC9Ltt4d8/soz//ANaFYSpT4b/MP/8AeDUSsWwiPxz/AP7yFhOlIsBjP/8A/wDgdjgege8DD//EAB0RAQACAgMBAQAAAAAAAAAAAAEAIREgEDFBMED/2gAIAQMBAT8Q3dHg+b+d37cFo0Qy5XEHOo9iqDDCydPLbs2RQVFD7FUXBBumGdkKYmSLDF5BW6Z4JdQivIL37v63Y3eP/8QAJREAAgIBAgYDAQEAAAAAAAAAAAERITEQgUFRYXGRobHB0SDw/9oACAECAQE/EEIQhCiiiiiCjVi0QhDtCiiiCWIQhCEKIIKKINWLRCEIShRRRBBLEIz20Tyc4jirOcqldeRnOuJtD7QuNEicsxMUs8+EsU5F4lXMxlYXC9hRRcKwqYhIzpm4uZjj5FEvREIqs7rHlfBPLg7cPVbDKSqu/H3e4x1wvvh+zvULq36wkbZTUrsxBKXUr4Pbl7mM9I/wB3FEvREYLCV3Vrzjct6ljfh+blVWTs6f09itjo+H9eyBNm3yvvwiGdb4Z9K2IpdqXd/il7Egij28epfgUQS9EIaVE35L9ORqVNpd6a+hNXJPqse0KtjSe5Wvfoj3wnyyvzckfSy+7/ABfJBU4rfHhRuKINXqhXUu6Kn35P7I8EOVaecqnz+SeFKiyVrDvpWwtaKsp0sY6CctUwmpTea5TiCJrOXLt9IzfNkSFFEvVaIQhDtCiiiXqhCFotFEEGr/hCEIQhZFFGr/haIQhDxrZH/8QAJBABAAICAAYDAQEBAAAAAAAAAQARITEQIEFhcYEwkaFRsfD/2gAIAQEAAT8QcUUUcUUUUUqSaJo5wANHKAXEUUUUUUUUUUdPA0TTzgAaJomjiDiiiiqOKKKOPkAwTRxDRygGjgOOKKOKKKKOKVPA0zJ8AABo4GiOKKKKKOKKKKPPEMBNPKAaOIaOAoooooo4oooovhCgDRyAaYo4ooooo4ooo5RNE0zIfAAAaOAoooooo44oooo+QDRwNE0cDRxDRwKOKaojIR91FJXtAEUIBRQBlYH/ALvyJA+5Bj/Yojrnq1q6MaZ/xT/IIM5ApE6JNHJBom6LTDwhKc0sYB3UmjgaOIo4odRUZ1bVZadU7sI13zKKX8/VJZ2dnmI3jp0oNPZqvc7gt6APeZQbigy0B/xhRTQ8sXGZPZ7BwxSagYE0fNPp4GiaJklQhp3QZ7Qqq/qKCre7udMNJsqX/j24homjgoo5ry9XAm35qe2b5ijt4aAM+f3RzXUxXKz9FPYgs756AifTL9s8Gg/QlPudjKsmD9ka7Ht20CruNj3Jf4W0LWgP9OWAZ6bWmEU/P0OH8B06VZ/o8BNHKAOYo4Vpb1INie433QyH+AiY1LgLaVQ7rPlI5ZepBxmX9HP+XN8x+3YOnk93CVMpVLXrrR4NvGGOZ7QkH0suSbeKqfoSn3xDNOppCU1iD3PoSlwWL1+5yi9hjlkWptXnAFHFMuijnqozw3qFgiWR6Hu11h4v2UYsiwNIxlAEzp9JYU7JNIu9Z3gd0uCnVuAaLgF7B8Q8MR1FHQye6w4gboPNZvR8q4GXcKR6rB8FvTkA0cgooohGCZ16Z1pKdwiCYVgbE/sy/WUOorexR6xTWA0L0UB5L13TIzTz+FGVo7EBkI0mkh0fmTO1fKegmvRMLc1DvAZOBhitCaXI83PWCY1ygLV9EvAFpvX6gHr4AAGmKOKWXrUctS/t5/0ZRAaIN/qA+ozHfqBpH2RpuoEX9CEFKFnhCxPUye2MOvhfFT3imMgzHGIDu2+/DS4qFGoHZXDuZU4AfrDjyNVNCld1te7LHAADkNK5SAaJo5FFFNawFcBP2U92KFN7BgYDgebqLmvjBcpLfix7ZXrZmryMDuNPqdrC5IifZE3pvQ/6GPcH09CxCxPJFDqkW223a0hUq2hgUHerOy8GEjY3CW15s+AmnkA0TRylHO3pegJ/kaq8y5ADT3NPibY3gy6DxVRU65BC4LEhzM3eoQwVj7L+VihZGC3u+D9HAtQiAOxHZGD4oArvABEsj6cqq65y9hekFdFStTteBh4GiaOUNxRxR1GJEzRa8l7jIsrAhSPjBy0UfyJ8PPaBH7IlNBlKLk5ZXJYRKphv8IoHMCq/q9cfpsRgyXKRj+g2eLfMWqhkue7/AIY4rXKydW8p/X1U0zRxDRzgoooooo44oooo+IYDgaPhAKOKKKOKKKKKKZjmADR8AcUUUUUcUUUcVPA0TR8Qgoo4oooo4ooo4+UA0fABuKOKKKOKKKKOKVPAyTJ8QCjiiiiiiiiiij5ANHwgo4oooo44ooo4uUC0TRP/2Q==" alt="VRF">
+            <div>
+                <div class="bottom-text">Февраль–Март 2026</div>
+                <div class="bottom-subtext">Soft Collection Unit</div>
             </div>
         </div>
     </div>
 
-    <!-- Закрепленная кнопка гамбургер-меню -->
-    <button class="hamburger-btn" onclick="toggleSidebar()" title="Меню">
-        <i class="fas fa-bars"></i>
-    </button>
-
+    <div class="main-v2" id="mainV2">
     <div class="container">
         <header>
             <div class="logo">
@@ -726,16 +1461,64 @@
 
         <!-- Секция дашборда -->
         <div id="dashboard-section" class="dashboard-grid">
-            <div class="card" id="heatmap-section">
+            <!-- ТЕКУЩАЯ ТЕПЛОВАЯ КАРТА (сохранена для тестирования) -->
+            <div class="card" id="heatmap-section" style="display: none;">
                 <div class="card-header">
                     <div class="card-title">
                         <i class="fas fa-th"></i>
-                        Тепловая карта СВП
+                        Тепловая карта СВП (старая)
                     </div>
                 </div>
                 <div class="card-content">
                     <div class="heatmap-container" id="heatmapContainer">
                         <div class="no-data">Выберите период для отображения данных</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- НОВАЯ SVP HEATMAP PRO -->
+            <div class="card" id="svp-heatmap-pro-section">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-th"></i>
+                        SVP Heatmap Pro — Командная сводка
+                    </div>
+                </div>
+                <div class="card-content">
+                    <!-- Placeholder когда фильтры не выбраны -->
+                    <div id="svpHeatmapPlaceholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px; color: var(--text-muted); text-align: center; padding: 40px;">
+                        <i class="fas fa-filter" style="font-size: 3rem; margin-bottom: 20px; opacity: 0.3;"></i>
+                        <p style="font-size: 1.1rem; font-weight: 600; margin-bottom: 10px;">Выберите период для отображения данных</p>
+                        <p style="font-size: 0.9rem; opacity: 0.7;">
+                            1. Выберите месяц в фильтре "Месяц"<br>
+                            2. При необходимости выберите неделю в фильтре "Период"<br>
+                            3. При необходимости выберите сотрудника в фильтре "Сотрудник"
+                        </p>
+                    </div>
+                    
+                    <!-- SVP HEATMAP PRO COMPONENT (скрыт по умолчанию) -->
+                    <div id="svpHeatmapContent" style="display: none;">
+                        <div class="svp-heatmap-container">
+                            <table class="svp-heatmap-table">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-user"></i> Сотрудник</th>
+                                        <th><i class="fas fa-handshake"></i> Приветствие</th>
+                                        <th><i class="fas fa-heart"></i> Этика</th>
+                                        <th><i class="fas fa-database"></i> CRM</th>
+                                        <th><i class="fas fa-user-shield"></i> Легенда</th>
+                                        <th><i class="fas fa-info-circle"></i> Задолж.</th>
+                                        <th><i class="fas fa-bullhorn"></i> Аргумент.</th>
+                                        <th><i class="fas fa-brain"></i> Манипул.</th>
+                                        <th><i class="fas fa-clipboard-list"></i> Требования</th>
+                                        <th><i class="fas fa-flag-checkered"></i> Итоги</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="svpHeatmapBody">
+                                    <!-- Заполняется JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1118,25 +1901,95 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.07
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.752,
+        "activity_count": 5,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            0.0,
+            0.5,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            1.0,
+            1.0,
+            0.5,
+            1.0,
+            1.0
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            1.0,
+            0.5,
+            1.0
+          ],
+          "argumentation": [
+            0.0,
+            0.5,
+            1.0,
+            1.0,
+            0.5
+          ],
+          "manipulation": [
+            0.5,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "requirements": [
+            1.0,
+            0.5,
+            0.5,
+            0.0,
+            0.5
+          ],
+          "summary": [
+            1.0,
+            0.5,
+            1.0,
+            0.0,
+            1.0
+          ]
+        },
+        "aht": 2.06
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9643,
-      "ethics": 0.9286,
-      "crm": 0.9286,
-      "legend": 0.8929,
-      "informing": 0.9286,
-      "argumentation": 0.5357,
-      "manipulation": 0.7857,
-      "requirements": 0.6071,
-      "summary": 0.8571
+      "greeting": 0.9737,
+      "ethics": 0.9474,
+      "crm": 0.8684,
+      "legend": 0.8947,
+      "informing": 0.9211,
+      "argumentation": 0.5526,
+      "manipulation": 0.8158,
+      "requirements": 0.5789,
+      "summary": 0.8158
     },
     "aggregated_tqs": 0.77,
-    "sum_activity": 14,
-    "aggregated_aht": 2.64,
+    "sum_activity": 19,
+    "aggregated_aht": 2.53,
     "pdf_data": {
       "trends": "(Системные недоработки):",
-      "recommendations": "для Лида (руководителя группы):\n• По CRM и финализации диалога (критично): разобрать первый звонок от 18.03. ошибка при выборе статуса\nрезультата в системе классифицируется как фрод и искажает статистику.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\"), так как сотрудник регулярно получает 0,5 балла за\nслабое воздействие.\n• По Аргументации: для достижения 100% эффективности обучить применению ст. 244 ГК РУз (запрет отсрочки)\nв ответ на отговорки клиента об оплате \"потом\".,"
+      "recommendations": "для Лида (руководителя группы):\n• По Требованиям и финализации (критично): разобрать звонок от 29.03, где допущен провал финальных\nблоков. сотрудник обязан озвучивать точный срок и резюмировать договоренности.\n• По CRM: разобрать ошибку фиксации от 25.03 для исключения риска неверной маршрутизации дела в\nсистеме.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для удержания стабильно высокого качества\nдиалога.\n• По Аргументации: использовать ст. 333 ГК РУз (отсутствие денежных средств не освобождает от\nобязательств) в ответ на финансовые возражения."
     }
   },
   "Абдуллаева Севинч": {
@@ -1568,25 +2421,104 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 3.36
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.6933,
+        "activity_count": 6,
+        "scores": {
+          "greeting": [
+            0.5,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            0.5,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            0.5,
+            1.0,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            1.0,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            1.0,
+            1.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            0.0,
+            1.0,
+            1.0,
+            0.5,
+            1.0,
+            1.0
+          ]
+        },
+        "aht": 2.07
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9643,
-      "ethics": 0.8214,
-      "crm": 0.8929,
-      "legend": 0.625,
-      "informing": 0.7321,
-      "argumentation": 0.5179,
-      "manipulation": 0.6786,
-      "requirements": 0.4821,
-      "summary": 0.6429
+      "greeting": 0.9559,
+      "ethics": 0.8529,
+      "crm": 0.8676,
+      "legend": 0.6176,
+      "informing": 0.7794,
+      "argumentation": 0.5294,
+      "manipulation": 0.6765,
+      "requirements": 0.4853,
+      "summary": 0.6618
     },
     "aggregated_tqs": 0.66,
-    "sum_activity": 28,
-    "aggregated_aht": 3.1,
+    "sum_activity": 34,
+    "aggregated_aht": 2.97,
     "pdf_data": {
-      "trends": "o Информация о задолженности, Аргументация, Требования: системные",
-      "recommendations": "для Лида (руководителя группы):\n• По системному качеству: Сотрудник стабильно получает 0,5 за ключевые блоки.\nНеобходимо проработать навыки правовой аргументации (ссылки на статьи ГК РУз) и\nчеткого выставления требований (сумма, срок, способ оплаты).\n• По управлению временем: разобрать звонок от 26.02 (5:23). Обучить техникам\nперехвата инициативы, чтобы сократить фазу аргументации."
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По CRM и Итогам (экстренно): разобрать ошибку CRM от 25.03 и провал финализации от 24.03. нарушение\nправил фиксации несет риск фрода.\n• По Требованиям: обязать сотрудника использовать конкретику в каждом диалоге: называть способы оплаты\n(Payme, Click) и точную дату исполнения.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\").\n• По Аргументации: внедрить обязательные ссылки на ст. 236 и 237 ГК РУз (надлежащее исполнение и\nзапрет отказа)."
     }
   },
   "Алкаров Жамшид": {
@@ -2009,25 +2941,95 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 3.51
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.528,
+        "activity_count": 5,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            0.5
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            0.0,
+            1.0,
+            1.0,
+            0.0
+          ],
+          "legend": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "informing": [
+            0.0,
+            0.5,
+            1.0,
+            0.5,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.5,
+            0.0,
+            1.0,
+            1.0,
+            0.0
+          ],
+          "requirements": [
+            0.0,
+            0.5,
+            0.5,
+            0.0,
+            0.5
+          ],
+          "summary": [
+            0.0,
+            0.5,
+            0.5,
+            1.0,
+            0.0
+          ]
+        },
+        "aht": 1.94
       }
     },
     "aggregated_scores": {
-      "greeting": 0.963,
-      "ethics": 0.7037,
-      "crm": 0.963,
-      "legend": 0.5185,
-      "informing": 0.7407,
-      "argumentation": 0.4815,
-      "manipulation": 0.5556,
-      "requirements": 0.4074,
-      "summary": 0.5
+      "greeting": 0.9531,
+      "ethics": 0.75,
+      "crm": 0.9062,
+      "legend": 0.5156,
+      "informing": 0.7188,
+      "argumentation": 0.4844,
+      "manipulation": 0.5469,
+      "requirements": 0.3906,
+      "summary": 0.4844
     },
-    "aggregated_tqs": 0.6,
-    "sum_activity": 27,
-    "aggregated_aht": 4.18,
+    "aggregated_tqs": 0.59,
+    "sum_activity": 32,
+    "aggregated_aht": 3.9,
     "pdf_data": {
-      "trends": "o Этика общения: системная потеря инициативы (0,5 балла во всех 4-х звонках).",
-      "recommendations": "для Лида (руководителя группы):\n• По тактическому блоку (критично): у сотрудника самый низкий средний балл в\nгруппе. Требуется полный пересмотр навыков Манипуляции и Аргументации.,\n• По Аргументации: провести обучение по ст. 236 ГК РУз (надлежащее исполнение) и ст.\n333 ГК РУз (деньги не оправдание), чтобы сотрудник перестал получать «0» и «0,5».\n• По Этике: обучить удержанию позиции «взрослый–взрослый», чтобы исключить\nпассивное ведение диалога."
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По CRM и финализации диалога (экстренно): сотрудник систематически не озвучивает требования, не\nподводит итоги и допускает ошибки фиксации в системе. требуется жесткий контроль структуры СВП на\nфинальных этапах.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для закрытия критических провалов в тактике.\n• По Аргументации: использовать ст. 333 ГК РУз (отсутствие денежных средств не освобождает от\nобязательств) для устранения системной слабости."
     }
   },
   "Бахромова Нозима": {
@@ -2407,25 +3409,95 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.29
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.664,
+        "activity_count": 5,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            0.5,
+            0.5,
+            1.0,
+            1.0,
+            0.5
+          ],
+          "informing": [
+            0.5,
+            0.5,
+            0.5,
+            1.0,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            1.0,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.5,
+            1.0,
+            0.5,
+            1.0,
+            0.0
+          ],
+          "requirements": [
+            0.0,
+            1.0,
+            0.5,
+            0.0,
+            0.0
+          ],
+          "summary": [
+            1.0,
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ]
+        },
+        "aht": 1.7
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9,
-      "ethics": 0.82,
-      "crm": 0.8,
-      "legend": 0.6,
-      "informing": 0.76,
-      "argumentation": 0.54,
-      "manipulation": 0.54,
-      "requirements": 0.44,
-      "summary": 0.44
+      "greeting": 0.9167,
+      "ethics": 0.7833,
+      "crm": 0.8333,
+      "legend": 0.6167,
+      "informing": 0.75,
+      "argumentation": 0.55,
+      "manipulation": 0.55,
+      "requirements": 0.4167,
+      "summary": 0.5
     },
-    "aggregated_tqs": 0.61,
-    "sum_activity": 25,
-    "aggregated_aht": 2.16,
+    "aggregated_tqs": 0.62,
+    "sum_activity": 30,
+    "aggregated_aht": 2.09,
     "pdf_data": {
-      "trends": "o Легендирование и Аргументация: системные недоработки (0,5 балла в 3-х",
-      "recommendations": "для Лида (руководителя группы):\n• По закрытию сделки (критично): на звонке от 28.02 сотрудник обнулил все ключевые\nблоки (Манипуляция, Требования, Итоги), что привело к баллу 43%. Разобрать причины\nпотери контроля над взысканием в конце месяца.\n• По Аргументации: внедрить использование ссылок на закон, к примеру: ст. 333 ГК РУз\n(отсутствие средств не освобождает от обязательств)."
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По Этике и финализации (критично): разобрать звонки от 26.03 и 28.03. недопустимо нарушать нормы\nделового общения и бросать звонок без подведения итогов (Якунлаш).\n• По Требованиям: сотрудник системно не выставляет требования, необходимо четко и бескомпромиссно\nозвучивать сумму и сроки оплаты.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для устранения нулей и возврата контроля над\nразговором.\n• По Аргументации: обучить применению ст. 421 ГК РУз (товар в залоге у продавца), чтобы преодолеть\nстабильную оценку 0,5."
     }
   },
   "Боборахматов Санъатбек": {
@@ -2848,25 +3920,104 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.59
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.715,
+        "activity_count": 6,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            0.5,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            0.0,
+            0.5,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            1.0,
+            0.5,
+            1.0,
+            0.5
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            0.5,
+            1.0
+          ],
+          "requirements": [
+            1.0,
+            1.0,
+            0.0,
+            1.0,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "aht": 2.07
       }
     },
     "aggregated_scores": {
-      "greeting": 0.963,
-      "ethics": 0.8333,
-      "crm": 0.9815,
-      "legend": 0.6111,
-      "informing": 0.8704,
-      "argumentation": 0.6481,
-      "manipulation": 0.6667,
-      "requirements": 0.5556,
-      "summary": 0.8889
+      "greeting": 0.9697,
+      "ethics": 0.8636,
+      "crm": 0.9394,
+      "legend": 0.6364,
+      "informing": 0.8636,
+      "argumentation": 0.6212,
+      "manipulation": 0.6818,
+      "requirements": 0.5758,
+      "summary": 0.8485
     },
-    "aggregated_tqs": 0.74,
-    "sum_activity": 27,
-    "aggregated_aht": 2.91,
+    "aggregated_tqs": 0.73,
+    "sum_activity": 33,
+    "aggregated_aht": 2.81,
     "pdf_data": {
-      "trends": "o Аргументация: системное отсутствие ссылок на НПА (0,5 балла в звонках от 23.02",
-      "recommendations": "для Лида (руководителя группы):\n• По Легендированию и Манипуляции (критично): разобрать звонок от 25.02. Сотрудник\nдолжен использовать структуру легенды (компетенция / эскалация) и тактики\nвоздействия через возможные последствия, «Выбор без выбора», чтобы не допускать\nпадения качества диалога.\n• По Аргументации: обучить применению ст. 236 и 237 ГК РУз (надлежащее исполнение и\nзапрет отказа), чтобы подкреплять требования законом, а не только Договором и логикой.\n• По Требованиям: усилить акцент на озвучивании точного времени, суммы и способов\nоплаты (Payme, Click) согласно регламенту."
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По финализации диалога и CRM (критично): разобрать звонки от 24.03, 25.03 и 26.03. обнуление выбора\nстатуса в CRM и игнорирование фиксации итогов недопустимы.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для закрепления позиции в переговорах.\n• По Аргументации: применять ст. 236 и 237 ГК РУз (надлежащее исполнение), чтобы устранить стабильные\nнули и 0,5 балла."
     }
   },
   "Исаков Даврон": {
@@ -3298,25 +4449,104 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 5.01
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.815,
+        "activity_count": 6,
+        "scores": {
+          "greeting": [
+            0.5,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            0.5
+          ],
+          "legend": [
+            1.0,
+            1.0,
+            1.0,
+            0.5,
+            1.0,
+            1.0
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            1.0,
+            0.5,
+            1.0,
+            1.0
+          ],
+          "argumentation": [
+            1.0,
+            0.5,
+            1.0,
+            1.0,
+            0.5,
+            1.0
+          ],
+          "manipulation": [
+            0.5,
+            1.0,
+            1.0,
+            0.0,
+            0.5,
+            1.0
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            1.0,
+            0.5
+          ],
+          "summary": [
+            0.5,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "aht": 2.32
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9464,
-      "ethics": 0.8036,
-      "crm": 0.8214,
-      "legend": 0.9464,
-      "informing": 0.6429,
-      "argumentation": 0.6607,
-      "manipulation": 0.5536,
-      "requirements": 0.4464,
-      "summary": 0.6429
+      "greeting": 0.9412,
+      "ethics": 0.8382,
+      "crm": 0.8088,
+      "legend": 0.9412,
+      "informing": 0.6912,
+      "argumentation": 0.6912,
+      "manipulation": 0.5735,
+      "requirements": 0.4706,
+      "summary": 0.6912
     },
-    "aggregated_tqs": 0.7,
-    "sum_activity": 28,
-    "aggregated_aht": 3.73,
+    "aggregated_tqs": 0.71,
+    "sum_activity": 34,
+    "aggregated_aht": 3.55,
     "pdf_data": {
-      "trends": "o Этика общения: системная потеря инициативы (0,5 балла в 3-х звонках), что",
-      "recommendations": "для Лида (руководителя группы):\n• По управлению временем (критично): несмотря на высокий средний балл, сотрудник\nкрайне неэффективен по времени. Обучить техникам «сжатия» диалога и перехвата\nинициативы.\n• По Требованиям: усилить акцент на озвучивании точного времени, суммы и способов\nоплаты. Балл 0,5 указывает на отсутствие четкой установки для клиента.\n• По Аргументации: для достижения 100% результата внедрить ссылки на ст. 324 ГК РУз\n(возмещение расходов на взыскание)."
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По Требованиям: при общем высоком балле сотрудник системно получает 0,5 за нечеткость. необходимо\nжестко озвучивать способы оплаты (Payme, Click) и конкретные сроки исполнения в каждом диалоге.\n• По CRM: разобрать ошибку в выборе результата от 25.03, чтобы исключить риски неверной классификации\nдоговоров.\n• По Манипуляции: для удержания высокой планки и перехвата инициативы рекомендуется внедрение\nманипулятивных тактик (на пример: \"Давление негативными последствиями\", \"Давление сроком\", \"Выбор\nбез выбора\")."
     }
   },
   "Каюмова Сония": {
@@ -3748,25 +4978,95 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.25
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.652,
+        "activity_count": 5,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            0.5,
+            1.0,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            1.0,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            0.0,
+            0.5,
+            1.0,
+            0.0
+          ],
+          "requirements": [
+            0.5,
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ],
+          "summary": [
+            1.0,
+            0.5,
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "aht": 1.72
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9821,
-      "ethics": 0.9464,
-      "crm": 0.9286,
-      "legend": 0.7857,
-      "informing": 0.8393,
-      "argumentation": 0.5536,
-      "manipulation": 0.5536,
-      "requirements": 0.4286,
-      "summary": 0.7321
+      "greeting": 0.9848,
+      "ethics": 0.9545,
+      "crm": 0.9394,
+      "legend": 0.7576,
+      "informing": 0.8636,
+      "argumentation": 0.5606,
+      "manipulation": 0.5152,
+      "requirements": 0.4242,
+      "summary": 0.697
     },
-    "aggregated_tqs": 0.7,
-    "sum_activity": 28,
-    "aggregated_aht": 2.27,
+    "aggregated_tqs": 0.69,
+    "sum_activity": 33,
+    "aggregated_aht": 2.2,
     "pdf_data": {
-      "trends": "o Информация о задолженности: системная неполнота данных (0,5 балла в",
-      "recommendations": "для Лида (руководителя группы):\n• По Манипуляции и Требованиям (критично): разобрать звонок от 27.02. Сотрудник\nотпустил клиента без выставления требований по сумме/сроку и без использования\nинструментов давления («Давление сроком»), что делает звонок неэффективным.\n• По Информированию: обеспечить обязательное озвучивание полной суммы долга и DPD,\nтак как оценка 0,5 указывает на неполноту данных.\n• По Аргументации: провести обучение по использованию ст. 333 ГК РУз (отсутствие\nденежных средств не освобождает от обязательств)."
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По финализации диалога: проработать звонки от 26.03, 27.03 и 30.03. сотрудник системно не озвучивает\nтребования и не подводит итоги, что сводит эффективность звонка к нулю.\n• По Манипуляции (критично): рекомендуется внедрение манипулятивных тактик (на пример: \"Давление\nнегативными последствиями\", \"Давление сроком\", \"Выбор без выбора\"), так как данный блок фактически\nотсутствует.\n• По Аргументации: внедрить ссылки на ст. 333 ГК РУз (отсутствие денежных средств не освобождает от\nобязательств)."
     }
   },
   "Комолдинов Диёрбек": {
@@ -4255,25 +5555,104 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 5.58
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.71,
+        "activity_count": 6,
+        "scores": {
+          "greeting": [
+            0.5,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            0.5
+          ],
+          "crm": [
+            1.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            0.5,
+            0.5,
+            0.5,
+            1.0,
+            0.5,
+            0.5
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            1.0,
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          "manipulation": [
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            0.5,
+            1.0
+          ],
+          "requirements": [
+            0.0,
+            1.0,
+            0.5,
+            1.0,
+            0.0,
+            1.0
+          ],
+          "summary": [
+            0.0,
+            1.0,
+            1.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "aht": 2.36
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9643,
-      "ethics": 0.8036,
-      "crm": 0.9464,
-      "legend": 0.5179,
-      "informing": 0.6786,
-      "argumentation": 0.6071,
-      "manipulation": 0.4643,
-      "requirements": 0.4821,
-      "summary": 0.8214
+      "greeting": 0.9559,
+      "ethics": 0.8235,
+      "crm": 0.9265,
+      "legend": 0.5294,
+      "informing": 0.7353,
+      "argumentation": 0.6176,
+      "manipulation": 0.5147,
+      "requirements": 0.5,
+      "summary": 0.7647
     },
-    "aggregated_tqs": 0.65,
-    "sum_activity": 28,
-    "aggregated_aht": 3.98,
+    "aggregated_tqs": 0.66,
+    "sum_activity": 34,
+    "aggregated_aht": 3.78,
     "pdf_data": {
-      "trends": "o Легендирование и Аргументация: системные недоработки (0,5 балла во всех 4-х",
-      "recommendations": "для Лида (руководителя группы):\n• По управлению временем и Этике (критично): разобрать звонок на 10 минут.\nСотрудник теряет инициативу и позволяет должнику уводить диалог в сторону.,\n• По Манипуляции: проработать тактику «Выбор без выбора», так как текущий балл «0»\nсвидетельствует о полном отсутствии влияния на мотивацию клиента.\n• По Аргументации: использовать ссылки, например: ст. 422 ГК РУз (право на досрочное\nвзыскание)."
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По финализации диалога (критично): разобрать звонки от 24.03, 28.03 и 30.03. систематическое обнуление\nтребований и итогов обесценивает процесс телефонных переговоров.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\").\n• По Легендированию и Аргументации: применять четкую структуру должностной интриги и ст. 236 ГК\nРУз (надлежащее исполнение) для устранения системных просадок."
     }
   },
   "Мамараимов Фирдавс": {
@@ -4644,25 +6023,104 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 3.3
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.7017,
+        "activity_count": 6,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            0.5,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            0.5,
+            1.0,
+            0.5,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "informing": [
+            0.5,
+            0.5,
+            0.5,
+            1.0,
+            0.5,
+            0.5
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.5,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            0.0
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            1.0,
+            0.5
+          ],
+          "summary": [
+            0.5,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "aht": 2.31
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9375,
-      "ethics": 0.9375,
-      "crm": 0.9167,
-      "legend": 0.6458,
-      "informing": 0.5208,
-      "argumentation": 0.6875,
-      "manipulation": 0.6875,
-      "requirements": 0.5417,
-      "summary": 0.5833
+      "greeting": 0.95,
+      "ethics": 0.9333,
+      "crm": 0.9,
+      "legend": 0.6833,
+      "informing": 0.5333,
+      "argumentation": 0.65,
+      "manipulation": 0.7,
+      "requirements": 0.55,
+      "summary": 0.6167
     },
-    "aggregated_tqs": 0.68,
-    "sum_activity": 24,
-    "aggregated_aht": 2.85,
+    "aggregated_tqs": 0.69,
+    "sum_activity": 30,
+    "aggregated_aht": 2.77,
     "pdf_data": {
-      "trends": "o Легендирование: системная слабость тактического инструмента (0,5 балла во",
-      "recommendations": "для Лида (руководителя группы):\n• По Итогам и Требованиям (критично): Сотрудник фактически не завершает звонки.\nНеобходимо провести обучение по этапам «Выставление требований» и «Якунлаш» с\nобязательным упоминанием записи разговора как вещественного доказательства.\n• По Легендированию: разобрать легендирование на компоненты: «компетенция» и\n«эскалация» (отдел анализа рисков/юристы) для повышения статуса звонка на старте.\n• По Аргументации: внедрить ссылки на ст. 421 ГК РУз (товар в залоге у VRF до полной\nоплаты) для усиления психологического давления."
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По CRM и Итогам (экстренно): разобрать ошибку в фиксации от 25.03. нарушение дисциплины CRM\nквалифицируется как риск фрода.\n• По Аргументации: обучить применению ст. 421 ГК РУз (товар в залоге до полной оплаты), так как\nсотрудник опирается лишь на логику, теряя баллы.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\")."
     }
   },
   "Мусаев Хуршид": {
@@ -5085,25 +6543,95 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 4.27
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.682,
+        "activity_count": 5,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            0.5,
+            1.0,
+            0.5,
+            0.0,
+            0.5
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            1.0,
+            0.5,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            1.0,
+            1.0,
+            1.0,
+            0.5
+          ],
+          "manipulation": [
+            0.5,
+            1.0,
+            1.0,
+            0.5,
+            1.0
+          ],
+          "requirements": [
+            1.0,
+            0.5,
+            0.5,
+            0.0,
+            0.5
+          ],
+          "summary": [
+            0.5,
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ]
+        },
+        "aht": 2.36
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9444,
-      "ethics": 0.8519,
-      "crm": 0.9074,
-      "legend": 0.5556,
-      "informing": 0.8519,
-      "argumentation": 0.5926,
-      "manipulation": 0.537,
-      "requirements": 0.5741,
-      "summary": 0.2778
+      "greeting": 0.9531,
+      "ethics": 0.8438,
+      "crm": 0.8906,
+      "legend": 0.5469,
+      "informing": 0.8594,
+      "argumentation": 0.625,
+      "manipulation": 0.5781,
+      "requirements": 0.5625,
+      "summary": 0.2812
     },
-    "aggregated_tqs": 0.63,
-    "sum_activity": 27,
-    "aggregated_aht": 3.18,
+    "aggregated_tqs": 0.64,
+    "sum_activity": 32,
+    "aggregated_aht": 3.08,
     "pdf_data": {
-      "trends": "o Аргументация и Выставление требований: системные ошибки (0,5 балла во",
-      "recommendations": "для Лида (руководителя группы):\n• По Итогам (критично): Сотрудник фактически игнорирует фиксацию итогов (блок\n«Якунлаш») в 75% случаев. Требуется жесткий контроль резюмирования обязательств.\n• По Аргументации: провести обучение по статьям ст. 236 и 237 ГК РУз.\n• По управлению временем: обучить сокращать фазу аргументации, если должник уже\nперешел в фазу сопротивления, переходя к жесткому выставлению требований."
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По системным провалам (экстренно): жестко разобрать звонок от 29.03, где допущена потеря этики и\nобнулены ключевые блоки. также сотрудник систематически бросает звонки без подведения итогов.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для усиления инициативы.\n• По Требованиям: обязать сотрудника озвучивать конкретные даты и способы оплаты."
     }
   },
   "Надруллаева Рухсона": {
@@ -5535,25 +7063,104 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 6.28
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.5933,
+        "activity_count": 6,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            0.5,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            0.0,
+            1.0,
+            1.0,
+            0.5,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            0.5,
+            0.0,
+            0.5,
+            1.0,
+            1.0,
+            0.0
+          ],
+          "legend": [
+            0.5,
+            1.0,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "informing": [
+            0.5,
+            0.5,
+            1.0,
+            1.0,
+            1.0,
+            0.5
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.5,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            0.5
+          ],
+          "requirements": [
+            0.5,
+            1.0,
+            0.5,
+            1.0,
+            1.0,
+            0.5
+          ],
+          "summary": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "aht": 2.23
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9464,
+      "greeting": 0.9412,
       "ethics": 0.75,
-      "crm": 0.9464,
-      "legend": 0.8929,
-      "informing": 0.7679,
+      "crm": 0.8676,
+      "legend": 0.8382,
+      "informing": 0.7647,
       "argumentation": 0.5,
-      "manipulation": 0.6786,
-      "requirements": 0.5893,
-      "summary": 0.2321
+      "manipulation": 0.7059,
+      "requirements": 0.6176,
+      "summary": 0.1912
     },
-    "aggregated_tqs": 0.67,
-    "sum_activity": 28,
-    "aggregated_aht": 4.19,
+    "aggregated_tqs": 0.66,
+    "sum_activity": 34,
+    "aggregated_aht": 3.95,
     "pdf_data": {
-      "trends": "o Аргументация: системное отсутствие ссылок на НПА (0,5 балла во всех 4-х",
-      "recommendations": "для Лида (руководителя группы):\n• По управлению временем (критично): разобрать кейс от 26.02 (12:19). Обучить\nтехникам перехвата инициативы («взрослый–взрослый») и сжатия фазы возражений,\nчтобы не допускать деструктивных жалоб клиента и прочих затягиваний.\n• По Итогам: усилить блок резюмирования. Оценка 0,5 указывает на формальное\nзавершение без фиксации жестких рамок для должника.\n• По Аргументации: использовать ст. 324 ГК РУз для разъяснения клиенту, что расходы\nпо взысканию также лягут на него."
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По финализации диалога (экстренно): сотрудник систематически бросает диалог без фиксации\nдоговоренностей (6 нулей подряд). необходим жесткий контроль этапа «Якунлаш» с предупреждением\nклиента о записи разговора.\n• По CRM и Этике: разобрать ошибки фиксации и нарушение делового тона от 24.03, 25.03 и 31.03. искажение\nстатуса и потеря этики несут репутационные риски и риски фрода.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\").\n• По Аргументации: применять ссылки на ст. 236 и 237 ГК РУз (надлежащее исполнение и запрет отказа) для\nустранения стабильных 0,5 балла."
     }
   },
   "Низомиддинов Аслиддин": {
@@ -5985,25 +7592,104 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.35
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.5717,
+        "activity_count": 6,
+        "scores": {
+          "greeting": [
+            0.5,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            1.0,
+            0.5,
+            0.5,
+            0.5,
+            0.0,
+            0.0
+          ],
+          "informing": [
+            1.0,
+            0.5,
+            1.0,
+            1.0,
+            0.5,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          "summary": [
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "aht": 1.77
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9821,
-      "ethics": 0.75,
-      "crm": 0.7143,
-      "legend": 0.5,
-      "informing": 0.8571,
+      "greeting": 0.9706,
+      "ethics": 0.7647,
+      "crm": 0.7059,
+      "legend": 0.4853,
+      "informing": 0.8529,
       "argumentation": 0.5,
-      "manipulation": 0.3214,
-      "requirements": 0.5179,
-      "summary": 0.9464
+      "manipulation": 0.2647,
+      "requirements": 0.5294,
+      "summary": 0.9265
     },
-    "aggregated_tqs": 0.63,
-    "sum_activity": 28,
-    "aggregated_aht": 3.2,
+    "aggregated_tqs": 0.62,
+    "sum_activity": 34,
+    "aggregated_aht": 3.02,
     "pdf_data": {
-      "trends": "o Легендирование и Аргументация: системные просадки (0,5 балла во всех 4-х",
-      "recommendations": "для Лида (руководителя группы):\n• По Манипуляции (критично): Сотрудник систематически игнорирует блок\nманипуляций. Внедрить тактики: давление последствиями, «Выбор без выбора»\n(оплата сегодня или завтра?).\n• По CRM: исключить ошибки / отсутствие фиксации как таковое при выборе результата\nзвонка (звонок от 28.02), так как это искажает аналитику взыскания.\n• По Аргументации: обучить ссылаться на ст. 237 ГК РУз (запрет одностороннего отказа)."
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По Манипуляции (экстренно): абсолютный провал тактического давления (6 нулей). рекомендуется\nвнедрение манипулятивных тактик (на пример: \"Давление негативными последствиями\", \"Давление сроком\",\n\"Выбор без выбора\").\n• По CRM и Этике: разобрать стартовые звонки периода (24.03 и 25.03). недопустимо обнуление этики\nобщения и искажение статусов в системе (риск фрода).\n• По Аргументации и Требованиям: обязать сотрудника четко озвучивать даты и суммы, а также применять\nст. 324 ГК РУз (возмещение расходов на взыскание)."
     }
   },
   "Сабитова Навруза": {
@@ -6435,25 +8121,104 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 3.55
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.77,
+        "activity_count": 6,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            0.5,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            0.5,
+            1.0,
+            1.0,
+            0.5,
+            1.0,
+            1.0
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            0.5,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "argumentation": [
+            1.0,
+            0.5,
+            0.5,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "manipulation": [
+            0.5,
+            1.0,
+            0.0,
+            1.0,
+            0.5,
+            1.0
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.0,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            1.0,
+            1.0,
+            0.5,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "aht": 2.36
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9464,
-      "ethics": 0.8214,
-      "crm": 0.875,
-      "legend": 0.9107,
-      "informing": 0.8214,
-      "argumentation": 0.7143,
-      "manipulation": 0.6786,
-      "requirements": 0.5,
-      "summary": 0.6429
+      "greeting": 0.9412,
+      "ethics": 0.8529,
+      "crm": 0.8382,
+      "legend": 0.8971,
+      "informing": 0.8382,
+      "argumentation": 0.7353,
+      "manipulation": 0.6765,
+      "requirements": 0.4853,
+      "summary": 0.6912
     },
     "aggregated_tqs": 0.75,
-    "sum_activity": 28,
-    "aggregated_aht": 3.1,
+    "sum_activity": 34,
+    "aggregated_aht": 3.01,
     "pdf_data": {
-      "trends": "o Аргументация и Итоги: системные ошибки (0,5 балла во всех 4-х звонках).",
-      "recommendations": "для Лида (руководителя группы):\n• По финализации звонка (критично): разобрать провалы первой половины недели.\nСотрудник не выставлял требований и не фиксировал итоги. Обучить блоку «Якунлаш».\n• По Аргументации: обучить применению ст. 333 ГК РУз (отсутствие денег не\nосвобождает от обязательств).\n• По CRM: указать на недопустимость неверного выбора / отсутствие фиксации результата\nзвонка (фрод от 24.02)."
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По CRM (экстренно): разобрать звонки от 25.03 и 26.03. неверная фиксация статуса искажает статистику и\nнесет прямые риски фрода.\n• По Требованиям: системная просадка в конкретике. необходимо жестко озвучивать точные сроки оплаты и\nплатежные системы (Payme, Click) в каждом звонке.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для закрытия провалов в тактическом блоке."
     }
   },
   "Сабуров Оғабек": {
@@ -6885,25 +8650,104 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 4.17
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.68,
+        "activity_count": 6,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            0.5
+          ],
+          "requirements": [
+            0.0,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "aht": 2.04
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9643,
-      "ethics": 0.8929,
-      "crm": 0.8393,
-      "legend": 0.75,
-      "informing": 0.7679,
+      "greeting": 0.9706,
+      "ethics": 0.9118,
+      "crm": 0.8382,
+      "legend": 0.7059,
+      "informing": 0.8088,
       "argumentation": 0.5,
-      "manipulation": 0.4464,
-      "requirements": 0.4107,
-      "summary": 0.4643
+      "manipulation": 0.5,
+      "requirements": 0.4118,
+      "summary": 0.5294
     },
-    "aggregated_tqs": 0.62,
-    "sum_activity": 28,
-    "aggregated_aht": 3.01,
+    "aggregated_tqs": 0.63,
+    "sum_activity": 34,
+    "aggregated_aht": 2.89,
     "pdf_data": {
-      "trends": "o Аргументация: системное отсутствие ссылок на НПА (0,5 балла во всех 4-х",
-      "recommendations": "для Лида (руководителя группы):\n• По финалу звонка (критично): разобрать системные провалы в блоках «Требования» и\n«Итоги». Сотрудник фактически не завершает процесс взыскания, отпуская клиента без\nобязательств.\n• По Аргументации: обучить применению ст. 421 ГК РУз (товар в залоге до полной\nоплаты), чтобы повысить весомость требований.\n• По управлению временем: разобрать кейс от 28.02 (6:40). Обучить техникам перехвата\nинициативы, чтобы не допускать затягивания неэффективных диалогов."
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По финализации и CRM (критично): разобрать звонки от 24.03 и 25.03, где допущено обнуление\nтребований и ошибка в фиксации статуса в системе.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для усиления контроля в диалоге.\n• По Аргументации и Легендированию: отработать подачу интриги в начале звонка и внедрить ст. 421 ГК\nРУз (товар в залоге у продавца), так как по этим блокам стабильно ставится 0,5 балла.\n• По Требованиям: обязать озвучивать точные сроки и способы оплаты, исключая размытые формулировки."
     }
   },
   "Тожиев Шохрух": {
@@ -7317,25 +9161,95 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 1.35
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.668,
+        "activity_count": 5,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "informing": [
+            1.0,
+            0.5,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            1.0,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            0.5
+          ],
+          "requirements": [
+            0.5,
+            0.0,
+            1.0,
+            0.5,
+            1.0
+          ],
+          "summary": [
+            0.5,
+            0.0,
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "aht": 2.28
       }
     },
     "aggregated_scores": {
       "greeting": 1.0,
       "ethics": 1.0,
-      "crm": 1.0,
-      "legend": 0.7885,
-      "informing": 0.7692,
-      "argumentation": 0.5192,
-      "manipulation": 0.4615,
-      "requirements": 0.5,
-      "summary": 0.5962
+      "crm": 0.9677,
+      "legend": 0.7419,
+      "informing": 0.7903,
+      "argumentation": 0.5323,
+      "manipulation": 0.5,
+      "requirements": 0.5161,
+      "summary": 0.5645
     },
     "aggregated_tqs": 0.68,
-    "sum_activity": 26,
-    "aggregated_aht": 1.74,
+    "sum_activity": 31,
+    "aggregated_aht": 1.8,
     "pdf_data": {
-      "trends": "o Аргументация и Выставление требований: системные просадки (0,5 балла в",
-      "recommendations": "для Лида (руководителя группы):\n• По Манипуляции: обучить технике «Выбор без выбора» (например: «…пополните карту\nсегодня или оплатите через Paynet завтра до обеда?»), чтобы исключать отказ как\nвариант.\n• По Аргументации: провести обучение по правовой базе. Использование только\nлогических доводов оценивается в 0,5 балла; требуются ссылки на статьи ГК РУз и\nдругие НПА."
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По финализации диалога и CRM (критично): разобрать звонок от 25.03. обнуление требований, итогов и\nстатуса в CRM недопустимо.\n• По Легендированию: отработать структуру легенды («компетенция», «эскалация»), так как сотрудник\nстабильно не дотягивает до нормы.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\").\n• По Аргументации: применять ст. 244 ГК РУз (отсрочка не допускается)."
     }
   },
   "Тоштемиров Мухаммадали": {
@@ -7618,25 +9532,95 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 1.89
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.496,
+        "activity_count": 5,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            1.0,
+            1.0,
+            0.5,
+            0.0
+          ],
+          "legend": [
+            0.5,
+            0.5,
+            0.0,
+            0.5,
+            0.5
+          ],
+          "informing": [
+            0.5,
+            1.0,
+            0.5,
+            0.5,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0
+          ]
+        },
+        "aht": 1.61
       }
     },
     "aggregated_scores": {
-      "greeting": 0.8235,
-      "ethics": 0.7647,
-      "crm": 0.7941,
-      "legend": 0.7353,
-      "informing": 0.8235,
+      "greeting": 0.8636,
+      "ethics": 0.8182,
+      "crm": 0.7727,
+      "legend": 0.6591,
+      "informing": 0.7955,
       "argumentation": 0.5,
-      "manipulation": 0.4412,
-      "requirements": 0.4706,
-      "summary": 0.0882
+      "manipulation": 0.3636,
+      "requirements": 0.4773,
+      "summary": 0.0909
     },
-    "aggregated_tqs": 0.6,
-    "sum_activity": 17,
-    "aggregated_aht": 2.31,
+    "aggregated_tqs": 0.59,
+    "sum_activity": 22,
+    "aggregated_aht": 2.19,
     "pdf_data": {
-      "trends": "o Аргументация: системное отсутствие ссылок на НПА (0,5 балла во всех 4-х",
-      "recommendations": "для Лида (руководителя группы):\n• По тактическому блоку (критично): Сотрудник полностью игнорирует Манипуляцию\nи Итоги. Без этих этапов взыскание превращается в информирование. Обучить тактикам\n«Давление сроком» и обязательному резюмированию со триггерными фразами\n(Якунлаш).\n• По Этике: разобрать звонок от 24.02. Необходимо сохранять профессиональный тон\nдаже при сопротивлении клиента, не допускать одностороннего прерывания диалога со\nстороны сотрудника.\n• По Аргументации: внедрить ссылки на ст. 236 и 237 ГК РУз (надлежащее исполнение\nобязательств)."
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По системным провалам (экстренно): сотрудник демонстрирует критически низкий балл. финализация и\nдавление отсутствуют. необходимо жестко требовать проведения этапа «Якунлаш» (фиксация обязательств).\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\").\n• По Аргументации: использовать ст. 324 ГК РУз (возмещение убытков и расходов на взыскание)."
     }
   },
   "Хакимов Умид": {
@@ -8068,25 +10052,95 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.92
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.596,
+        "activity_count": 5,
+        "scores": {
+          "greeting": [
+            1.0,
+            0.5,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            0.0,
+            1.0,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            0.5,
+            1.0,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            0.5,
+            0.0,
+            0.5,
+            0.5,
+            1.0
+          ]
+        },
+        "aht": 2.17
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9821,
-      "ethics": 0.9107,
-      "crm": 0.9464,
-      "legend": 0.6786,
-      "informing": 0.6786,
+      "greeting": 0.9697,
+      "ethics": 0.9242,
+      "crm": 0.8939,
+      "legend": 0.6515,
+      "informing": 0.7121,
       "argumentation": 0.5,
-      "manipulation": 0.6964,
-      "requirements": 0.4821,
-      "summary": 0.7321
+      "manipulation": 0.6667,
+      "requirements": 0.4848,
+      "summary": 0.697
     },
-    "aggregated_tqs": 0.68,
-    "sum_activity": 28,
-    "aggregated_aht": 2.77,
+    "aggregated_tqs": 0.67,
+    "sum_activity": 33,
+    "aggregated_aht": 2.69,
     "pdf_data": {
-      "trends": "o Аргументация: системное отсутствие ссылок на НПА (0,5 балла во всех 4-х",
-      "recommendations": "для Лида (руководителя группы):\n• По Этике и Требованиям (критично): разобрать звонок от 23.02. Сотрудник должен\nсохранять спокойствие и уверенность, переводя конфликт в конструктивное русло через\nпоследствия.\n• По Аргументации: обучить применению ст. 333 ГК РУз (отсутствие денежных средств\nне освобождает от обязательств).\n• По Информированию: контролировать озвучивание точной суммы просрочки согласно\nСВП."
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По CRM и финализации (критично): разобрать звонки от начала периода (24.03 и 25.03). допущены грубые\nошибки в фиксации статусов и отсутствует финализация диалога.\n• По Требованиям: обязать сотрудника озвучивать конкретную дату оплаты, сумму и платежные системы\n(Payme, Click) в каждом звонке.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для усиления инициативы.\n• По Аргументации: применять ст. 324 ГК РУз (возмещение убытков и расходов на взыскание) для\nобоснования финансовых требований компании."
     }
   },
   "Шавкатов Гофур": {
@@ -8819,25 +10873,104 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 3.33
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.6183,
+        "activity_count": 6,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            0.5,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            0.0
+          ],
+          "legend": [
+            0.5,
+            1.0,
+            1.0,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "informing": [
+            0.5,
+            1.0,
+            1.0,
+            1.0,
+            0.5,
+            0.5
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            1.0,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "aht": 2.2
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9643,
-      "ethics": 0.7679,
-      "crm": 0.9464,
-      "legend": 0.875,
-      "informing": 0.8036,
-      "argumentation": 0.5536,
-      "manipulation": 0.6786,
-      "requirements": 0.4821,
-      "summary": 0.7857
+      "greeting": 0.9559,
+      "ethics": 0.8088,
+      "crm": 0.8971,
+      "legend": 0.8382,
+      "informing": 0.7941,
+      "argumentation": 0.5441,
+      "manipulation": 0.6618,
+      "requirements": 0.5,
+      "summary": 0.7059
     },
-    "aggregated_tqs": 0.72,
-    "sum_activity": 28,
-    "aggregated_aht": 3.59,
+    "aggregated_tqs": 0.71,
+    "sum_activity": 34,
+    "aggregated_aht": 3.42,
     "pdf_data": {
-      "trends": "o Предоставление информации о задолженности: системная неполнота данных",
-      "recommendations": "для Лида (руководителя группы):\n• По Требованиям (критично): разобрать звонок от 24.02. Сотрудник обязан озвучивать\nчеткую сумму, срок и способ оплаты в соответствии с СВП.\n• По Информированию: обеспечить озвучивание полной суммы долга и количества дней\nпросрочки (DPD), чтобы клиент четко осознавал стадию нарушения.\n• По Аргументации: обучить применению ст. 236 и 237 ГК РУз (надлежащее исполнение\nи запрет отказа)."
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По финализации диалога и CRM (экстренно): жестко контролировать блок «Якунлаш». сотрудник\nсистематически бросает диалог без фиксации договоренностей (4 нуля) и допускает ошибки в статусах CRM.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для сокращения времени диалога и подталкивания\nк оплате.\n• По Аргументации: использовать ст. 333 ГК РУз (отсутствие денежных средств не освобождает от\nобязательств), чтобы устранить системные 0,5 балла."
     }
   },
   "Шохназарова Сабрина": {
@@ -9251,25 +11384,95 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.44
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.554,
+        "activity_count": 5,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            0.5,
+            0.0
+          ],
+          "crm": [
+            1.0,
+            0.0,
+            1.0,
+            0.5,
+            0.0
+          ],
+          "legend": [
+            0.5,
+            0.5,
+            1.0,
+            1.0,
+            0.0
+          ],
+          "informing": [
+            0.5,
+            0.5,
+            0.5,
+            1.0,
+            0.5
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            0.0,
+            0.5,
+            0.5,
+            0.0
+          ],
+          "requirements": [
+            1.0,
+            1.0,
+            1.0,
+            0.0,
+            0.5
+          ],
+          "summary": [
+            0.0,
+            1.0,
+            0.5,
+            0.5,
+            0.0
+          ]
+        },
+        "aht": 1.81
       }
     },
     "aggregated_scores": {
       "greeting": 1.0,
-      "ethics": 0.9423,
-      "crm": 0.6154,
-      "legend": 0.9615,
-      "informing": 0.6731,
+      "ethics": 0.9032,
+      "crm": 0.5968,
+      "legend": 0.9032,
+      "informing": 0.6613,
       "argumentation": 0.5,
-      "manipulation": 0.4423,
-      "requirements": 0.6154,
-      "summary": 0.4808
+      "manipulation": 0.4032,
+      "requirements": 0.629,
+      "summary": 0.4677
     },
-    "aggregated_tqs": 0.66,
-    "sum_activity": 26,
-    "aggregated_aht": 2.42,
+    "aggregated_tqs": 0.65,
+    "sum_activity": 31,
+    "aggregated_aht": 2.34,
     "pdf_data": {
-      "trends": "o Аргументация: системное отсутствие ссылок на НПА (0,5 балла во всех 4-х",
-      "recommendations": "для Лида (руководителя группы):\n• По CRM (критично): исключить фиктивную или ошибочную фиксацию / отсутствие\nфиксации результата звонка (фрод). Разбор звонков от 26.02 и 28.02 обязателен.\n• По финализации диалога: обучить блоку «Якунлаш» (Подведение итогов) — фиксация\nфинального решения с предупреждением о записи разговора.\n• По Манипуляции: внедрить тактики: давление последствиями, «Выбор без выбора»\n(оплата сегодня или завтра до обеда?)."
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По системным провалам (экстренно): жестко разобрать звонок от 30.03. сотрудник допустил критическое\nобнуление почти всех этапов СВП, нарушив этику общения и регламент фиксации.\n• По Манипуляции (критично): сотрудник стабильно игнорирует тактическое давление. рекомендуется\nвнедрение манипулятивных тактик (на пример: \"Давление негативными последствиями\", \"Давление сроком\",\n\"Выбор без выбора\").\n• По Аргументации: обучить применению ст. 422 ГК РУз (досрочное взыскание) для подкрепления правовой\nпозиции."
     }
   },
   "Рахимжонов Нодиржон": {
@@ -9396,28 +11599,191 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.95
+      },
+      "23-31 Мар 2026": {
+        "tqs": 0.554,
+        "activity_count": 5,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            1.0,
+            1.0,
+            0.5,
+            0.5
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            0.5,
+            0.5,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "aht": 2.12
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9375,
-      "ethics": 0.8125,
-      "crm": 0.9375,
-      "legend": 0.375,
-      "informing": 0.875,
-      "argumentation": 0.6875,
-      "manipulation": 0.5625,
-      "requirements": 0.5625,
-      "summary": 0.375
+      "greeting": 0.9615,
+      "ethics": 0.8846,
+      "crm": 0.8846,
+      "legend": 0.2692,
+      "informing": 0.9231,
+      "argumentation": 0.6154,
+      "manipulation": 0.5769,
+      "requirements": 0.5385,
+      "summary": 0.3077
     },
-    "aggregated_tqs": 0.64,
-    "sum_activity": 8,
-    "aggregated_aht": 3.12,
+    "aggregated_tqs": 0.61,
+    "sum_activity": 13,
+    "aggregated_aht": 2.79,
     "pdf_data": {
       "trends": "(Системные недоработки):",
-      "recommendations": "для Лида (руководителя группы):\n• По управлению временем: разобрать звонок от 12.03 длительностью более 6 минут. необходимо\nобучить перехвату инициативы и недопущению затяжных споров с должником.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: «Давление\nнегативными последствиями», «Давление сроком», «Выбор без выбора») для сокращения времени\nразговора и быстрого подведения к результату.\n• По Требованиям и Аргументации: исключить размытые формулировки и обучить применению ст.\n421 ГК РУз (товар в залоге до полной оплаты)."
+      "recommendations": "для Лида (руководителя группы):\n• По Легендированию и Итогам (экстренно): критический провал создания интриги на старте и полное\nотсутствие финализации в конце. сотрудник обязан отрабатывать СВП целиком.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для исправления крайне низкого балла.\n• По Аргументации и Требованиям: применять ссылки на ст. 421 ГК РУз (товар в залоге) и четко озвучивать\nсуммы, чтобы уйти от стабильных оценок в 0,5."
     }
   },
-  "_meta_pdf_summary": "💡 Тоштемиров М.: для Лида (руководителя группы):\n💡 Тоштемиров М.: • По тактическому блоку (критично): Сотрудник полностью игнорирует Манипуляцию\n💡 Бахромова Н.: для Лида (руководителя группы):\n💡 Бахромова Н.: • По закрытию сделки (критично): на звонке от 28.02 сотрудник обнулил все ключевые\n💡 Абдуллаева С.: для Лида (руководителя группы):\n💡 Абдуллаева С.: • По системному качеству: Сотрудник стабильно получает 0,5 за ключевые блоки.\n💡 Шамиев Ф.: для Лида (руководителя группы):\n💡 Шамиев Ф.: • По Требованиям (критично): разобрать звонок от 24.02. Сотрудник обязан озвучивать\n💡 Шохназарова С.: для Лида (руководителя группы):\n💡 Шохназарова С.: • По CRM (критично): исключить фиктивную или ошибочную фиксацию / отсутствие"
+  "Шавкатов Гафур": {
+    "dashboard_name": "Шавкатов Гафур",
+    "periods": {
+      "23-31 Мар 2026": {
+        "tqs": 0.612,
+        "activity_count": 5,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            0.0,
+            0.0,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            0.5,
+            0.5,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "aht": 2.18
+      }
+    },
+    "aggregated_scores": {
+      "greeting": 1.0,
+      "ethics": 0.8,
+      "crm": 0.8,
+      "legend": 0.3,
+      "informing": 1.0,
+      "argumentation": 0.5,
+      "manipulation": 0.6,
+      "requirements": 0.5,
+      "summary": 0.6
+    },
+    "aggregated_tqs": 0.61,
+    "sum_activity": 5,
+    "aggregated_aht": 2.18,
+    "pdf_data": {
+      "trends": "(Системные недоработки):",
+      "recommendations": "для Лида (руководителя группы):\n• По системным провалам и CRM (экстренно): жестко разобрать звонок от 26.03. допущено критическое\nобнуление этики общения, статуса в CRM, легендирования и манипуляции. нарушение делового тона и\nискажение данных в системе классифицируются как фрод и недопустимы.\n• По Манипуляции: сотрудник полностью обнулял данный блок в начале периода (26.03 и 27.03).\nрекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными последствиями\",\n\"Давление сроком\", \"Выбор без выбора\") для удержания инициативы в каждом диалоге.\n• По Требованиям: необходимо четко озвучивать точную сумму, сроки и доступные способы оплаты,\nсогласно п. 4.2.6 договора.\n• По Аргументации: применять ссылки на ст. 333 ГК РУз (отсутствие денежных средств не освобождает от\nобязательств), так как правовая база полностью игнорируется.\n• По финализации диалога: контролировать этап подведения итогов (провал 28.03). сотрудник обязан\nфиксировать договоренности и озвучивать факт записи разговора."
+    }
+  },
+  "_meta_pdf_summary": "💡 Тоштемиров М.: для Лида (руководителя группы):\n💡 Тоштемиров М.: • По системным провалам (экстренно): сотрудник демонстрирует критически низкий балл. финализация и\n💡 Бахромова Н.: для Лида (руководителя группы):\n💡 Бахромова Н.: • По Этике и финализации (критично): разобрать звонки от 26.03 и 28.03. недопустимо нарушать нормы\n💡 Абдуллаева С.: для Лида (руководителя группы):\n💡 Абдуллаева С.: • По CRM и Итогам (экстренно): разобрать ошибку CRM от 25.03 и провал финализации от 24.03. нарушение\n💡 Шамиев Ф.: для Лида (руководителя группы):\n💡 Шамиев Ф.: • По финализации диалога и CRM (экстренно): жестко контролировать блок «Якунлаш». сотрудник\n💡 Шохназарова С.: для Лида (руководителя группы):\n💡 Шохназарова С.: • По системным провалам (экстренно): жестко разобрать звонок от 30.03. сотрудник допустил критическое"
 }
         // --- DATA END ---
 
@@ -9474,6 +11840,11 @@ window.DASHBOARD_DATA = {
             populateMonthFilter();
             populateEmployeeFilter();
             updateStats();
+            
+            // Инициализация SVP Heatmap Pro (покажет placeholder)
+            if (typeof renderSvpHeatmap === 'function') {
+                renderSvpHeatmap();
+            }
         }
 
         function populateMonthFilter() {
@@ -9577,50 +11948,119 @@ window.DASHBOARD_DATA = {
             updateCriteriaChart();
             updateDistributionChart();
             updateRecommendations();
+            
+            // Обновляем SVP Heatmap Pro при любом изменении фильтров
+            if (typeof renderSvpHeatmap === 'function') {
+                renderSvpHeatmap();
+            }
         }
 
         function updateStats() {
-            const data = getFilteredData();
-            const employees = Object.keys(data).filter(k => k !== '_meta_pdf_summary');
-
+            // Получаем текущие значения фильтров напрямую из DOM
+            const monthFilter = document.getElementById('monthFilter')?.value || '';
+            const periodFilter = document.getElementById('periodFilter')?.value || '';
+            const employeeFilter = document.getElementById('employeeFilter')?.value || 'all';
+            
+            const data = window.DASHBOARD_DATA;
+            if (!data) return;
+            
+            // Определяем список сотрудников
+            let employeesToList = [];
+            
+            if (employeeFilter !== 'all') {
+                employeesToList = [employeeFilter];
+            } else {
+                for (const empName in data) {
+                    if (empName === '_meta_pdf_summary') continue;
+                    employeesToList.push(empName);
+                }
+            }
+            
             let totalCalls = 0;
             let totalTQS = 0;
             let countTQS = 0;
             let totalAHT = 0;
             let countAHT = 0;
-
-            for (const emp of employees) {
-                if (data[emp]) {
-                    totalCalls += data[emp].sum_activity || 0;
-                    if (data[emp].aggregated_tqs) {
-                        totalTQS += data[emp].aggregated_tqs;
-                        countTQS++;
+            
+            // Агрегация данных согласно фильтрам
+            employeesToList.forEach(empName => {
+                const empData = data[empName];
+                if (!empData) return;
+                
+                const periods = empData.periods || {};
+                let empCalls = 0;
+                let empTQS = 0;
+                let empAHT = 0;
+                let empTQSCount = 0;
+                let empAHTCount = 0;
+                
+                for (const periodKey in periods) {
+                    const periodMonth = extractMonthFromPeriod(periodKey);
+                    let includePeriod = false;
+                    
+                    if (periodFilter && periodFilter !== 'all') {
+                        // Выбрана конкретная неделя
+                        includePeriod = (periodKey === periodFilter);
+                    } else if (monthFilter) {
+                        // Выбран только месяц
+                        includePeriod = (periodMonth === monthFilter);
+                    } else {
+                        // Ничего не выбрано — все данные
+                        includePeriod = true;
                     }
-                    // Расчет AHT по всем сотрудникам
-                    if (data[emp].aggregated_aht) {
-                        totalAHT += data[emp].aggregated_aht;
-                        countAHT++;
+                    
+                    if (includePeriod) {
+                        const periodData = periods[periodKey];
+                        empCalls += periodData.activity_count || 0;
+                        
+                        if (periodData.tqs) {
+                            empTQS += periodData.tqs;
+                            empTQSCount++;
+                        }
+                        
+                        if (periodData.aht) {
+                            empAHT += periodData.aht;
+                            empAHTCount++;
+                        }
                     }
                 }
-            }
-
-            document.getElementById('totalEmployees').textContent = employees.length;
+                
+                totalCalls += empCalls;
+                
+                if (empTQSCount > 0) {
+                    totalTQS += (empTQS / empTQSCount);
+                    countTQS++;
+                }
+                
+                if (empAHTCount > 0) {
+                    totalAHT += (empAHT / empAHTCount);
+                    countAHT++;
+                }
+            });
+            
+            // Обновление UI
+            document.getElementById('totalEmployees').textContent = employeesToList.length;
             document.getElementById('totalCalls').textContent = totalCalls;
             document.getElementById('avgTQS').textContent = countTQS > 0
                 ? Math.round((totalTQS / countTQS) * 100) + '%'
                 : '0%';
+
+            // Расчёт среднего AHT и конвертация в формат ММ:СС
+            const avgAHTMinutes = countAHT > 0 ? (totalAHT / countAHT) : 0;
+            const ahtMinutes = Math.floor(avgAHTMinutes);
+            const ahtSeconds = Math.round((avgAHTMinutes - ahtMinutes) * 60);
+            const ahtFormatted = `${ahtMinutes}:${ahtSeconds.toString().padStart(2, '0')}`;
             
-            const avgAHT = countAHT > 0 ? (totalAHT / countAHT).toFixed(2) : '0.00';
             const ahtElement = document.getElementById('avgAHT');
-            ahtElement.textContent = avgAHT;
-            
-            // Цветовая индикация для AHT
+            ahtElement.textContent = ahtFormatted;
+
+            // Цветовая индикация для AHT (пороги в минутах: 3.5 и 4.5)
             ahtElement.style.color = '';
             ahtElement.previousElementSibling.style.color = '';
-            if (parseFloat(avgAHT) > 4.5) {
+            if (avgAHTMinutes > 4.5) {
                 ahtElement.style.color = 'var(--danger)';
                 ahtElement.previousElementSibling.style.color = 'var(--danger)';
-            } else if (parseFloat(avgAHT) > 3.5) {
+            } else if (avgAHTMinutes > 3.5) {
                 ahtElement.style.color = 'var(--warning)';
                 ahtElement.previousElementSibling.style.color = 'var(--warning)';
             }
@@ -10247,15 +12687,951 @@ window.DASHBOARD_DATA = {
         function toggleAccordion(header) {
             const item = header.parentElement;
             const wasActive = item.classList.contains('active');
-            
+
             document.querySelectorAll('.accordion-item').forEach(i => i.classList.remove('active'));
-            
+
             if (!wasActive) {
                 item.classList.add('active');
             }
         }
 
+        // ============================================
+        // SVP HEATMAP PRO — JavaScript Логика
+        // ============================================
+
+        // Маппинг ключей критериев
+        const SVP_CRITERIA_MAP = {
+            'greeting': 'Приветствие',
+            'ethics': 'Этика',
+            'crm': 'CRM',
+            'legend': 'Легенда',
+            'informing': 'Задолж.',
+            'argumentation': 'Аргумент.',
+            'manipulation': 'Манипул.',
+            'requirements': 'Требования',
+            'summary': 'Итоги'
+        };
+
+        const SVP_CRITERIA_KEYS = Object.keys(SVP_CRITERIA_MAP);
+
+        /**
+         * Алгоритм диагнозов по столбцу
+         * @param {number[]} rawScores - массив оценок [1.0, 0.5, 0.0, ...]
+         * @param {boolean} isMonthly - true для месячного периода, false для недельного
+         */
+        function getSvpDiagnosis(rawScores, isMonthly = false) {
+            const zeros = rawScores.filter(s => s === 0.0).length;
+            const halfs = rawScores.filter(s => s === 0.5).length;
+            const total = rawScores.length;
+            
+            // Для месячного периода увеличиваем пороги в 2.5 раза
+            const monthlyMultiplier = 2.5;
+            
+            // Пороги для диагнозов
+            const thresholds = isMonthly ? {
+                allZeros: Math.round(4 * monthlyMultiplier), // 10 звонков → ~10
+                criticalZeros: Math.round(2 * monthlyMultiplier), // 6 звонков
+                singleZero: 2,
+                allHalfs: Math.round(4 * monthlyMultiplier),
+                criticalHalfs: Math.round(6 * monthlyMultiplier),
+                multipleHalfs: Math.round(6 * monthlyMultiplier),
+                singleHalf: 2
+            } : {
+                allZeros: 4,
+                criticalZeros: 2,
+                singleZero: 1,
+                allHalfs: 4,
+                criticalHalfs: 6,
+                multipleHalfs: 2,
+                singleHalf: 1
+            };
+            
+            if (zeros === total && total >= thresholds.allZeros) {
+                return {
+                    status: 'Несоответствие СВП',
+                    shortStatus: 'Несоотв.',
+                    severity: 'critical',
+                    icon: '🔴',
+                    color: '#f87171'
+                };
+            }
+            
+            if (zeros >= thresholds.criticalZeros) {
+                return {
+                    status: 'Критическая просадка',
+                    shortStatus: 'Крит. просадка',
+                    severity: 'critical',
+                    icon: '🔴',
+                    color: '#f87171'
+                };
+            }
+            
+            if (zeros >= thresholds.singleZero) {
+                return {
+                    status: 'Отсутствие критерия',
+                    shortStatus: 'Отсутствует',
+                    severity: 'warning',
+                    icon: '🟠',
+                    color: '#fb923c'
+                };
+            }
+            
+            if (halfs === total && total >= thresholds.allHalfs) {
+                return {
+                    status: 'Абсолютная недоработка',
+                    shortStatus: 'Абс. недораб.',
+                    severity: 'warning',
+                    icon: '🟡',
+                    color: '#fbbf24'
+                };
+            }
+            
+            if (halfs >= thresholds.criticalHalfs) {
+                return {
+                    status: 'Критическая недоработка',
+                    shortStatus: 'Крит. недораб.',
+                    severity: 'warning',
+                    icon: '🟡',
+                    color: '#fbbf24'
+                };
+            }
+            
+            if (halfs >= thresholds.multipleHalfs) {
+                return {
+                    status: 'Недоработка',
+                    shortStatus: 'Недораб.',
+                    severity: 'warning',
+                    icon: '🟡',
+                    color: '#fbbf24'
+                };
+            }
+            
+            if (halfs >= thresholds.singleHalf) {
+                return {
+                    status: 'Критерий требует внимания',
+                    shortStatus: 'Требует вним.',
+                    severity: 'info',
+                    icon: '🔵',
+                    color: '#60a5fa'
+                };
+            }
+            
+            return {
+                status: 'Полное соответствие',
+                shortStatus: 'Полное соотв.',
+                severity: 'success',
+                icon: '🟢',
+                color: '#4ade80'
+            };
+        }
+
+        /**
+         * Расчёт процента выработки
+         */
+        function calculateSvpPercentage(rawScores) {
+            if (!rawScores || rawScores.length === 0) return 0;
+            const sum = rawScores.reduce((a, b) => a + b, 0);
+            return Math.round((sum / rawScores.length) * 100);
+        }
+
+        /**
+         * Получение текущего выбранного месяца
+         */
+        function getCurrentSvpMonth() {
+            const monthFilter = document.getElementById('monthFilter');
+            if (!monthFilter) return null;
+            
+            const value = monthFilter.value;
+            // Если значение пустое или "all", возвращаем null
+            return value && value !== 'all' ? value : null;
+        }
+
+        /**
+         * Получение текущего выбранного периода
+         */
+        function getCurrentSvpPeriod() {
+            const periodFilter = document.getElementById('periodFilter');
+            if (!periodFilter) return 'all';
+            
+            const value = periodFilter.value;
+            return value || 'all';
+        }
+
+        /**
+         * Проверка: является ли период недельным
+         */
+        function isWeeklyPeriod(period) {
+            return period && period !== 'all' && period.includes('-');
+        }
+
+        /**
+         * Извлечение месяца из периода
+         * Формат периода: "01-08 Фев 2026" или "Февраль 2026"
+         * Возвращает в том же формате, что и monthFilter: "Фев 2026"
+         */
+        function extractMonthFromPeriod(period) {
+            if (!period) return null;
+            
+            // Краткие названия месяцев (для соответствия с monthFilter)
+            const shortMonths = {
+                'Январь': 'Янв', 'Февраль': 'Фев', 'Март': 'Мар',
+                'Апрель': 'Апр', 'Май': 'Май', 'Июнь': 'Июн',
+                'Июль': 'Июл', 'Август': 'Авг', 'Сентябрь': 'Сен',
+                'Октябрь': 'Окт', 'Ноябрь': 'Ноя', 'Декабрь': 'Дек'
+            };
+            
+            // Пробуем найти полное название месяца и конвертировать в краткое
+            for (const [fullName, shortName] of Object.entries(shortMonths)) {
+                if (period.includes(fullName)) {
+                    const yearMatch = period.match(/(\d{4})/);
+                    const year = yearMatch ? ' ' + yearMatch[1] : '';
+                    return shortName + year;
+                }
+            }
+            
+            // Если уже краткое название
+            for (const shortName of Object.values(shortMonths)) {
+                if (period.includes(shortName)) {
+                    const yearMatch = period.match(/(\d{4})/);
+                    const year = yearMatch ? ' ' + yearMatch[1] : '';
+                    return shortName + year;
+                }
+            }
+            
+            return null;
+        }
+
+        /**
+         * Рендер тепловой карты SVP Heatmap Pro
+         * Учитывает все 3 фильтра: месяц, период (неделя), сотрудник
+         */
+        function renderSvpHeatmap() {
+            const placeholder = document.getElementById('svpHeatmapPlaceholder');
+            const content = document.getElementById('svpHeatmapContent');
+            const tbody = document.getElementById('svpHeatmapBody');
+            
+            if (!placeholder || !content || !tbody) return;
+            
+            const data = window.DASHBOARD_DATA;
+            if (!data) return;
+            
+            // Получаем текущие значения фильтров
+            const monthFilter = document.getElementById('monthFilter')?.value || '';
+            const periodFilter = document.getElementById('periodFilter')?.value || '';
+            const employeeFilter = document.getElementById('employeeFilter')?.value || 'all';
+            
+            // Если месяц не выбран — показываем placeholder
+            if (!monthFilter) {
+                placeholder.style.display = 'flex';
+                content.style.display = 'none';
+                return;
+            }
+            
+            // Скрываем placeholder, показываем контент
+            placeholder.style.display = 'none';
+            content.style.display = 'block';
+            
+            const selectedMonth = monthFilter;
+            const selectedPeriod = periodFilter || 'all';
+            const selectedEmployee = employeeFilter || 'all';
+            const isMonthly = selectedPeriod === 'all' || selectedPeriod === '';
+            
+            console.log(`[SVP Heatmap] Рендер: месяц="${selectedMonth}", период="${selectedPeriod}", сотрудник="${selectedEmployee}", isMonthly=${isMonthly}`);
+            
+            // Определяем список сотрудников
+            let employeesToList = [];
+            
+            if (selectedEmployee !== 'all') {
+                // Выбран конкретный сотрудник
+                employeesToList = [selectedEmployee];
+            } else {
+                // Все сотрудники, у которых есть данные за выбранный период
+                for (const empName in data) {
+                    if (empName === '_meta_pdf_summary') continue;
+                    
+                    const empData = data[empName];
+                    const periods = empData.periods || {};
+                    let hasDataInPeriod = false;
+                    
+                    for (const periodKey in periods) {
+                        const periodMonth = extractMonthFromPeriod(periodKey);
+                        
+                        if (selectedPeriod && selectedPeriod !== 'all') {
+                            // Выбрана конкретная неделя
+                            if (periodKey === selectedPeriod) {
+                                hasDataInPeriod = true;
+                                break;
+                            }
+                        } else {
+                            // Выбран только месяц
+                            if (periodMonth === selectedMonth) {
+                                hasDataInPeriod = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (hasDataInPeriod) {
+                        employeesToList.push(empName);
+                    }
+                }
+            }
+            
+            // Если нет сотрудников
+            if (employeesToList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text-muted);font-style:italic;">Нет данных за выбранный период</td></tr>';
+                return;
+            }
+            
+            // Генерация строк таблицы
+            let html = '';
+            
+            employeesToList.forEach(empName => {
+                const empData = data[empName];
+                if (!empData) return;
+                
+                const periods = empData.periods || {};
+                
+                // Сбор данных для выбранного периода
+                let aggregatedScores = {};
+                SVP_CRITERIA_KEYS.forEach(key => {
+                    aggregatedScores[key] = [];
+                });
+                
+                for (const periodKey in periods) {
+                    const periodMonth = extractMonthFromPeriod(periodKey);
+                    let includePeriod = false;
+                    
+                    if (selectedPeriod && selectedPeriod !== 'all') {
+                        // Выбрана конкретная неделя — берем только её
+                        includePeriod = (periodKey === selectedPeriod);
+                    } else {
+                        // Выбран только месяц — берем все периоды этого месяца
+                        includePeriod = (periodMonth === selectedMonth);
+                    }
+                    
+                    if (includePeriod) {
+                        const periodData = periods[periodKey];
+                        const scores = periodData.scores || {};
+                        
+                        SVP_CRITERIA_KEYS.forEach(key => {
+                            if (scores[key]) {
+                                aggregatedScores[key].push(...scores[key]);
+                            }
+                        });
+                    }
+                }
+                
+                // Отладка: выводим количество собранных оценок
+                console.log(`[SVP Heatmap] ${empName}: собрано оценок по приветствию = ${aggregatedScores['greeting'].length}`);
+                
+                // Заголовок строки (имя сотрудника)
+                html += `<tr>`;
+                html += `<td onclick="openSvpPanel('${empName.replace(/'/g, "\\\\'")}')">${empName}</td>`;
+                
+                // Ячейки критериев
+                SVP_CRITERIA_KEYS.forEach(criteriaKey => {
+                    const rawScores = aggregatedScores[criteriaKey] || [];
+                    const percentage = calculateSvpPercentage(rawScores);
+                    const diagnosis = getSvpDiagnosis(rawScores, isMonthly);
+                    
+                    html += `
+                        <td class="svp-cell ${diagnosis.severity}" 
+                            data-employee="${empName.replace(/"/g, '&quot;')}"
+                            data-criteria="${criteriaKey}"
+                            data-percentage="${percentage}"
+                            onclick="openSvpPanel('${empName.replace(/'/g, "\\\\'")}', '${criteriaKey}')">
+                            <div class="svp-cell-content">
+                                <span class="svp-percentage">${percentage}%</span>
+                                <span class="svp-diagnosis">${diagnosis.icon} ${diagnosis.shortStatus}</span>
+                            </div>
+                        </td>
+                    `;
+                });
+                
+                html += `</tr>`;
+            });
+            
+            tbody.innerHTML = html;
+            
+            // Навешиваем обработчики для тултипа
+            attachSvpTooltipHandlers();
+        }
+
+        /**
+         * Обработчики тултипа
+         */
+        function attachSvpTooltipHandlers() {
+            const cells = document.querySelectorAll('.svp-cell');
+            const tooltip = document.getElementById('svpTooltip');
+            
+            cells.forEach(cell => {
+                cell.addEventListener('mouseenter', (e) => showSvpTooltip(e, cell, tooltip));
+                cell.addEventListener('mouseleave', () => hideSvpTooltip(tooltip));
+                cell.addEventListener('mousemove', (e) => moveSvpTooltip(e, tooltip));
+            });
+        }
+
+        function showSvpTooltip(event, cell, tooltip) {
+            const empName = cell.getAttribute('data-employee');
+            const criteriaKey = cell.getAttribute('data-criteria');
+            const percentage = cell.getAttribute('data-percentage');
+            
+            // Получаем данные
+            const data = window.DASHBOARD_DATA;
+            const empData = data[empName];
+            if (!empData) return;
+            
+            const selectedMonth = getCurrentSvpMonth();
+            const selectedPeriod = getCurrentSvpPeriod();
+            const isMonthly = selectedPeriod === 'all';
+            
+            // Собираем все raw scores за выбранный период
+            let allScores = [];
+            const periods = empData.periods || {};
+            
+            for (const periodKey in periods) {
+                let includePeriod = false;
+                
+                if (selectedMonth && selectedPeriod === 'all') {
+                    includePeriod = (extractMonthFromPeriod(periodKey) === selectedMonth);
+                } else if (selectedPeriod && selectedPeriod !== 'all') {
+                    includePeriod = (periodKey === selectedPeriod);
+                } else {
+                    includePeriod = true;
+                }
+                
+                if (includePeriod) {
+                    const periodData = periods[periodKey];
+                    const scores = periodData.scores || {};
+                    if (scores[criteriaKey]) {
+                        allScores.push(...scores[criteriaKey]);
+                    }
+                }
+            }
+            
+            const diagnosis = getSvpDiagnosis(allScores, isMonthly);
+            const criteriaName = SVP_CRITERIA_MAP[criteriaKey];
+            
+            // Подсчёт статистики
+            const zeros = allScores.filter(s => s === 0.0).length;
+            const halfs = allScores.filter(s => s === 0.5).length;
+            const ones = allScores.filter(s => s === 1.0).length;
+            
+            // Определяем тему
+            const isLightTheme = document.body.getAttribute('data-theme') === 'light';
+            
+            tooltip.innerHTML = `
+                <h4><i class="fas fa-chart-bar"></i> ${criteriaName}</h4>
+                <div class="tooltip-row">
+                    <span class="tooltip-label">Сотрудник:</span>
+                    <span class="tooltip-value">${empName}</span>
+                </div>
+                <div class="tooltip-row">
+                    <span class="tooltip-label">Выработка:</span>
+                    <span class="tooltip-value" style="color: ${diagnosis.color}">${percentage}%</span>
+                </div>
+                <div class="tooltip-row">
+                    <span class="tooltip-label">Звонков:</span>
+                    <span class="tooltip-value">${allScores.length}</span>
+                </div>
+                <div class="tooltip-row">
+                    <span class="tooltip-label">Оценки:</span>
+                    <span class="tooltip-value">🟢 ${ones} | 🟡 ${halfs} | 🔴 ${zeros}</span>
+                </div>
+                <div class="diagnosis-text">
+                    <strong>Диагноз:</strong> ${diagnosis.icon} ${diagnosis.status}<br>
+                    ${diagnosis.status === 'Критическая просадка' || diagnosis.status === 'Критическая недоработка' ? 'Требуется срочное вмешательство!' : ''}
+                </div>
+            `;
+            
+            tooltip.classList.add('visible');
+        }
+
+        function moveSvpTooltip(event, tooltip) {
+            const xOffset = 20;
+            const yOffset = 20;
+            
+            tooltip.style.left = (event.clientX + xOffset) + 'px';
+            tooltip.style.top = (event.clientY + yOffset) + 'px';
+        }
+
+        function hideSvpTooltip(tooltip) {
+            tooltip.classList.remove('visible');
+        }
+
+        /**
+         * Открытие панели
+         */
+        function openSvpPanel(employeeName, criteriaKey = null) {
+            const panel = document.getElementById('svpSidePanel');
+            const overlay = document.getElementById('svpSidePanelOverlay');
+            const panelBody = document.getElementById('svpPanelBody');
+            const panelTitle = document.getElementById('svpPanelEmployeeName');
+            
+            panelTitle.textContent = employeeName;
+            
+            // Генерация контента панели
+            panelBody.innerHTML = generateSvpPanelContent(employeeName, criteriaKey);
+            
+            // Инициализация Pie Chart
+            setTimeout(() => initSvpPieChart(employeeName, criteriaKey), 100);
+            
+            // Открытие панели
+            panel.classList.add('open');
+            overlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        /**
+         * Закрытие панели
+         */
+        function closeSvpPanel() {
+            const panel = document.getElementById('svpSidePanel');
+            const overlay = document.getElementById('svpSidePanelOverlay');
+            
+            panel.classList.remove('open');
+            overlay.classList.remove('open');
+            document.body.style.overflow = '';
+            
+            // Уничтожение Chart.js экземпляров
+            if (window.svpPieChartInstance) {
+                window.svpPieChartInstance.destroy();
+                window.svpPieChartInstance = null;
+            }
+        }
+
+        /**
+         * Генерация контента панели (учитывает все фильтры)
+         */
+        function generateSvpPanelContent(employeeName, selectedCriteriaKey = null) {
+            const data = window.DASHBOARD_DATA[employeeName];
+            if (!data) return '<p>Данные не найдены</p>';
+            
+            // Получаем текущие значения фильтров
+            const monthFilter = document.getElementById('monthFilter')?.value || '';
+            const periodFilter = document.getElementById('periodFilter')?.value || '';
+            const employeeFilter = document.getElementById('employeeFilter')?.value || 'all';
+            
+            const periods = data.periods || {};
+            let selectedMonth = monthFilter;
+            let selectedPeriod = periodFilter || 'all';
+            
+            // Если месяц не выбран явно, но выбран период — извлекаем месяц из периода
+            if (!selectedMonth && selectedPeriod && selectedPeriod !== 'all') {
+                selectedMonth = extractMonthFromPeriod(selectedPeriod);
+            }
+            
+            // Определяем: это недельный или месячный режим
+            const isWeeklyMode = selectedPeriod && selectedPeriod !== 'all';
+            
+            console.log(`[SVP Panel] ${employeeName}: месяц="${selectedMonth}", период="${selectedPeriod}", isWeeklyMode=${isWeeklyMode}`);
+            
+            // Агрегация данных согласно фильтрам
+            const aggregatedScores = {};
+            SVP_CRITERIA_KEYS.forEach(key => {
+                aggregatedScores[key] = [];
+            });
+            
+            const periodList = [];
+            let hasData = false;
+            
+            for (const periodKey in periods) {
+                const periodMonth = extractMonthFromPeriod(periodKey);
+                let includePeriod = false;
+                
+                if (isWeeklyMode) {
+                    // Недельный режим — только выбранная неделя
+                    includePeriod = (periodKey === selectedPeriod);
+                } else {
+                    // Месячный режим — все периоды месяца
+                    includePeriod = (periodMonth === selectedMonth);
+                }
+                
+                if (includePeriod) {
+                    hasData = true;
+                    const periodData = periods[periodKey];
+                    const scores = periodData.scores || {};
+                    
+                    SVP_CRITERIA_KEYS.forEach(key => {
+                        if (scores[key]) {
+                            aggregatedScores[key].push(...scores[key]);
+                        }
+                    });
+                    
+                    periodList.push({
+                        key: periodKey,
+                        tqs: periodData.tqs || 0,
+                        aht: periodData.aht || 0
+                    });
+                }
+            }
+            
+            console.log(`[SVP Panel] ${employeeName}: собрано периодов=${periodList.length}, приветствие оценок=${aggregatedScores['greeting'].length}`);
+            
+            // Если нет данных за период
+            if (!hasData) {
+                return `<p style="color:var(--text-muted);text-align:center;padding:40px;">Нет данных за выбранный период</p>`;
+            }
+            
+            let html = '';
+            
+            // Заголовок с информацией о фильтрах
+            const filterInfo = isWeeklyMode 
+                ? `${selectedPeriod} (неделя)` 
+                : `${selectedMonth} (сводно)`;
+            
+            const employeeInfo = employeeFilter !== 'all' 
+                ? `Сотрудник: ${employeeFilter}` 
+                : 'Режим: Вся команда';
+            
+            html += `
+                <div class="svp-panel-section">
+                    <div class="svp-panel-section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Информация о фильтрах
+                    </div>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
+                        <p><strong>Период:</strong> ${filterInfo}</p>
+                        <p><strong>${employeeInfo}</strong></p>
+                        <p><strong>Режим:</strong> ${isWeeklyMode ? 'Детализация по звонкам' : 'Суммарные показатели за месяц'}</p>
+                    </div>
+                </div>
+            `;
+            
+            // Секция 1: Pie Chart (если выбран критерий)
+            if (selectedCriteriaKey) {
+                const criteriaName = SVP_CRITERIA_MAP[selectedCriteriaKey];
+                const rawScores = aggregatedScores[selectedCriteriaKey] || [];
+                const percentage = calculateSvpPercentage(rawScores);
+                const diagnosis = rawScores.length > 0 ? getSvpDiagnosis(rawScores, !isWeeklyMode) : getSvpDiagnosis([0], false);
+                
+                if (rawScores.length > 0) {
+                    html += `
+                        <div class="svp-panel-section">
+                            <div class="svp-panel-section-title">
+                                <i class="fas fa-chart-pie"></i>
+                                ${criteriaName} — Детализация
+                            </div>
+                            <div class="svp-pie-chart-container">
+                                <div style="width: 220px; height: 220px;">
+                                    <canvas id="svpPieChart"></canvas>
+                                </div>
+                                <div class="svp-pie-legend" id="svpPieLegend">
+                                    <!-- Заполняется JS -->
+                                </div>
+                            </div>
+                            <div class="svp-diagnosis-box ${diagnosis.severity}">
+                                <div class="svp-diagnosis-title">Диагноз</div>
+                                <div class="svp-diagnosis-status">
+                                    ${diagnosis.icon} ${diagnosis.status}
+                                </div>
+                                <div class="svp-diagnosis-description">
+                                    Выработка: <strong>${percentage}%</strong> | 
+                                    Звонков: <strong>${rawScores.length}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="svp-panel-section">
+                            <div class="svp-panel-section-title">
+                                <i class="fas fa-chart-pie"></i>
+                                ${criteriaName} — Детализация
+                            </div>
+                            <p style="color:var(--text-muted);text-align:center;padding:20px;">Нет данных для отображения</p>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Секция 2: Детализация (звонки или периоды)
+            if (isWeeklyMode) {
+                // Недельный режим — показываем детализацию по звонкам
+                html += `
+                    <div class="svp-panel-section">
+                        <div class="svp-panel-section-title">
+                            <i class="fas fa-phone"></i>
+                            Детализация по звонкам (${selectedPeriod})
+                        </div>
+                        <table class="svp-periods-table">
+                            <thead>
+                                <tr>
+                                    <th>№ звонка</th>
+                                    <th>Оценка</th>
+                                    <th>Статус</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                if (selectedCriteriaKey && aggregatedScores[selectedCriteriaKey]) {
+                    const scores = aggregatedScores[selectedCriteriaKey];
+                    scores.forEach((score, index) => {
+                        let status = '';
+                        if (score === 1.0) status = '🟢 Полное';
+                        else if (score === 0.5) status = '🟡 Частичное';
+                        else status = '🔴 Несоотв.';
+                        
+                        html += `
+                            <tr class="svp-period-row">
+                                <td><strong>Звонок ${index + 1}</strong></td>
+                                <td>${score}</td>
+                                <td>${status}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    html += `<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-muted);">Нет данных</td></tr>`;
+                }
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } else {
+                // Месячный режим — показываем динамику по неделям
+                html += `
+                    <div class="svp-panel-section">
+                        <div class="svp-panel-section-title">
+                            <i class="fas fa-calendar-alt"></i>
+                            Динамика по периодам (${selectedMonth})
+                        </div>
+                        <table class="svp-periods-table">
+                            <thead>
+                                <tr>
+                                    <th>Период</th>
+                                    <th>TQS</th>
+                                    <th>AHT (мин)</th>
+                                    <th>Звонков</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                if (periodList.length > 0) {
+                    periodList.forEach(period => {
+                        const periodData = periods[period.key];
+                        
+                        html += `
+                            <tr class="svp-period-row">
+                                <td><strong>${period.key}</strong></td>
+                                <td>${Math.round(period.tqs * 100)}%</td>
+                                <td>${period.aht.toFixed(1)}</td>
+                                <td>${periodData.activity_count || 0}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    html += `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);">Нет данных</td></tr>`;
+                }
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+            
+            // Секция 3: Рекомендации (если есть)
+            if (data.recommendations || data.trends) {
+                html += `
+                    <div class="svp-panel-section">
+                        <div class="svp-panel-section-title">
+                            <i class="fas fa-clipboard-light"></i>
+                            Рекомендации
+                        </div>
+                        <div class="svp-recommendations">
+                `;
+                
+                if (data.trends) {
+                    html += `<p><strong>Тенденции:</strong></p><p>${data.trends}</p>`;
+                }
+                
+                if (data.recommendations) {
+                    html += `<p><strong>Рекомендации:</strong></p><p>${data.recommendations}</p>`;
+                }
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            return html;
+        }
+
+        /**
+         * Инициализация Pie Chart (учитывает все фильтры)
+         */
+        function initSvpPieChart(employeeName, criteriaKey) {
+            if (!criteriaKey) return;
+            
+            const data = window.DASHBOARD_DATA[employeeName];
+            if (!data) return;
+            
+            // Получаем текущие значения фильтров
+            const monthFilter = document.getElementById('monthFilter')?.value || '';
+            const periodFilter = document.getElementById('periodFilter')?.value || '';
+            
+            let selectedMonth = monthFilter;
+            let selectedPeriod = periodFilter || 'all';
+            const isWeeklyMode = selectedPeriod && selectedPeriod !== 'all';
+            
+            // Если месяц не выбран явно, но выбран период — извлекаем месяц из периода
+            if (!selectedMonth && selectedPeriod && selectedPeriod !== 'all') {
+                selectedMonth = extractMonthFromPeriod(selectedPeriod);
+            }
+            
+            // Сбор всех оценок согласно фильтрам
+            let allScores = [];
+            const periods = data.periods || {};
+            
+            for (const periodKey in periods) {
+                const periodMonth = extractMonthFromPeriod(periodKey);
+                let includePeriod = false;
+                
+                if (isWeeklyMode) {
+                    includePeriod = (periodKey === selectedPeriod);
+                } else {
+                    includePeriod = (periodMonth === selectedMonth);
+                }
+                
+                if (includePeriod) {
+                    const periodData = periods[periodKey];
+                    const scores = periodData.scores || {};
+                    if (scores[criteriaKey]) {
+                        allScores.push(...scores[criteriaKey]);
+                    }
+                }
+            }
+            
+            // Если нет данных
+            if (allScores.length === 0) {
+                console.log(`[SVP PieChart] Нет данных для ${employeeName} / ${criteriaKey}`);
+                return;
+            }
+            
+            // Подсчёт распределения
+            const count0 = allScores.filter(s => s === 0.0).length;
+            const count05 = allScores.filter(s => s === 0.5).length;
+            const count1 = allScores.filter(s => s === 1.0).length;
+            
+            // Легенда
+            const legendHtml = `
+                <div class="svp-legend-item">
+                    <div class="svp-legend-dot" style="background: #4ade80; box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);"></div>
+                    <span class="svp-legend-label">Полное (1.0)</span>
+                    <span class="svp-legend-count">${count1}</span>
+                </div>
+                <div class="svp-legend-item">
+                    <div class="svp-legend-dot" style="background: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);"></div>
+                    <span class="svp-legend-label">Частичное (0.5)</span>
+                    <span class="svp-legend-count">${count05}</span>
+                </div>
+                <div class="svp-legend-item">
+                    <div class="svp-legend-dot" style="background: #f87171; box-shadow: 0 0 10px rgba(248, 113, 113, 0.5);"></div>
+                    <span class="svp-legend-label">Несоотв. (0.0)</span>
+                    <span class="svp-legend-count">${count0}</span>
+                </div>
+            `;
+            
+            const legendElement = document.getElementById('svpPieLegend');
+            if (legendElement) {
+                legendElement.innerHTML = legendHtml;
+            }
+            
+            // Chart.js
+            const canvas = document.getElementById('svpPieChart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            
+            window.svpPieChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Полное (1.0)', 'Частичное (0.5)', 'Несоотв. (0.0)'],
+                    datasets: [{
+                        data: [count1, count05, count0],
+                        backgroundColor: [
+                            'rgba(74, 222, 128, 0.8)',
+                            'rgba(251, 191, 36, 0.8)',
+                            'rgba(248, 113, 113, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(74, 222, 128, 1)',
+                            'rgba(251, 191, 36, 1)',
+                            'rgba(248, 113, 113, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                    return `${label}: ${value} звонков (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Авто-рендер при загрузке
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', renderSvpHeatmap);
+        } else {
+            renderSvpHeatmap();
+        }
+
         init();
     </script>
+
+    <!-- SVP HEATMAP PRO — Выезжающая панель -->
+    <div id="svpTooltip" class="svp-tooltip"></div>
+    <div id="svpSidePanelOverlay" class="svp-side-panel-overlay" onclick="closeSvpPanel()"></div>
+    <div id="svpSidePanel" class="svp-side-panel">
+        <div class="svp-panel-header">
+            <div class="svp-panel-title">
+                <i class="fas fa-chart-bar"></i>
+                <span id="svpPanelEmployeeName">Сотрудник</span>
+            </div>
+            <button class="svp-panel-close" onclick="closeSvpPanel()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="svp-panel-body" id="svpPanelBody">
+            <!-- Заполняется JavaScript -->
+        </div>
+    </div>
+
+    </div> <!-- /.main-v2 -->
+
+    <script>
+        // SIDEBAR V2 — Toggle function
+        function toggleSidebarV2() {
+            const sidebar = document.getElementById('sidebarV2');
+            const main = document.getElementById('mainV2');
+            if (sidebar && main) {
+                sidebar.classList.toggle('collapsed');
+                main.classList.toggle('expanded');
+            }
+        }
+    </script>
+
 </body>
 </html>

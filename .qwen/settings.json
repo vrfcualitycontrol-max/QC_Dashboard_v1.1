@@ -10,7 +10,16 @@
       "Bash(git init)",
       "Bash(curl *)",
       "Bash(git config *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(git tag *)",
+      "WebFetch(drive.google.com)",
+      "Read(C:\\Users\\user\\AppData\\Local\\Programs\\Microsoft VS Code\\ТЕСТ/**)",
+      "Read(C:\\Users\\user\\AppData\\Local\\Programs\\Microsoft VS Code\\ТЕСТ\\Dashboard_SC/**)",
+      "Read(C:\\Users\\user\\AppData\\Local\\Programs\\Microsoft VS Code\\ТЕСТ\\Dashboard_SC\\Dashboard_SC/**)",
+      "Bash(taskkill *)"
     ]
   },
   "$version": 3
