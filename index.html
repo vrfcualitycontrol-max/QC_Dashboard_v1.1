@@ -7,28 +7,33 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
         :root {
             --bg-gradient-start: #667eea;
             --bg-gradient-end: #764ba2;
-            --card-bg: rgba(255, 255, 255, 0.15);
-            --card-border: rgba(255, 255, 255, 0.2);
+            --card-bg: rgba(255, 255, 255, 0.12);
+            --card-border: rgba(255, 255, 255, 0.18);
             --text-primary: #ffffff;
             --text-secondary: rgba(255, 255, 255, 0.9);
-            --text-muted: rgba(255, 255, 255, 0.75);
+            --text-muted: rgba(255, 255, 255, 0.7);
             --success: #4ade80;
             --warning: #fbbf24;
             --danger: #f87171;
             --tooltip-bg: rgba(0, 0, 0, 0.9);
+            --accent-orange: #f97316;
+            --accent-orange-light: #fb923c;
+            --glass-blur: 24px;
         }
 
         [data-theme="light"] {
-            --bg-gradient-start: #e0e7ff;
-            --bg-gradient-end: #f3e8ff;
-            --card-bg: rgba(255, 255, 255, 0.85);
-            --card-border: rgba(100, 100, 150, 0.15);
+            --bg-gradient-start: #f8fafc;
+            --bg-gradient-end: #e2e8f0;
+            --card-bg: rgba(255, 255, 255, 0.75);
+            --card-border: rgba(0, 0, 0, 0.08);
             --text-primary: #0f172a;
             --text-secondary: #334155;
-            --text-muted: #475569;
+            --text-muted: #64748b;
             --tooltip-bg: rgba(30, 41, 59, 0.95);
         }
 
@@ -39,7 +44,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             min-height: 100vh;
             color: var(--text-primary);
@@ -47,6 +52,33 @@
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Фоновые декоративные элементы */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -20%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -30%;
+            left: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(118, 75, 162, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
         }
 
         /* Боковое выдвижное меню */
@@ -102,6 +134,14 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
+            min-height: 72px;
+        }
+
+        .sidebar-v2 .logo-text {
+            flex: 1;
+            min-width: 0;
+            overflow: visible;
         }
 
         .sidebar-v2 .logo h1 {
@@ -112,7 +152,8 @@
             text-transform: uppercase;
             margin: 0;
             white-space: nowrap;
-            overflow: hidden;
+            overflow: visible;
+            text-overflow: clip;
         }
 
         .sidebar-v2 .logo p {
@@ -120,12 +161,23 @@
             color: #64748b;
             margin: 4px 0 0;
             white-space: nowrap;
-            overflow: hidden;
+            overflow: visible;
+            text-overflow: clip;
         }
 
         .sidebar-v2.collapsed .logo h1,
         .sidebar-v2.collapsed .logo p {
             display: none;
+        }
+
+        .sidebar-v2.collapsed .logo {
+            justify-content: center;
+            padding: 16px;
+            min-height: 60px;
+        }
+
+        .sidebar-v2.collapsed .hamburger-v2 {
+            margin: 0 auto;
         }
 
         .sidebar-v2 .hamburger-v2 {
@@ -168,14 +220,14 @@
         }
 
         .nav-v2-item:hover {
-            background: rgba(167, 139, 250, 0.08);
-            color: #c4b5fd;
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.08), rgba(251, 146, 60, 0.05));
+            color: var(--accent-orange-light);
         }
 
         .nav-v2-item.active {
-            background: rgba(167, 139, 250, 0.15);
-            color: #a78bfa;
-            border-left-color: #a78bfa;
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(251, 146, 60, 0.1));
+            color: var(--accent-orange);
+            border-left-color: var(--accent-orange);
         }
 
         .nav-v2-icon {
@@ -208,16 +260,22 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            position: relative;
         }
 
-        .sidebar-v2 .bottom-info img {
-            width: 52px;
-            height: 36px;
-            object-fit: cover;
-            border-radius: 6px;
+        .sidebar-v2 .bottom-info .bottom-logo {
+            width: 44px;
+            height: 44px;
+            object-fit: contain;
+            border-radius: 50%;
             filter: brightness(0.95) contrast(1.05);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
             flex-shrink: 0;
+            background: transparent;
+        }
+
+        .sidebar-v2.collapsed .bottom-info .bottom-logo {
+            margin: 0 auto;
         }
 
         .sidebar-v2 .bottom-text {
@@ -242,8 +300,7 @@
         }
 
         .sidebar-v2.collapsed .bottom-text,
-        .sidebar-v2.collapsed .bottom-subtext,
-        .sidebar-v2.collapsed .bottom-info img {
+        .sidebar-v2.collapsed .bottom-subtext {
             display: none;
         }
 
@@ -277,14 +334,14 @@
         }
 
         [data-theme="light"] .nav-v2-item:hover {
-            background: rgba(124, 58, 237, 0.08);
-            color: #7c3aed;
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.06), rgba(251, 146, 60, 0.04));
+            color: #ea580c;
         }
 
         [data-theme="light"] .nav-v2-item.active {
-            background: rgba(124, 58, 237, 0.12);
-            color: #7c3aed;
-            border-left-color: #7c3aed;
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(251, 146, 60, 0.08));
+            color: #ea580c;
+            border-left-color: #ea580c;
         }
 
         [data-theme="light"] .sidebar-v2 .nav-section-title {
@@ -560,17 +617,20 @@
 
         .card {
             background: var(--card-bg);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
             border: 1px solid var(--card-border);
             border-radius: 20px;
             padding: 25px;
             transition: all 0.3s ease;
             width: 100%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
         }
 
         .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border-color: rgba(249, 115, 22, 0.3);
         }
 
         .card-header {
@@ -922,6 +982,11 @@
             border-color: rgba(251, 191, 36, 0.4) !important;
         }
 
+        .svp-cell.orange {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.25), rgba(249, 115, 22, 0.15));
+            border-color: rgba(251, 146, 60, 0.4) !important;
+        }
+
         .svp-cell.success {
             background: linear-gradient(135deg, rgba(74, 222, 128, 0.25), rgba(34, 197, 94, 0.15));
             border-color: rgba(74, 222, 128, 0.4) !important;
@@ -1241,6 +1306,16 @@
             margin-top: 15px;
         }
 
+        .svp-diagnosis-box.critical {
+            background: linear-gradient(135deg, rgba(248, 113, 113, 0.1), rgba(239, 68, 68, 0.05));
+            border-color: rgba(248, 113, 113, 0.3);
+        }
+
+        .svp-diagnosis-box.orange {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.1), rgba(249, 115, 22, 0.05));
+            border-color: rgba(251, 146, 60, 0.3);
+        }
+
         .svp-diagnosis-box.warning {
             background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(234, 179, 8, 0.05));
             border-color: rgba(251, 191, 36, 0.3);
@@ -1249,6 +1324,11 @@
         .svp-diagnosis-box.success {
             background: linear-gradient(135deg, rgba(74, 222, 128, 0.1), rgba(34, 197, 94, 0.05));
             border-color: rgba(74, 222, 128, 0.3);
+        }
+
+        .svp-diagnosis-box.info {
+            background: linear-gradient(135deg, rgba(96, 165, 250, 0.1), rgba(59, 130, 246, 0.05));
+            border-color: rgba(96, 165, 250, 0.3);
         }
 
         .svp-diagnosis-title {
@@ -1339,7 +1419,7 @@
     <!-- SIDEBAR V2 — Сворачиваемое меню -->
     <div class="sidebar-v2" id="sidebarV2">
         <div class="logo">
-            <div>
+            <div class="logo-text">
                 <h1>QC Dashboard</h1>
                 <p>Variant Retail Finance · SC Unit</p>
             </div>
@@ -1390,7 +1470,7 @@
             </div>
         </div>
         <div class="bottom-info">
-            <img src="data:image/jpeg;base64,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AT8hIiIiIiJTnOc5znOc5zlERERERETnOc5znOc5znERERERETnOc5znOc5znERERERESnOc5znOc5znEREREREROc5znOc5znOIiIiIiIic5znOc5znOcREREREREpznOc5znOc4iIiIiIiInOc5znOc5ziIiLKx4kT5CerCCgNVj7NbgfkRZ7QN8ziKrCwmE0RnOc5wNa2RpZAM3VznOfgRFrznq3X5HKM3LfxMDepfK/UygzTYVPZM24LrPT4PKLTW/dXwc/DSqH+j315znOcCeR862J2eVhGx0Bv8dZznPwIi0Mj/g99OcLEnYfy9MdItZLT9Y757QyZAvUbesOfr6Mi2FX3HNsFIe2eFve6h0+DynOc7DfZfl+s+GFLPaN+85zn4kTglZE4NjcyCDhsHXNqCdSPrMWzbvG3fELBvR5Dbt+ov5Wbdc9bMeb1g726bs/U4M5ztEAeY/WSHI7T82hCSrleM5zn4kRbumh9tvh1fCwAY601P85SIRwnGLPZw/w6d1i9kuQ/sc4tUB8n7YfDjZa6XaOdnYynJf7tz8MydOs2+XWc5zn4kRNlMYf5dOyxGRyPG31nmNu+esW2R1O3w6QsaMPzn3k5Q4siOXy/R/3nfJYCdzJznO/QNDv3/VluMjwLczdD0OB0nOc5+QiLeJ2zbti2l1C8Hg9YfstB4NkAwCDjsHTMieFkTiWLveb7/cWy4MfuadmOnh8vgZ225QLYUvdbYFR9/e2vfwHQ5znOc5+QiLS+0/WO2e0dbQmHH+OfOLWuTlfTTlbuV/H3g/yBe5ZVtBBx2DpmIELA4kuTEznr2eTF44A7K27Z7eGr11T7acpznOc/IRExmFT3G21EOdidl8f458otpXROvyOcLGjjojR+IhzXpHH1emnKRm0yGRgI5wgkqDEDxdiyRFNVeM5znOflIiTSI6QHXG3rmU0PIVqdPDFSBvRLjsn5f5IleOM39RcHBagfRIt6hQL1xLfS5i9llrP5o3ZznOc5+UiIiIiIiInOc5znPykREREREREpznOc5+YiIiIiIiPA5znOc/MRERERERETnOc5z85EREREREROc5zn5yIiIiIiIic5znO//2gAMAwEAAgADAAAAEFiPlKgHMITXccVavEqFpHcYTXsb6voKhMDfMRz/AFbjQKpRqAx/Oc5yt57UP3gdTDMPuBaZwdB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" alt="VRF">
+            <img src="New logo1.1.png" alt="VRF" class="bottom-logo">
             <div>
                 <div class="bottom-text">Февраль–Март 2026</div>
                 <div class="bottom-subtext">Soft Collection Unit</div>
@@ -1737,6 +1817,67 @@ window.DASHBOARD_DATA = {
         },
         "aht": 3.54
       },
+      "01-05 Апр 2026": {
+        "tqs": 0.775,
+        "activity_count": 4,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            1.0,
+            0.5
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            1.0,
+            0.5,
+            1.0,
+            1.0
+          ],
+          "requirements": [
+            1.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "summary": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "aht": 1.7
+      },
       "09-15 Фев 2026": {
         "tqs": 0.74,
         "activity_count": 2,
@@ -1974,19 +2115,19 @@ window.DASHBOARD_DATA = {
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9737,
-      "ethics": 0.9474,
-      "crm": 0.8684,
-      "legend": 0.8947,
-      "informing": 0.9211,
-      "argumentation": 0.5526,
-      "manipulation": 0.8158,
-      "requirements": 0.5789,
-      "summary": 0.8158
+      "greeting": 0.9783,
+      "ethics": 0.9565,
+      "crm": 0.8913,
+      "legend": 0.913,
+      "informing": 0.913,
+      "argumentation": 0.5435,
+      "manipulation": 0.8261,
+      "requirements": 0.6087,
+      "summary": 0.7391
     },
     "aggregated_tqs": 0.77,
-    "sum_activity": 19,
-    "aggregated_aht": 2.53,
+    "sum_activity": 23,
+    "aggregated_aht": 2.39,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По Требованиям и финализации (критично): разобрать звонок от 29.03, где допущен провал финальных\nблоков. сотрудник обязан озвучивать точный срок и резюмировать договоренности.\n• По CRM: разобрать ошибку фиксации от 25.03 для исключения риска неверной маршрутизации дела в\nсистеме.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для удержания стабильно высокого качества\nдиалога.\n• По Аргументации: использовать ст. 333 ГК РУз (отсутствие денежных средств не освобождает от\nобязательств) в ответ на финансовые возражения."
@@ -2116,6 +2257,58 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.01
+      },
+      "01-05 Апр 2026": {
+        "tqs": 0.7467,
+        "activity_count": 3,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            1.0,
+            0.5,
+            0.5
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            0.5
+          ],
+          "argumentation": [
+            0.5,
+            1.0,
+            1.0
+          ],
+          "manipulation": [
+            1.0,
+            0.5,
+            0.5
+          ],
+          "requirements": [
+            0.5,
+            1.0,
+            0.0
+          ],
+          "summary": [
+            1.0,
+            0.0,
+            0.5
+          ]
+        },
+        "aht": 1.62
       },
       "09-15 Фев 2026": {
         "tqs": 0.6775,
@@ -2503,19 +2696,19 @@ window.DASHBOARD_DATA = {
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9559,
-      "ethics": 0.8529,
-      "crm": 0.8676,
-      "legend": 0.6176,
-      "informing": 0.7794,
-      "argumentation": 0.5294,
-      "manipulation": 0.6765,
-      "requirements": 0.4853,
-      "summary": 0.6618
+      "greeting": 0.9595,
+      "ethics": 0.8649,
+      "crm": 0.8784,
+      "legend": 0.6216,
+      "informing": 0.7838,
+      "argumentation": 0.5541,
+      "manipulation": 0.6757,
+      "requirements": 0.4865,
+      "summary": 0.6486
     },
-    "aggregated_tqs": 0.66,
-    "sum_activity": 34,
-    "aggregated_aht": 2.97,
+    "aggregated_tqs": 0.67,
+    "sum_activity": 37,
+    "aggregated_aht": 2.82,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По CRM и Итогам (экстренно): разобрать ошибку CRM от 25.03 и провал финализации от 24.03. нарушение\nправил фиксации несет риск фрода.\n• По Требованиям: обязать сотрудника использовать конкретику в каждом диалоге: называть способы оплаты\n(Payme, Click) и точную дату исполнения.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\").\n• По Аргументации: внедрить обязательные ссылки на ст. 236 и 237 ГК РУз (надлежащее исполнение и\nзапрет отказа)."
@@ -2645,6 +2838,67 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.81
+      },
+      "01-05 Апр 2026": {
+        "tqs": 0.4525,
+        "activity_count": 4,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            0.5,
+            1.0,
+            1.0,
+            0.5
+          ],
+          "legend": [
+            0.0,
+            0.5,
+            0.0,
+            0.5
+          ],
+          "informing": [
+            0.5,
+            1.0,
+            0.5,
+            0.5
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            0.0,
+            0.0,
+            0.5
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.0,
+            0.0
+          ],
+          "summary": [
+            0.5,
+            0.5,
+            0.0,
+            0.0
+          ]
+        },
+        "aht": 2.24
       },
       "09-15 Фев 2026": {
         "tqs": 0.7225,
@@ -3014,19 +3268,19 @@ window.DASHBOARD_DATA = {
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9531,
-      "ethics": 0.75,
-      "crm": 0.9062,
-      "legend": 0.5156,
-      "informing": 0.7188,
-      "argumentation": 0.4844,
-      "manipulation": 0.5469,
-      "requirements": 0.3906,
-      "summary": 0.4844
+      "greeting": 0.9583,
+      "ethics": 0.7778,
+      "crm": 0.8889,
+      "legend": 0.4861,
+      "informing": 0.7083,
+      "argumentation": 0.4861,
+      "manipulation": 0.5,
+      "requirements": 0.375,
+      "summary": 0.4583
     },
-    "aggregated_tqs": 0.59,
-    "sum_activity": 32,
-    "aggregated_aht": 3.9,
+    "aggregated_tqs": 0.57,
+    "sum_activity": 36,
+    "aggregated_aht": 3.72,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По CRM и финализации диалога (экстренно): сотрудник систематически не озвучивает требования, не\nподводит итоги и допускает ошибки фиксации в системе. требуется жесткий контроль структуры СВП на\nфинальных этапах.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для закрытия критических провалов в тактике.\n• По Аргументации: использовать ст. 333 ГК РУз (отсутствие денежных средств не освобождает от\nобязательств) для устранения системной слабости."
@@ -3129,6 +3383,67 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 1.84
+      },
+      "01-05 Апр 2026": {
+        "tqs": 0.65,
+        "activity_count": 4,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "crm": [
+            1.0,
+            1.0,
+            0.5,
+            1.0
+          ],
+          "legend": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "informing": [
+            0.5,
+            1.0,
+            0.5,
+            0.5
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          "manipulation": [
+            0.5,
+            1.0,
+            0.5,
+            0.5
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "aht": 1.9
       },
       "09-15 Мар 2026": {
         "tqs": 0.59,
@@ -3482,19 +3797,19 @@ window.DASHBOARD_DATA = {
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9167,
-      "ethics": 0.7833,
-      "crm": 0.8333,
-      "legend": 0.6167,
-      "informing": 0.75,
-      "argumentation": 0.55,
-      "manipulation": 0.55,
-      "requirements": 0.4167,
-      "summary": 0.5
+      "greeting": 0.9265,
+      "ethics": 0.7206,
+      "crm": 0.8382,
+      "legend": 0.6029,
+      "informing": 0.7353,
+      "argumentation": 0.5588,
+      "manipulation": 0.5588,
+      "requirements": 0.4265,
+      "summary": 0.5588
     },
     "aggregated_tqs": 0.62,
-    "sum_activity": 30,
-    "aggregated_aht": 2.09,
+    "sum_activity": 34,
+    "aggregated_aht": 2.07,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По Этике и финализации (критично): разобрать звонки от 26.03 и 28.03. недопустимо нарушать нормы\nделового общения и бросать звонок без подведения итогов (Якунлаш).\n• По Требованиям: сотрудник системно не выставляет требования, необходимо четко и бескомпромиссно\nозвучивать сумму и сроки оплаты.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для устранения нулей и возврата контроля над\nразговором.\n• По Аргументации: обучить применению ст. 421 ГК РУз (товар в залоге у продавца), чтобы преодолеть\nстабильную оценку 0,5."
@@ -3624,6 +3939,58 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 1.93
+      },
+      "01-05 Апр 2026": {
+        "tqs": 0.6033,
+        "activity_count": 3,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            0.0,
+            1.0
+          ],
+          "legend": [
+            0.0,
+            0.5,
+            1.0
+          ],
+          "informing": [
+            0.5,
+            1.0,
+            0.5
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            1.0,
+            1.0
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "aht": 1.85
       },
       "09-15 Фев 2026": {
         "tqs": 0.7075,
@@ -4002,19 +4369,19 @@ window.DASHBOARD_DATA = {
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9697,
-      "ethics": 0.8636,
-      "crm": 0.9394,
-      "legend": 0.6364,
-      "informing": 0.8636,
-      "argumentation": 0.6212,
-      "manipulation": 0.6818,
-      "requirements": 0.5758,
-      "summary": 0.8485
+      "greeting": 0.9722,
+      "ethics": 0.875,
+      "crm": 0.9167,
+      "legend": 0.625,
+      "informing": 0.8472,
+      "argumentation": 0.6111,
+      "manipulation": 0.6806,
+      "requirements": 0.5694,
+      "summary": 0.8194
     },
-    "aggregated_tqs": 0.73,
-    "sum_activity": 33,
-    "aggregated_aht": 2.81,
+    "aggregated_tqs": 0.72,
+    "sum_activity": 36,
+    "aggregated_aht": 2.7,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По финализации диалога и CRM (критично): разобрать звонки от 24.03, 25.03 и 26.03. обнуление выбора\nстатуса в CRM и игнорирование фиксации итогов недопустимы.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для закрепления позиции в переговорах.\n• По Аргументации: применять ст. 236 и 237 ГК РУз (надлежащее исполнение), чтобы устранить стабильные\nнули и 0,5 балла."
@@ -4144,6 +4511,67 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.89
+      },
+      "01-05 Апр 2026": {
+        "tqs": 0.8275,
+        "activity_count": 4,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            0.5,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            1.0,
+            0.5
+          ],
+          "manipulation": [
+            1.0,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "requirements": [
+            1.0,
+            0.5,
+            0.5,
+            1.0
+          ],
+          "summary": [
+            1.0,
+            0.5,
+            1.0,
+            1.0
+          ]
+        },
+        "aht": 2.37
       },
       "09-15 Фев 2026": {
         "tqs": 0.5075,
@@ -4531,19 +4959,19 @@ window.DASHBOARD_DATA = {
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9412,
-      "ethics": 0.8382,
-      "crm": 0.8088,
-      "legend": 0.9412,
-      "informing": 0.6912,
-      "argumentation": 0.6912,
-      "manipulation": 0.5735,
-      "requirements": 0.4706,
-      "summary": 0.6912
+      "greeting": 0.9474,
+      "ethics": 0.8553,
+      "crm": 0.8158,
+      "legend": 0.9474,
+      "informing": 0.7237,
+      "argumentation": 0.6842,
+      "manipulation": 0.5789,
+      "requirements": 0.5,
+      "summary": 0.7105
     },
-    "aggregated_tqs": 0.71,
-    "sum_activity": 34,
-    "aggregated_aht": 3.55,
+    "aggregated_tqs": 0.72,
+    "sum_activity": 38,
+    "aggregated_aht": 3.42,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По Требованиям: при общем высоком балле сотрудник системно получает 0,5 за нечеткость. необходимо\nжестко озвучивать способы оплаты (Payme, Click) и конкретные сроки исполнения в каждом диалоге.\n• По CRM: разобрать ошибку в выборе результата от 25.03, чтобы исключить риски неверной классификации\nдоговоров.\n• По Манипуляции: для удержания высокой планки и перехвата инициативы рекомендуется внедрение\nманипулятивных тактик (на пример: \"Давление негативными последствиями\", \"Давление сроком\", \"Выбор\nбез выбора\")."
@@ -4673,6 +5101,67 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.11
+      },
+      "01-05 Апр 2026": {
+        "tqs": 0.675,
+        "activity_count": 4,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            1.0,
+            0.5,
+            1.0
+          ],
+          "legend": [
+            1.0,
+            0.5,
+            0.5,
+            1.0
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            1.0,
+            0.5
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          "manipulation": [
+            1.0,
+            0.0,
+            0.5,
+            1.0
+          ],
+          "requirements": [
+            0.0,
+            0.5,
+            0.5,
+            0.0
+          ],
+          "summary": [
+            0.5,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "aht": 2.23
       },
       "09-15 Фев 2026": {
         "tqs": 0.6925,
@@ -5051,18 +5540,18 @@ window.DASHBOARD_DATA = {
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9848,
-      "ethics": 0.9545,
-      "crm": 0.9394,
-      "legend": 0.7576,
-      "informing": 0.8636,
-      "argumentation": 0.5606,
-      "manipulation": 0.5152,
-      "requirements": 0.4242,
-      "summary": 0.697
+      "greeting": 0.9865,
+      "ethics": 0.9595,
+      "crm": 0.9324,
+      "legend": 0.7568,
+      "informing": 0.8649,
+      "argumentation": 0.5676,
+      "manipulation": 0.527,
+      "requirements": 0.4054,
+      "summary": 0.6892
     },
     "aggregated_tqs": 0.69,
-    "sum_activity": 33,
+    "sum_activity": 37,
     "aggregated_aht": 2.2,
     "pdf_data": {
       "trends": "(Системные недоработки):",
@@ -5250,6 +5739,67 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.65
+      },
+      "01-05 Апр 2026": {
+        "tqs": 0.7525,
+        "activity_count": 4,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "informing": [
+            0.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "manipulation": [
+            1.0,
+            0.5,
+            1.0,
+            0.5
+          ],
+          "requirements": [
+            0.0,
+            1.0,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            0.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "aht": 2.35
       },
       "09-15 Фев 2026": {
         "tqs": 0.6525,
@@ -5637,19 +6187,19 @@ window.DASHBOARD_DATA = {
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9559,
-      "ethics": 0.8235,
-      "crm": 0.9265,
-      "legend": 0.5294,
-      "informing": 0.7353,
-      "argumentation": 0.6176,
-      "manipulation": 0.5147,
+      "greeting": 0.9605,
+      "ethics": 0.8421,
+      "crm": 0.9342,
+      "legend": 0.5263,
+      "informing": 0.7368,
+      "argumentation": 0.6447,
+      "manipulation": 0.5395,
       "requirements": 0.5,
-      "summary": 0.7647
+      "summary": 0.7632
     },
-    "aggregated_tqs": 0.66,
-    "sum_activity": 34,
-    "aggregated_aht": 3.78,
+    "aggregated_tqs": 0.67,
+    "sum_activity": 38,
+    "aggregated_aht": 3.62,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По финализации диалога (критично): разобрать звонки от 24.03, 28.03 и 30.03. систематическое обнуление\nтребований и итогов обесценивает процесс телефонных переговоров.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\").\n• По Легендированию и Аргументации: применять четкую структуру должностной интриги и ст. 236 ГК\nРУз (надлежащее исполнение) для устранения системных просадок."
@@ -5779,6 +6329,67 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 1.99
+      },
+      "01-05 Апр 2026": {
+        "tqs": 0.67,
+        "activity_count": 4,
+        "scores": {
+          "greeting": [
+            1.0,
+            0.5,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            0.5,
+            0.5,
+            1.0,
+            0.5
+          ],
+          "informing": [
+            0.5,
+            0.5,
+            1.0,
+            0.5
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            1.0,
+            0.5
+          ],
+          "manipulation": [
+            0.5,
+            0.5,
+            1.0,
+            1.0
+          ],
+          "requirements": [
+            0.5,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "summary": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "aht": 2.34
       },
       "09-15 Фев 2026": {
         "tqs": 0.66,
@@ -6105,19 +6716,19 @@ window.DASHBOARD_DATA = {
       }
     },
     "aggregated_scores": {
-      "greeting": 0.95,
-      "ethics": 0.9333,
-      "crm": 0.9,
-      "legend": 0.6833,
-      "informing": 0.5333,
-      "argumentation": 0.65,
-      "manipulation": 0.7,
-      "requirements": 0.55,
-      "summary": 0.6167
+      "greeting": 0.9412,
+      "ethics": 0.9118,
+      "crm": 0.8824,
+      "legend": 0.6765,
+      "informing": 0.5441,
+      "argumentation": 0.6471,
+      "manipulation": 0.7059,
+      "requirements": 0.5294,
+      "summary": 0.6618
     },
-    "aggregated_tqs": 0.69,
-    "sum_activity": 30,
-    "aggregated_aht": 2.77,
+    "aggregated_tqs": 0.68,
+    "sum_activity": 34,
+    "aggregated_aht": 2.72,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По CRM и Итогам (экстренно): разобрать ошибку в фиксации от 25.03. нарушение дисциплины CRM\nквалифицируется как риск фрода.\n• По Аргументации: обучить применению ст. 421 ГК РУз (товар в залоге до полной оплаты), так как\nсотрудник опирается лишь на логику, теряя баллы.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\")."
@@ -6247,6 +6858,67 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.01
+      },
+      "01-05 Апр 2026": {
+        "tqs": 0.6725,
+        "activity_count": 4,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            1.0,
+            1.0,
+            1.0,
+            0.5
+          ],
+          "informing": [
+            0.5,
+            1.0,
+            0.5,
+            0.5
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            1.0,
+            1.0,
+            0.5,
+            0.5
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "aht": 2.38
       },
       "09-15 Фев 2026": {
         "tqs": 0.575,
@@ -6616,19 +7288,19 @@ window.DASHBOARD_DATA = {
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9531,
-      "ethics": 0.8438,
-      "crm": 0.8906,
-      "legend": 0.5469,
-      "informing": 0.8594,
-      "argumentation": 0.625,
-      "manipulation": 0.5781,
-      "requirements": 0.5625,
-      "summary": 0.2812
+      "greeting": 0.9583,
+      "ethics": 0.8611,
+      "crm": 0.9028,
+      "legend": 0.5833,
+      "informing": 0.8333,
+      "argumentation": 0.6111,
+      "manipulation": 0.5972,
+      "requirements": 0.5556,
+      "summary": 0.2778
     },
     "aggregated_tqs": 0.64,
-    "sum_activity": 32,
-    "aggregated_aht": 3.08,
+    "sum_activity": 36,
+    "aggregated_aht": 3.0,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По системным провалам (экстренно): жестко разобрать звонок от 29.03, где допущена потеря этики и\nобнулены ключевые блоки. также сотрудник систематически бросает звонки без подведения итогов.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для усиления инициативы.\n• По Требованиям: обязать сотрудника озвучивать конкретные даты и способы оплаты."
@@ -6758,6 +7430,58 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.08
+      },
+      "01-05 Апр 2026": {
+        "tqs": 0.5933,
+        "activity_count": 3,
+        "scores": {
+          "greeting": [
+            1.0,
+            0.5,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            0.0
+          ],
+          "crm": [
+            1.0,
+            1.0,
+            0.0
+          ],
+          "legend": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "informing": [
+            0.5,
+            1.0,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            1.0,
+            1.0,
+            0.5
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            1.0,
+            0.0,
+            0.0
+          ]
+        },
+        "aht": 1.83
       },
       "09-15 Фев 2026": {
         "tqs": 0.6775,
@@ -7145,19 +7869,19 @@ window.DASHBOARD_DATA = {
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9412,
-      "ethics": 0.75,
-      "crm": 0.8676,
-      "legend": 0.8382,
-      "informing": 0.7647,
+      "greeting": 0.9324,
+      "ethics": 0.7432,
+      "crm": 0.8514,
+      "legend": 0.8108,
+      "informing": 0.7703,
       "argumentation": 0.5,
-      "manipulation": 0.7059,
-      "requirements": 0.6176,
-      "summary": 0.1912
+      "manipulation": 0.7162,
+      "requirements": 0.6081,
+      "summary": 0.2027
     },
-    "aggregated_tqs": 0.66,
-    "sum_activity": 34,
-    "aggregated_aht": 3.95,
+    "aggregated_tqs": 0.65,
+    "sum_activity": 37,
+    "aggregated_aht": 3.71,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По финализации диалога (экстренно): сотрудник систематически бросает диалог без фиксации\nдоговоренностей (6 нулей подряд). необходим жесткий контроль этапа «Якунлаш» с предупреждением\nклиента о записи разговора.\n• По CRM и Этике: разобрать ошибки фиксации и нарушение делового тона от 24.03, 25.03 и 31.03. искажение\nстатуса и потеря этики несут репутационные риски и риски фрода.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\").\n• По Аргументации: применять ссылки на ст. 236 и 237 ГК РУз (надлежащее исполнение и запрет отказа) для\nустранения стабильных 0,5 балла."
@@ -7287,6 +8011,58 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.16
+      },
+      "01-05 Апр 2026": {
+        "tqs": 0.4467,
+        "activity_count": 3,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            0.5
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            0.0
+          ],
+          "crm": [
+            1.0,
+            1.0,
+            0.0
+          ],
+          "legend": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            0.5
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.0
+          ],
+          "summary": [
+            1.0,
+            1.0,
+            0.0
+          ]
+        },
+        "aht": 1.33
       },
       "09-15 Фев 2026": {
         "tqs": 0.61,
@@ -7674,19 +8450,19 @@ window.DASHBOARD_DATA = {
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9706,
-      "ethics": 0.7647,
-      "crm": 0.7059,
-      "legend": 0.4853,
-      "informing": 0.8529,
+      "greeting": 0.9595,
+      "ethics": 0.7568,
+      "crm": 0.7027,
+      "legend": 0.4459,
+      "informing": 0.8514,
       "argumentation": 0.5,
-      "manipulation": 0.2647,
-      "requirements": 0.5294,
-      "summary": 0.9265
+      "manipulation": 0.2432,
+      "requirements": 0.5135,
+      "summary": 0.9054
     },
-    "aggregated_tqs": 0.62,
-    "sum_activity": 34,
-    "aggregated_aht": 3.02,
+    "aggregated_tqs": 0.6,
+    "sum_activity": 37,
+    "aggregated_aht": 2.83,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По Манипуляции (экстренно): абсолютный провал тактического давления (6 нулей). рекомендуется\nвнедрение манипулятивных тактик (на пример: \"Давление негативными последствиями\", \"Давление сроком\",\n\"Выбор без выбора\").\n• По CRM и Этике: разобрать стартовые звонки периода (24.03 и 25.03). недопустимо обнуление этики\nобщения и искажение статусов в системе (риск фрода).\n• По Аргументации и Требованиям: обязать сотрудника четко озвучивать даты и суммы, а также применять\nст. 324 ГК РУз (возмещение расходов на взыскание)."
@@ -7816,6 +8592,67 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.46
+      },
+      "01-05 Апр 2026": {
+        "tqs": 0.665,
+        "activity_count": 4,
+        "scores": {
+          "greeting": [
+            1.0,
+            0.5,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            0.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            1.0,
+            0.5,
+            1.0,
+            0.5
+          ],
+          "informing": [
+            0.5,
+            1.0,
+            0.5,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            1.0,
+            0.5
+          ],
+          "manipulation": [
+            0.5,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "requirements": [
+            0.5,
+            0.0,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "aht": 2.34
       },
       "09-15 Фев 2026": {
         "tqs": 0.7425,
@@ -8203,19 +9040,19 @@ window.DASHBOARD_DATA = {
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9412,
-      "ethics": 0.8529,
-      "crm": 0.8382,
-      "legend": 0.8971,
-      "informing": 0.8382,
-      "argumentation": 0.7353,
-      "manipulation": 0.6765,
-      "requirements": 0.4853,
-      "summary": 0.6912
+      "greeting": 0.9342,
+      "ethics": 0.8421,
+      "crm": 0.8553,
+      "legend": 0.8816,
+      "informing": 0.8289,
+      "argumentation": 0.7237,
+      "manipulation": 0.6711,
+      "requirements": 0.4737,
+      "summary": 0.6711
     },
-    "aggregated_tqs": 0.75,
-    "sum_activity": 34,
-    "aggregated_aht": 3.01,
+    "aggregated_tqs": 0.74,
+    "sum_activity": 38,
+    "aggregated_aht": 2.93,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По CRM (экстренно): разобрать звонки от 25.03 и 26.03. неверная фиксация статуса искажает статистику и\nнесет прямые риски фрода.\n• По Требованиям: системная просадка в конкретике. необходимо жестко озвучивать точные сроки оплаты и\nплатежные системы (Payme, Click) в каждом звонке.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для закрытия провалов в тактическом блоке."
@@ -8345,6 +9182,58 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.23
+      },
+      "01-05 Апр 2026": {
+        "tqs": 0.6667,
+        "activity_count": 3,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            0.0,
+            1.0,
+            0.5
+          ],
+          "legend": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            1.0,
+            1.0
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "aht": 1.67
       },
       "09-15 Фев 2026": {
         "tqs": 0.685,
@@ -8732,19 +9621,19 @@ window.DASHBOARD_DATA = {
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9706,
-      "ethics": 0.9118,
-      "crm": 0.8382,
-      "legend": 0.7059,
-      "informing": 0.8088,
+      "greeting": 0.973,
+      "ethics": 0.9189,
+      "crm": 0.8108,
+      "legend": 0.6892,
+      "informing": 0.8243,
       "argumentation": 0.5,
-      "manipulation": 0.5,
-      "requirements": 0.4118,
-      "summary": 0.5294
+      "manipulation": 0.5135,
+      "requirements": 0.4189,
+      "summary": 0.5676
     },
     "aggregated_tqs": 0.63,
-    "sum_activity": 34,
-    "aggregated_aht": 2.89,
+    "sum_activity": 37,
+    "aggregated_aht": 2.75,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По финализации и CRM (критично): разобрать звонки от 24.03 и 25.03, где допущено обнуление\nтребований и ошибка в фиксации статуса в системе.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для усиления контроля в диалоге.\n• По Аргументации и Легендированию: отработать подачу интриги в начале звонка и внедрить ст. 421 ГК\nРУз (товар в залоге у продавца), так как по этим блокам стабильно ставится 0,5 балла.\n• По Требованиям: обязать озвучивать точные сроки и способы оплаты, исключая размытые формулировки."
@@ -8874,6 +9763,67 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 1.8
+      },
+      "01-05 Апр 2026": {
+        "tqs": 0.6825,
+        "activity_count": 4,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            1.0,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "informing": [
+            0.5,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            1.0,
+            1.0,
+            0.5,
+            1.0
+          ],
+          "requirements": [
+            0.0,
+            0.5,
+            0.5,
+            1.0
+          ],
+          "summary": [
+            0.0,
+            1.0,
+            0.0,
+            0.5
+          ]
+        },
+        "aht": 1.7
       },
       "09-15 Фев 2026": {
         "tqs": 0.6975,
@@ -9236,17 +10186,17 @@ window.DASHBOARD_DATA = {
     "aggregated_scores": {
       "greeting": 1.0,
       "ethics": 1.0,
-      "crm": 0.9677,
-      "legend": 0.7419,
-      "informing": 0.7903,
-      "argumentation": 0.5323,
-      "manipulation": 0.5,
-      "requirements": 0.5161,
-      "summary": 0.5645
+      "crm": 0.9714,
+      "legend": 0.7286,
+      "informing": 0.8,
+      "argumentation": 0.5286,
+      "manipulation": 0.5429,
+      "requirements": 0.5143,
+      "summary": 0.5429
     },
     "aggregated_tqs": 0.68,
-    "sum_activity": 31,
-    "aggregated_aht": 1.8,
+    "sum_activity": 35,
+    "aggregated_aht": 1.79,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По финализации диалога и CRM (критично): разобрать звонок от 25.03. обнуление требований, итогов и\nстатуса в CRM недопустимо.\n• По Легендированию: отработать структуру легенды («компетенция», «эскалация»), так как сотрудник\nстабильно не дотягивает до нормы.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\").\n• По Аргументации: применять ст. 244 ГК РУз (отсрочка не допускается)."
@@ -9376,6 +10326,67 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 1.5
+      },
+      "01-05 Апр 2026": {
+        "tqs": 0.475,
+        "activity_count": 4,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            0.5,
+            0.5
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            0.5,
+            1.0,
+            0.5,
+            1.0
+          ],
+          "legend": [
+            0.5,
+            0.5,
+            0.5,
+            0.0
+          ],
+          "informing": [
+            0.5,
+            1.0,
+            1.0,
+            0.0
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            1.0,
+            0.5,
+            0.0
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.0,
+            0.5
+          ],
+          "summary": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "aht": 1.65
       },
       "09-15 Мар 2026": {
         "tqs": 0.5725,
@@ -9605,19 +10616,19 @@ window.DASHBOARD_DATA = {
       }
     },
     "aggregated_scores": {
-      "greeting": 0.8636,
-      "ethics": 0.8182,
-      "crm": 0.7727,
-      "legend": 0.6591,
-      "informing": 0.7955,
+      "greeting": 0.8462,
+      "ethics": 0.8462,
+      "crm": 0.7692,
+      "legend": 0.6154,
+      "informing": 0.7692,
       "argumentation": 0.5,
-      "manipulation": 0.3636,
-      "requirements": 0.4773,
-      "summary": 0.0909
+      "manipulation": 0.3654,
+      "requirements": 0.4615,
+      "summary": 0.0769
     },
-    "aggregated_tqs": 0.59,
-    "sum_activity": 22,
-    "aggregated_aht": 2.19,
+    "aggregated_tqs": 0.57,
+    "sum_activity": 26,
+    "aggregated_aht": 2.12,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По системным провалам (экстренно): сотрудник демонстрирует критически низкий балл. финализация и\nдавление отсутствуют. необходимо жестко требовать проведения этапа «Якунлаш» (фиксация обязательств).\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\").\n• По Аргументации: использовать ст. 324 ГК РУз (возмещение убытков и расходов на взыскание)."
@@ -9747,6 +10758,67 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.0
+      },
+      "01-05 Апр 2026": {
+        "tqs": 0.575,
+        "activity_count": 4,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            0.0,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "informing": [
+            0.5,
+            0.5,
+            1.0,
+            0.5
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            1.0,
+            1.0,
+            0.5
+          ],
+          "requirements": [
+            0.0,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            0.0,
+            1.0,
+            0.0,
+            0.5
+          ]
+        },
+        "aht": 2.17
       },
       "09-15 Фев 2026": {
         "tqs": 0.595,
@@ -10125,19 +11197,19 @@ window.DASHBOARD_DATA = {
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9697,
-      "ethics": 0.9242,
-      "crm": 0.8939,
-      "legend": 0.6515,
-      "informing": 0.7121,
+      "greeting": 0.973,
+      "ethics": 0.9324,
+      "crm": 0.9054,
+      "legend": 0.6216,
+      "informing": 0.7027,
       "argumentation": 0.5,
-      "manipulation": 0.6667,
-      "requirements": 0.4848,
-      "summary": 0.697
+      "manipulation": 0.6622,
+      "requirements": 0.473,
+      "summary": 0.6622
     },
-    "aggregated_tqs": 0.67,
-    "sum_activity": 33,
-    "aggregated_aht": 2.69,
+    "aggregated_tqs": 0.66,
+    "sum_activity": 37,
+    "aggregated_aht": 2.64,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По CRM и финализации (критично): разобрать звонки от начала периода (24.03 и 25.03). допущены грубые\nошибки в фиксации статусов и отсутствует финализация диалога.\n• По Требованиям: обязать сотрудника озвучивать конкретную дату оплаты, сумму и платежные системы\n(Payme, Click) в каждом звонке.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для усиления инициативы.\n• По Аргументации: применять ст. 324 ГК РУз (возмещение убытков и расходов на взыскание) для\nобоснования финансовых требований компании."
@@ -10569,6 +11641,58 @@ window.DASHBOARD_DATA = {
         },
         "aht": 1.99
       },
+      "01-05 Апр 2026": {
+        "tqs": 0.6867,
+        "activity_count": 3,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            0.0,
+            1.0
+          ],
+          "legend": [
+            1.0,
+            0.5,
+            1.0
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            0.0,
+            0.0,
+            0.5
+          ]
+        },
+        "aht": 2.38
+      },
       "09-15 Фев 2026": {
         "tqs": 0.72,
         "activity_count": 4,
@@ -10955,19 +12079,19 @@ window.DASHBOARD_DATA = {
       }
     },
     "aggregated_scores": {
-      "greeting": 0.9559,
-      "ethics": 0.8088,
-      "crm": 0.8971,
-      "legend": 0.8382,
-      "informing": 0.7941,
-      "argumentation": 0.5441,
-      "manipulation": 0.6618,
+      "greeting": 0.9595,
+      "ethics": 0.8243,
+      "crm": 0.8784,
+      "legend": 0.8378,
+      "informing": 0.8108,
+      "argumentation": 0.5405,
+      "manipulation": 0.6892,
       "requirements": 0.5,
-      "summary": 0.7059
+      "summary": 0.6622
     },
     "aggregated_tqs": 0.71,
-    "sum_activity": 34,
-    "aggregated_aht": 3.42,
+    "sum_activity": 37,
+    "aggregated_aht": 3.3,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По финализации диалога и CRM (экстренно): жестко контролировать блок «Якунлаш». сотрудник\nсистематически бросает диалог без фиксации договоренностей (4 нуля) и допускает ошибки в статусах CRM.\n• По Манипуляции: рекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными\nпоследствиями\", \"Давление сроком\", \"Выбор без выбора\") для сокращения времени диалога и подталкивания\nк оплате.\n• По Аргументации: использовать ст. 333 ГК РУз (отсутствие денежных средств не освобождает от\nобязательств), чтобы устранить системные 0,5 балла."
@@ -11079,6 +12203,67 @@ window.DASHBOARD_DATA = {
           ]
         },
         "aht": 2.23
+      },
+      "01-05 Апр 2026": {
+        "tqs": 0.5275,
+        "activity_count": 4,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "crm": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          "informing": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "requirements": [
+            0.0,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "summary": [
+            0.0,
+            0.5,
+            0.5,
+            1.0
+          ]
+        },
+        "aht": 1.8
       },
       "09-15 Фев 2026": {
         "tqs": 0.6275,
@@ -11458,18 +12643,18 @@ window.DASHBOARD_DATA = {
     },
     "aggregated_scores": {
       "greeting": 1.0,
-      "ethics": 0.9032,
-      "crm": 0.5968,
-      "legend": 0.9032,
-      "informing": 0.6613,
+      "ethics": 0.9143,
+      "crm": 0.5857,
+      "legend": 0.8714,
+      "informing": 0.6429,
       "argumentation": 0.5,
-      "manipulation": 0.4032,
-      "requirements": 0.629,
-      "summary": 0.4677
+      "manipulation": 0.3857,
+      "requirements": 0.6,
+      "summary": 0.4714
     },
-    "aggregated_tqs": 0.65,
-    "sum_activity": 31,
-    "aggregated_aht": 2.34,
+    "aggregated_tqs": 0.63,
+    "sum_activity": 35,
+    "aggregated_aht": 2.28,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По системным провалам (экстренно): жестко разобрать звонок от 30.03. сотрудник допустил критическое\nобнуление почти всех этапов СВП, нарушив этику общения и регламент фиксации.\n• По Манипуляции (критично): сотрудник стабильно игнорирует тактическое давление. рекомендуется\nвнедрение манипулятивных тактик (на пример: \"Давление негативными последствиями\", \"Давление сроком\",\n\"Выбор без выбора\").\n• По Аргументации: обучить применению ст. 422 ГК РУз (досрочное взыскание) для подкрепления правовой\nпозиции."
@@ -11693,6 +12878,67 @@ window.DASHBOARD_DATA = {
   "Шавкатов Гафур": {
     "dashboard_name": "Шавкатов Гафур",
     "periods": {
+      "01-05 Апр 2026": {
+        "tqs": 0.49,
+        "activity_count": 4,
+        "scores": {
+          "greeting": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "ethics": [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ],
+          "crm": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "legend": [
+            0.0,
+            0.0,
+            0.5,
+            0.0
+          ],
+          "informing": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "argumentation": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "manipulation": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "requirements": [
+            0.5,
+            0.5,
+            0.5,
+            0.0
+          ],
+          "summary": [
+            0.5,
+            0.5,
+            0.0,
+            0.0
+          ]
+        },
+        "aht": 2.06
+      },
       "23-31 Мар 2026": {
         "tqs": 0.612,
         "activity_count": 5,
@@ -11766,24 +13012,24 @@ window.DASHBOARD_DATA = {
     },
     "aggregated_scores": {
       "greeting": 1.0,
-      "ethics": 0.8,
-      "crm": 0.8,
-      "legend": 0.3,
+      "ethics": 0.7778,
+      "crm": 0.8889,
+      "legend": 0.2222,
       "informing": 1.0,
       "argumentation": 0.5,
-      "manipulation": 0.6,
-      "requirements": 0.5,
-      "summary": 0.6
+      "manipulation": 0.3333,
+      "requirements": 0.4444,
+      "summary": 0.4444
     },
-    "aggregated_tqs": 0.61,
-    "sum_activity": 5,
-    "aggregated_aht": 2.18,
+    "aggregated_tqs": 0.55,
+    "sum_activity": 9,
+    "aggregated_aht": 2.12,
     "pdf_data": {
       "trends": "(Системные недоработки):",
       "recommendations": "для Лида (руководителя группы):\n• По системным провалам и CRM (экстренно): жестко разобрать звонок от 26.03. допущено критическое\nобнуление этики общения, статуса в CRM, легендирования и манипуляции. нарушение делового тона и\nискажение данных в системе классифицируются как фрод и недопустимы.\n• По Манипуляции: сотрудник полностью обнулял данный блок в начале периода (26.03 и 27.03).\nрекомендуется внедрение манипулятивных тактик (на пример: \"Давление негативными последствиями\",\n\"Давление сроком\", \"Выбор без выбора\") для удержания инициативы в каждом диалоге.\n• По Требованиям: необходимо четко озвучивать точную сумму, сроки и доступные способы оплаты,\nсогласно п. 4.2.6 договора.\n• По Аргументации: применять ссылки на ст. 333 ГК РУз (отсутствие денежных средств не освобождает от\nобязательств), так как правовая база полностью игнорируется.\n• По финализации диалога: контролировать этап подведения итогов (провал 28.03). сотрудник обязан\nфиксировать договоренности и озвучивать факт записи разговора."
     }
   },
-  "_meta_pdf_summary": "💡 Тоштемиров М.: для Лида (руководителя группы):\n💡 Тоштемиров М.: • По системным провалам (экстренно): сотрудник демонстрирует критически низкий балл. финализация и\n💡 Бахромова Н.: для Лида (руководителя группы):\n💡 Бахромова Н.: • По Этике и финализации (критично): разобрать звонки от 26.03 и 28.03. недопустимо нарушать нормы\n💡 Абдуллаева С.: для Лида (руководителя группы):\n💡 Абдуллаева С.: • По CRM и Итогам (экстренно): разобрать ошибку CRM от 25.03 и провал финализации от 24.03. нарушение\n💡 Шамиев Ф.: для Лида (руководителя группы):\n💡 Шамиев Ф.: • По финализации диалога и CRM (экстренно): жестко контролировать блок «Якунлаш». сотрудник\n💡 Шохназарова С.: для Лида (руководителя группы):\n💡 Шохназарова С.: • По системным провалам (экстренно): жестко разобрать звонок от 30.03. сотрудник допустил критическое"
+  "_meta_pdf_summary": "💡 Каюмова С.: для Лида (руководителя группы):\n💡 Каюмова С.: • По финализации диалога: проработать звонки от 26.03, 27.03 и 30.03. сотрудник системно не озвучивает\n💡 Абдувалиева З.: для Лида (руководителя группы):\n💡 Абдувалиева З.: • По Требованиям и финализации (критично): разобрать звонок от 29.03, где допущен провал финальных\n💡 Тожиев Ш.: для Лида (руководителя группы):\n💡 Тожиев Ш.: • По финализации диалога и CRM (критично): разобрать звонок от 25.03. обнуление требований, итогов и\n💡 Шавкатов Г.: для Лида (руководителя группы):\n💡 Шавкатов Г.: • По системным провалам и CRM (экстренно): жестко разобрать звонок от 26.03. допущено критическое\n💡 Шамиев Ф.: для Лида (руководителя группы):\n💡 Шамиев Ф.: • По финализации диалога и CRM (экстренно): жестко контролировать блок «Якунлаш». сотрудник"
 }
         // --- DATA END ---
 
@@ -12715,38 +13961,14 @@ window.DASHBOARD_DATA = {
         const SVP_CRITERIA_KEYS = Object.keys(SVP_CRITERIA_MAP);
 
         /**
-         * Алгоритм диагнозов по столбцу
+         * Алгоритм диагнозов по проценту выработки критерия
          * @param {number[]} rawScores - массив оценок [1.0, 0.5, 0.0, ...]
-         * @param {boolean} isMonthly - true для месячного периода, false для недельного
+         * @param {boolean} isMonthly - не используется (оставлен для обратной совместимости)
          */
         function getSvpDiagnosis(rawScores, isMonthly = false) {
-            const zeros = rawScores.filter(s => s === 0.0).length;
-            const halfs = rawScores.filter(s => s === 0.5).length;
-            const total = rawScores.length;
-            
-            // Для месячного периода увеличиваем пороги в 2.5 раза
-            const monthlyMultiplier = 2.5;
-            
-            // Пороги для диагнозов
-            const thresholds = isMonthly ? {
-                allZeros: Math.round(4 * monthlyMultiplier), // 10 звонков → ~10
-                criticalZeros: Math.round(2 * monthlyMultiplier), // 6 звонков
-                singleZero: 2,
-                allHalfs: Math.round(4 * monthlyMultiplier),
-                criticalHalfs: Math.round(6 * monthlyMultiplier),
-                multipleHalfs: Math.round(6 * monthlyMultiplier),
-                singleHalf: 2
-            } : {
-                allZeros: 4,
-                criticalZeros: 2,
-                singleZero: 1,
-                allHalfs: 4,
-                criticalHalfs: 6,
-                multipleHalfs: 2,
-                singleHalf: 1
-            };
-            
-            if (zeros === total && total >= thresholds.allZeros) {
+            const percentage = calculateSvpPercentage(rawScores);
+
+            if (percentage === 0) {
                 return {
                     status: 'Несоответствие СВП',
                     shortStatus: 'Несоотв.',
@@ -12755,8 +13977,8 @@ window.DASHBOARD_DATA = {
                     color: '#f87171'
                 };
             }
-            
-            if (zeros >= thresholds.criticalZeros) {
+
+            if (percentage >= 1 && percentage <= 20) {
                 return {
                     status: 'Критическая просадка',
                     shortStatus: 'Крит. просадка',
@@ -12765,38 +13987,28 @@ window.DASHBOARD_DATA = {
                     color: '#f87171'
                 };
             }
-            
-            if (zeros >= thresholds.singleZero) {
+
+            if (percentage >= 21 && percentage <= 49) {
                 return {
                     status: 'Отсутствие критерия',
                     shortStatus: 'Отсутствует',
-                    severity: 'warning',
+                    severity: 'orange',
                     icon: '🟠',
                     color: '#fb923c'
                 };
             }
-            
-            if (halfs === total && total >= thresholds.allHalfs) {
+
+            if (percentage >= 50 && percentage <= 74) {
                 return {
-                    status: 'Абсолютная недоработка',
-                    shortStatus: 'Абс. недораб.',
+                    status: 'Систематическая недоработка',
+                    shortStatus: 'Сист. недораб.',
                     severity: 'warning',
                     icon: '🟡',
                     color: '#fbbf24'
                 };
             }
-            
-            if (halfs >= thresholds.criticalHalfs) {
-                return {
-                    status: 'Критическая недоработка',
-                    shortStatus: 'Крит. недораб.',
-                    severity: 'warning',
-                    icon: '🟡',
-                    color: '#fbbf24'
-                };
-            }
-            
-            if (halfs >= thresholds.multipleHalfs) {
+
+            if (percentage >= 75 && percentage <= 84) {
                 return {
                     status: 'Недоработка',
                     shortStatus: 'Недораб.',
@@ -12805,17 +14017,18 @@ window.DASHBOARD_DATA = {
                     color: '#fbbf24'
                 };
             }
-            
-            if (halfs >= thresholds.singleHalf) {
+
+            if (percentage >= 85 && percentage <= 99) {
                 return {
-                    status: 'Критерий требует внимания',
+                    status: 'Требует внимания',
                     shortStatus: 'Требует вним.',
                     severity: 'info',
                     icon: '🔵',
                     color: '#60a5fa'
                 };
             }
-            
+
+            // percentage === 100
             return {
                 status: 'Полное соответствие',
                 shortStatus: 'Полное соотв.',
@@ -13141,7 +14354,7 @@ window.DASHBOARD_DATA = {
                 </div>
                 <div class="diagnosis-text">
                     <strong>Диагноз:</strong> ${diagnosis.icon} ${diagnosis.status}<br>
-                    ${diagnosis.status === 'Критическая просадка' || diagnosis.status === 'Критическая недоработка' ? 'Требуется срочное вмешательство!' : ''}
+                    ${diagnosis.severity === 'critical' ? 'Требуется срочное вмешательство!' : ''}
                 </div>
             `;
             
