@@ -19,7 +19,12 @@
       "Read(C:\\Users\\user\\AppData\\Local\\Programs\\Microsoft VS Code\\ТЕСТ/**)",
       "Read(C:\\Users\\user\\AppData\\Local\\Programs\\Microsoft VS Code\\ТЕСТ\\Dashboard_SC/**)",
       "Read(C:\\Users\\user\\AppData\\Local\\Programs\\Microsoft VS Code\\ТЕСТ\\Dashboard_SC\\Dashboard_SC/**)",
-      "Bash(taskkill *)"
+      "Bash(taskkill *)",
+      "Bash(gh *)",
+      "Bash(powershell *)",
+      "Bash(docker *)",
+      "Bash(docker-compose *)",
+      "Bash(timeout *)"
     ]
   },
   "$version": 3
