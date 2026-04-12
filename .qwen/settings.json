@@ -24,7 +24,14 @@
       "Bash(powershell *)",
       "Bash(docker *)",
       "Bash(docker-compose *)",
-      "Bash(timeout *)"
+      "Bash(timeout *)",
+      "Bash(git pull *)",
+      "Bash(git stash)",
+      "Bash(git stash *)",
+      "Bash(git merge *)",
+      "Bash(git checkout *)",
+      "Bash(mkdir *)",
+      "Bash(copy *)"
     ]
   },
   "$version": 3

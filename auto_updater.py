@@ -55,6 +55,20 @@ CRITERIA_WEIGHTS = {
     "summary": 0.10
 }
 
+# Нормализация имён — исправление известных опечаток
+# Синхронизировано с backend/app.py
+NAME_CORRECTIONS = {
+    "Шавкатов Гафур": "Шавкатов Гофур",
+}
+
+
+def normalize_employee_name(name: str) -> str:
+    """
+    Нормализация имён сотрудников — исправление известных опечаток.
+    Синхронизировано с backend/app.py
+    """
+    return NAME_CORRECTIONS.get(name, name)
+
 
 def extract_period_from_filename(filename: str) -> Optional[str]:
     """
@@ -155,7 +169,7 @@ def read_xlsx_files() -> Dict[str, Dict[str, Any]]:
             if pd.isna(employee) or not str(employee).strip():
                 continue
 
-            employee = str(employee).strip()
+            employee = normalize_employee_name(str(employee).strip())
 
             if employee not in employees_data:
                 employees_data[employee] = {
@@ -264,7 +278,7 @@ def parse_pdf_sections(text: str, pdf_data: Dict[str, Dict[str, str]]) -> None:
             continue
         
         # Первая строка - имя сотрудника
-        employee_name = lines[0].strip()
+        employee_name = normalize_employee_name(lines[0].strip())
         if not employee_name:
             continue
         

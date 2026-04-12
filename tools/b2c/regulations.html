@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B2C · Нормативная аргументация — QC Dashboard v1.2.2</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --card-bg: rgba(255, 255, 255, 0.12);
+            --card-border: rgba(255, 255, 255, 0.18);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.9);
+            --text-muted: rgba(255, 255, 255, 0.7);
+            --accent-orange: #f97316;
+            --accent-orange-light: #fb923c;
+            --success: #4ade80;
+            --warning: #fbbf24;
+            --danger: #f87171;
+        }
+
+        [data-theme="light"] {
+            --bg-gradient-start: #f8fafc;
+            --bg-gradient-end: #e2e8f0;
+            --card-bg: rgba(255, 255, 255, 0.75);
+            --card-border: rgba(0, 0, 0, 0.08);
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+
+        /* Sidebar V2 */
+        .sidebar-v2 {
+            position: fixed; top: 0; left: 0; width: 240px; height: 100vh;
+            background: linear-gradient(180deg, #1a1f2e 0%, #151820 100%);
+            border-right: 1px solid #2d3748; z-index: 1500; overflow-y: auto;
+            display: flex; flex-direction: column;
+        }
+        .sidebar-v2.collapsed { width: 70px; }
+        .sidebar-v2 .logo {
+            padding: 20px 16px 16px; border-bottom: 1px solid #2d3748;
+            display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 72px;
+        }
+        .sidebar-v2 .logo h1 { font-size: 14px; font-weight: 800; color: #a78bfa; letter-spacing: 2px; text-transform: uppercase; margin: 0; }
+        .sidebar-v2 .logo p { font-size: 10px; color: #64748b; margin: 4px 0 0; }
+        .sidebar-v2.collapsed .logo h1,
+        .sidebar-v2.collapsed .logo p { display: none; }
+        .sidebar-v2.collapsed .logo { justify-content: center; padding: 16px; }
+        .sidebar-v2.collapsed .hamburger-v2 { margin: 0 auto; }
+        .sidebar-v2 .hamburger-v2 { cursor: pointer; font-size: 20px; color: #a78bfa; }
+        .sidebar-v2 .nav-section-title {
+            padding: 16px 20px 6px; font-size: 10px; font-weight: 600;
+            color: #4a5568; letter-spacing: 1.5px; text-transform: uppercase;
+        }
+        .sidebar-v2.collapsed .nav-section-title { display: none; }
+        .nav-v2-item {
+            display: flex; align-items: center; gap: 10px; padding: 12px 20px;
+            cursor: pointer; font-size: 13px; font-weight: 500; color: #94a3b8;
+            transition: all 0.15s; border-left: 3px solid transparent; text-decoration: none;
+        }
+        .nav-v2-item:hover { background: linear-gradient(135deg, rgba(249,115,22,0.08), rgba(251,146,60,0.05)); color: #fb923c; }
+        .nav-v2-item.active { background: linear-gradient(135deg, rgba(249,115,22,0.15), rgba(251,146,60,0.1)); color: #f97316; border-left-color: #f97316; }
+        .nav-v2-icon { font-size: 18px; width: 18px; text-align: center; }
+        .nav-v2-text { overflow: hidden; }
+        .sidebar-v2.collapsed .nav-v2-text { display: none; }
+        .sidebar-v2.collapsed .nav-v2-item { font-size: 0; justify-content: center; padding: 12px 0; border-left: none; }
+        .sidebar-v2 .bottom-info {
+            margin-top: auto; padding: 12px 16px; border-top: 1px solid #2d3748;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .sidebar-v2 .bottom-info .bottom-logo {
+            width: 44px; height: 44px; object-fit: contain; border-radius: 50%;
+            filter: brightness(0.95) contrast(1.05); box-shadow: 0 2px 8px rgba(249,115,22,0.3);
+        }
+        .sidebar-v2.collapsed .bottom-info .bottom-logo { margin: 0 auto; }
+        .sidebar-v2 .bottom-text { font-size: 10px; color: #94a3b8; font-weight: 600; }
+        .sidebar-v2 .bottom-subtext { font-size: 9px; color: #4a5568; margin-top: 1px; }
+        .sidebar-v2.collapsed .bottom-text,
+        .sidebar-v2.collapsed .bottom-subtext { display: none; }
+        .sidebar-v2.collapsed .bottom-info { padding: 12px 0; justify-content: center; }
+
+        /* Main */
+        .main-v2 { margin-left: 240px; min-height: 100vh; transition: margin-left 0s; }
+        .main-v2.expanded { margin-left: 70px; }
+
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed; top: 20px; right: 20px; z-index: 1000;
+            background: var(--card-bg); backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border); border-radius: 50px;
+            padding: 10px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px;
+            color: var(--text-primary); font-size: 14px; transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .theme-toggle:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+
+        /* Container */
+        .container { max-width: 100%; margin: 0; padding: 20px 24px; }
+
+        /* Header */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .logo { display: flex; align-items: center; gap: 15px; }
+        .logo i { font-size: 2.5rem; color: var(--success); }
+        .logo h1 { font-size: 1.8rem; font-weight: 700; }
+        .logo span { font-size: 0.9rem; color: var(--text-muted); display: block; }
+
+        /* Card */
+        .card {
+            background: var(--card-bg); backdrop-filter: blur(24px);
+            border: 1px solid var(--card-border); border-radius: 20px;
+            padding: 25px; margin-bottom: 20px;
+        }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-title { font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .card-title i { color: var(--success); }
+
+        /* Placeholder */
+        .placeholder {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 400px; text-align: center;
+        }
+        .placeholder-icon { font-size: 4rem; margin-bottom: 20px; opacity: 0.3; }
+        .placeholder h2 { font-size: 1.5rem; margin-bottom: 10px; color: var(--text-muted); }
+        .placeholder p { font-size: 1rem; color: var(--text-muted); max-width: 500px; }
+        .placeholder-badge {
+            display: inline-block; padding: 6px 16px; border-radius: 20px;
+            background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.3);
+            color: var(--accent-orange); font-size: 0.85rem; font-weight: 600; margin-bottom: 15px;
+        }
+
+        /* Footer */
+        footer { text-align: center; padding: 30px; color: var(--text-muted); font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <!-- SIDEBAR — КОПИРУЕТСЯ ИЗ includes/sidebar.html -->
+    <!-- SIDEBAR V2 — Сворачиваемое меню (общий для всех страниц) -->
+<!-- Версия: 1.2.2 -->
+<div class="sidebar-v2" id="sidebarV2">
+    <div class="logo">
+        <div class="logo-text">
+            <h1>QC Dashboard</h1>
+            <p>Variant Retail Finance · SC Unit</p>
+        </div>
+        <div class="hamburger-v2" onclick="toggleSidebarV2()">☰</div>
+    </div>
+    <div style="padding:10px 0; overflow-y: auto; flex: 1;">
+        <div class="nav-section-title">Аналитика</div>
+        <a href="index.html" class="nav-v2-item">
+            <span class="nav-v2-icon"><i class="fas fa-home"></i></span>
+            <span class="nav-v2-text">Главная</span>
+        </a>
+        <a href="summary.html" class="nav-v2-item">
+            <span class="nav-v2-icon"><i class="fas fa-chart-line"></i></span>
+            <span class="nav-v2-text">Сводка</span>
+        </a>
+        <a href="heatmap.html" class="nav-v2-item">
+            <span class="nav-v2-icon"><i class="fas fa-th"></i></span>
+            <span class="nav-v2-text">SVP Heatmap Pro</span>
+        </a>
+        <a href="analytics.html" class="nav-v2-item">
+            <span class="nav-v2-icon"><i class="fas fa-chart-area"></i></span>
+            <span class="nav-v2-text">Аналитика</span>
+        </a>
+        <a href="employees.html" class="nav-v2-item">
+            <span class="nav-v2-icon"><i class="fas fa-users"></i></span>
+            <span class="nav-v2-text">Сотрудники</span>
+        </a>
+        <div class="nav-section-title">Инструменты</div>
+        <a href="tools/tactics/overview.html" class="nav-v2-item">
+            <span class="nav-v2-icon"><i class="fas fa-bullseye"></i></span>
+            <span class="nav-v2-text">Тактика</span>
+        </a>
+        <a href="tools/b2c/objections.html" class="nav-v2-item">
+            <span class="nav-v2-icon"><i class="fas fa-shield-alt"></i></span>
+            <span class="nav-v2-text">B2C</span>
+        </a>
+        <a href="tools/b2b/objections.html" class="nav-v2-item">
+            <span class="nav-v2-icon"><i class="fas fa-building"></i></span>
+            <span class="nav-v2-text">B2B</span>
+        </a>
+        <div class="nav-section-title">Регламент</div>
+        <a href="regulations/qc-rules.html" class="nav-v2-item">
+            <span class="nav-v2-icon"><i class="fas fa-gavel"></i></span>
+            <span class="nav-v2-text">Правила QC</span>
+        </a>
+        <a href="regulations/evaluation.html" class="nav-v2-item">
+            <span class="nav-v2-icon"><i class="fas fa-clipboard-check"></i></span>
+            <span class="nav-v2-text">Оценка качества</span>
+        </a>
+        <a href="regulations/svp.html" class="nav-v2-item">
+            <span class="nav-v2-icon"><i class="fas fa-sitemap"></i></span>
+            <span class="nav-v2-text">Архитектура СВП</span>
+        </a>
+        <a href="regulations/crm.html" class="nav-v2-item">
+            <span class="nav-v2-icon"><i class="fas fa-database"></i></span>
+            <span class="nav-v2-text">CRM правила</span>
+        </a>
+        <a href="regulations/qc-charter.html" class="nav-v2-item">
+            <span class="nav-v2-icon"><i class="fas fa-book"></i></span>
+            <span class="nav-v2-text">Устав QC</span>
+        </a>
+        <div class="nav-section-title">Система</div>
+        <a href="settings.html" class="nav-v2-item">
+            <span class="nav-v2-icon"><i class="fas fa-cog"></i></span>
+            <span class="nav-v2-text">Настройки</span>
+        </a>
+    </div>
+    <div class="bottom-info">
+        <img src="../../New logo1.1.png" alt="VRF" class="bottom-logo">
+        <div>
+            <div class="bottom-text">v1.2.2 · Апрель 2026</div>
+            <div class="bottom-subtext">Soft Collection Unit</div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Стили для ссылок в сайдбаре */
+.nav-v2-item {
+    text-decoration: none;
+    display: flex;
+    cursor: pointer;
+}
+.nav-v2-item:hover {
+    text-decoration: none;
+}
+</style>
+
+
+    <div class="main-v2" id="mainV2">
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <i class="fas fa-moon"></i>
+            <span>Тёмная тема</span>
+        </button>
+
+        <div class="container">
+            <header>
+                <div class="logo">
+                    <i class="fas fa-chart-line"></i>
+                    <div>
+                        <h1>B2C · Нормативная аргументация</h1>
+                        <span>QC Soft Collection · v1.2.2</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="card">
+                <div class="placeholder">
+                    <span class="placeholder-badge">🚧 В разработке</span>
+                    <div class="placeholder-icon">🔧</div>
+                    <h2>B2C · Нормативная аргументация</h2>
+                    <p>Договор, оферта и нормативно-правовые акты для B2C.</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2026 QC Soft Collection Dashboard v1.2.2 · Variant Retail Finance</p>
+        </footer>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.querySelector('.theme-toggle');
+            if (body.getAttribute('data-theme') === 'light') {
+                body.removeAttribute('data-theme');
+                btn.innerHTML = '<i class="fas fa-moon"></i><span>Тёмная тема</span>';
+            } else {
+                body.setAttribute('data-theme', 'light');
+                btn.innerHTML = '<i class="fas fa-sun"></i><span>Светлая тема</span>';
+            }
+        }
+
+        function toggleSidebarV2() {
+            const sidebar = document.getElementById('sidebarV2');
+            const main = document.getElementById('mainV2');
+            if (sidebar && main) {
+                sidebar.classList.toggle('collapsed');
+                main.classList.toggle('expanded');
+            }
+        }
+
+        // Подсветка активного пункта меню
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentPage = window.location.pathname.split('/').pop();
+            document.querySelectorAll('.nav-v2-item').forEach(item => {
+                const href = item.getAttribute('href');
+                if (href && (href === currentPage || (currentPage === '' && href === 'index.html'))) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
