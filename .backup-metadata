@@ -1,0 +1,20 @@
+{
+  "version": "1.2.3",
+  "backup_date": "2026-04-20T19:05:47.047578",
+  "environment": "production",
+  "files_backed_up": [
+    "index.html",
+    "auto_updater.py",
+    "docker-compose.yml",
+    "Dockerfile",
+    ".dockerignore",
+    "docker-config.json",
+    "MANIFEST.json",
+    "RELEASE_NOTES.md",
+    "VERSION_HISTORY.md",
+    "PROJECT_STATUS.md",
+    "nginx.conf",
+    "b2b_data.json"
+  ],
+  "restore_command": "git checkout v1.2.3 && docker-compose up -d"
+}

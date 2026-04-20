@@ -1,0 +1,467 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+QC Soft Collection Auto Updater
+Парсер XLSX/PDF файлов и обновление DASHBOARD_DATA в index.html
+"""
+
+import json
+import os
+import re
+import time
+import traceback
+import urllib.error
+import urllib.request
+import uuid
+from datetime import datetime
+from pathlib import Path
+from statistics import mean
+from typing import Any, Dict, List, Optional
+
+import pandas as pd
+import pdfplumber
+from sqlalchemy import (JSON, Column, DateTime, Float, Integer, MetaData,
+                        String, Table, create_engine, select)
+from sqlalchemy.exc import SQLAlchemyError
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+
+SCRIPT_DIR = Path(__file__).parent.resolve()
+REPORTS_DIR = SCRIPT_DIR / "reports"
+INDEX_HTML_PATH = SCRIPT_DIR / "index.html"
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql+psycopg2://qc_user:qc_password@postgres:5432/qc_dashboard"
+)
+BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://localhost:8000")
+
+MONTHS_MAP = {
+    "01": "Январь 2026", "02": "Февраль 2026", "03": "Март 2026", "04": "Апрель 2026",
+    "05": "Май 2026", "06": "Июнь 2026", "07": "Июль 2026", "08": "Август 2026",
+    "09": "Сентябрь 2026", "10": "Октябрь 2026", "11": "Ноябрь 2026", "12": "Декабрь 2026"
+}
+
+XLSX_SHEET_NAME = "Оценки звонков Soft Collection"
+SVP_COLUMNS_INDICES = list(range(6, 15))
+TQS_INDEX = 15
+DURATION_INDEX = 5
+EMPLOYEE_INDEX = 0
+
+SVP_KEYS = [
+    "Приветствие",
+    "Этика",
+    "CRM",
+    "Легенда",
+    "Задолж.",
+    "Аргумент.",
+    "Манипул.",
+    "Требования",
+    "Итоги",
+]
+
+NAME_MAP = {
+    "Toshtemirov Mukhammadali": "Тоштемиров Мухаммадали",
+    "Abdullaeva Sevinch":      "Абдуллаева Севинч",
+    "Alkarov Zhamshid":        "Алкаров Жамшид",
+    "Bakhromova Nozima":       "Бахромова Нозима",
+    "Boborakhmatov Sanyatbek": "Боборахматов Санъатбек",
+    "Isakov Davron":           "Исаков Даврон",
+    "Kayumova Soniya":         "Каюмова Сония",
+    "Kurolboev Zhavokhir":     "Куролбоев Жавохир",
+    "Mamaraimov Firdavs":      "Мамараимов Фирдавс",
+    "Musaev Khurshid":         "Мусаев Хуршид",
+    "Nadrullaeva Rukhsona":    "Надруллаева Рухсона",
+    "Nizomiddinov Asliddin":   "Низомиддинов Аслиддин",
+    "Rakhimzhonov Nodirzhon":  "Рахимжонов Нодиржон",
+    "Sabitova Navruza":        "Сабитова Навруза",
+    "Saburov Ogabek":          "Сабуров Оғабек",
+    "Tozhiev Shokhrukh":       "Тожиев Шохрух",
+    "Khakimov Umid":           "Хакимов Умид",
+    "Shamiev Farrukh":         "Шамиев Фаррух",
+    "Shoknazarova Sabrina":    "Шохназарова Сабрина",
+    "Abduvalieva Zarifa":      "Абдувалиева Зарифа",
+    "Komoldinov Diyorbek":     "Комолдинов Диёрбек",
+    "Shavkatov Gofur":         "Шавкатов Гофур",
+    "Makhmudzhonov Ibrokhim":  "Махмуджонов Иброхим",
+    "Mirkamalov Boburzhon":    "Миркамалов Бобуржон",
+    "Mirkhamidov Samandar":    "Мирхамидов Самандар",
+    "Khasanova Madinabonu":    "Хасанова Мадинабону",
+    "Sherkulov Azamat":        "Шеркулов Азамат",
+}
+for cyr in list(NAME_MAP.values()):
+    NAME_MAP[cyr] = cyr
+
+
+def normalize_name(name: Any) -> str:
+    if pd.isna(name):
+        return ""
+    text = str(name).strip()
+    return NAME_MAP.get(text, text)
+
+
+def parse_score(value: Any) -> float:
+    if pd.isna(value):
+        return 0.0
+    if isinstance(value, (int, float)):
+        return float(value)
+    text = str(value).strip().replace(',', '.')
+    if text.endswith('%'):
+        text = text[:-1].strip()
+    try:
+        return float(text)
+    except ValueError:
+        return 0.0
+
+
+def parse_duration(value: Any) -> float:
+    if pd.isna(value) or value is None:
+        return 0.0
+    if hasattr(value, 'hour') and hasattr(value, 'minute'):
+        return float(value.hour) * 60.0 + float(value.minute) + float(getattr(value, 'second', 0)) / 60.0
+    text = str(value).strip()
+    if not text:
+        return 0.0
+    if ':' in text:
+        parts = [p for p in text.split(':') if p.strip()]
+        try:
+            if len(parts) == 3:
+                return float(parts[0]) * 60.0 + float(parts[1]) + float(parts[2]) / 60.0
+            if len(parts) == 2:
+                return float(parts[0]) + float(parts[1]) / 60.0
+            return float(parts[0])
+        except ValueError:
+            return 0.0
+    try:
+        return float(text)
+    except ValueError:
+        return 0.0
+
+
+def format_duration(minutes: float) -> str:
+    if minutes <= 0:
+        return "N/A"
+    rounded = int(round(minutes * 60))
+    hours, remainder = divmod(rounded, 3600)
+    mins, seconds = divmod(remainder, 60)
+    if hours:
+        return f"{hours:02d}:{mins:02d}:{seconds:02d}"
+    return f"{mins:02d}:{seconds:02d}:00"
+
+
+def extract_month_and_period(filename: str) -> (str, str):
+    match = re.search(r"(\d{2})\.(\d{2})\.(\d{4})\s*-\s*(\d{2})\.(\d{2})\.(\d{4})", filename)
+    if match:
+        month = MONTHS_MAP.get(match.group(2), f"{match.group(2)}.{match.group(3)}")
+        period = f"{match.group(1)}-{match.group(4)}"
+        return month, period
+    return "Неизвестно", "Неизвестно"
+
+
+def ensure_employee_period(data: Dict[str, Any], employee: str, month: str, period: str) -> Dict[str, Any]:
+    if employee not in data:
+        data[employee] = {"months": {}}
+    if month not in data[employee]["months"]:
+        data[employee]["months"][month] = {"periods": []}
+    periods = data[employee]["months"][month]["periods"]
+    for item in periods:
+        if item["period"] == period:
+            return item
+    placeholder = {
+        "period": period,
+        "tqs": 0.0,
+        "aht": "N/A",
+        "svp": {key: 1.0 for key in SVP_KEYS},
+        "raw_scores": {key: [] for key in SVP_KEYS},
+        "tendencies": "",
+        "rec": "",
+        "_tqs_values": [],
+        "_durations": [],
+        "_activity_count": 0,
+    }
+    periods.append(placeholder)
+    periods.sort(key=lambda item: item["period"])
+    return placeholder
+
+
+def read_xlsx_files() -> Dict[str, Any]:
+    data: Dict[str, Any] = {}
+    if not REPORTS_DIR.exists():
+        print(f"[WARNING] reports directory not found: {REPORTS_DIR}")
+        return data
+    xlsx_files = sorted(REPORTS_DIR.glob("*.xlsx"))
+    if not xlsx_files:
+        print(f"[WARNING] no XLSX files found in {REPORTS_DIR}")
+        return data
+    print(f"[INFO] found {len(xlsx_files)} XLSX files")
+    for xlsx_file in xlsx_files:
+        month, period = extract_month_and_period(xlsx_file.name)
+        if month == "Неизвестно":
+            print(f"[WARNING] could not parse month from {xlsx_file.name}")
+        try:
+            df = pd.read_excel(xlsx_file, sheet_name=XLSX_SHEET_NAME, engine="openpyxl", header=2)
+        except Exception as exc:
+            print(f"[ERROR] failed to read {xlsx_file.name}: {exc}")
+            continue
+        if df.shape[1] < max(SVP_COLUMNS_INDICES) + 1:
+            print(f"[WARNING] unexpected XLSX format {xlsx_file.name}; columns={df.shape[1]}")
+            continue
+        for _, row in df.iterrows():
+            employee = normalize_name(row.iloc[EMPLOYEE_INDEX])
+            if not employee:
+                continue
+            entry = ensure_employee_period(data, employee, month, period)
+            tqs = parse_score(row.iloc[TQS_INDEX])
+            duration = parse_duration(row.iloc[DURATION_INDEX])
+            svp_values = [parse_score(row.iloc[idx]) for idx in SVP_COLUMNS_INDICES]
+            entry["_tqs_values"].append(tqs)
+            entry["_durations"].append(duration)
+            entry["_activity_count"] += 1
+            for key, value in zip(SVP_KEYS, svp_values):
+                entry["raw_scores"][key].append(value)
+        print(f"[INFO] {xlsx_file.name} loaded")
+    # finalize aggregates
+    for employee, employee_data in data.items():
+        for month, month_data in employee_data["months"].items():
+            for period_item in month_data["periods"]:
+                if period_item["_tqs_values"]:
+                    period_item["tqs"] = round(mean(period_item["_tqs_values"]), 2)
+                if period_item["_durations"]:
+                    period_item["aht"] = format_duration(mean(period_item["_durations"]))
+                if period_item.get("_activity_count") is None:
+                    period_item["_activity_count"] = len(period_item["_tqs_values"])
+                period_item["activity_count"] = period_item.get("_activity_count", len(period_item["_tqs_values"]))
+                for key in SVP_KEYS:
+                    if period_item["raw_scores"][key]:
+                        period_item["svp"][key] = round(mean(period_item["raw_scores"][key]), 2)
+                period_item.pop("_tqs_values", None)
+                period_item.pop("_durations", None)
+                period_item.pop("_activity_count", None)
+    return data
+
+
+def extract_pdf_sections(text: str) -> List[str]:
+    parts = re.split(r"Отчет\s+по\s+сотруднику\s*[:：]", text, flags=re.IGNORECASE)
+    return [part.strip() for part in parts if part.strip()]
+
+
+def extract_section_text(block: str, key: str) -> str:
+    pattern = re.search(fr"{re.escape(key)}\s*[:：]?\s*(.*)", block, flags=re.IGNORECASE)
+    if pattern:
+        return pattern.group(1).strip().replace("\n", " ")
+    return ""
+
+
+def read_pdf_files(data: Dict[str, Any]) -> None:
+    if not REPORTS_DIR.exists():
+        return
+    pdf_files = sorted(REPORTS_DIR.glob("*.pdf"))
+    if not pdf_files:
+        return
+    print(f"[INFO] found {len(pdf_files)} PDF files")
+    for pdf_file in pdf_files:
+        month, period = extract_month_and_period(pdf_file.name)
+        print(f"[INFO] parsing PDF: {pdf_file.name}")
+        try:
+            with pdfplumber.open(pdf_file) as pdf:
+                text = "\n".join(page.extract_text() or "" for page in pdf.pages)
+        except Exception as exc:
+            print(f"[ERROR] failed to open PDF {pdf_file.name}: {exc}")
+            continue
+        sections = extract_pdf_sections(text)
+        for section in sections:
+            lines = [line.strip() for line in section.splitlines() if line.strip()]
+            if not lines:
+                continue
+            employee = normalize_name(lines[0])
+            if not employee:
+                continue
+            entry = ensure_employee_period(data, employee, month, period)
+            entry["tendencies"] = extract_section_text(section, "Тенденции") or entry["tendencies"]
+            entry["rec"] = extract_section_text(section, "Рекомендации") or entry["rec"]
+    return
+
+
+def update_index_html(new_data: Dict[str, Any]) -> bool:
+    if not INDEX_HTML_PATH.exists():
+        print(f"[ERROR] index.html not found at {INDEX_HTML_PATH}")
+        return False
+    content = INDEX_HTML_PATH.read_text(encoding="utf-8")
+    payload = json.dumps(new_data, ensure_ascii=False, indent=2)
+    replacement = f"// --- DATA START ---\nconst DASHBOARD_DATA = {payload};\n// --- DATA END ---"
+    pattern = re.compile(r"// --- DATA START ---.*?// --- DATA END ---", flags=re.DOTALL)
+    if not pattern.search(content):
+        print("[ERROR] data markers not found in index.html")
+        return False
+    updated = pattern.sub(replacement, content)
+    INDEX_HTML_PATH.write_text(updated, encoding="utf-8")
+    print(f"[INFO] dashboard data updated in {INDEX_HTML_PATH.name}")
+    return True
+
+
+def get_db_engine():
+    """Create database engine for PostgreSQL."""
+    return create_engine(DATABASE_URL, pool_pre_ping=True, future=True)
+
+
+def _build_multipart_body(field_name: str, filename: str, content: bytes, content_type: str) -> (str, bytes):
+    boundary = "----WebKitFormBoundary" + uuid.uuid4().hex
+    body_lines = [
+        f"--{boundary}",
+        f"Content-Disposition: form-data; name=\"{field_name}\"; filename=\"{filename}\"",
+        f"Content-Type: {content_type}",
+        "",
+    ]
+    body = "\r\n".join(body_lines).encode("utf-8") + b"\r\n" + content + b"\r\n" + f"--{boundary}--\r\n".encode("utf-8")
+    return boundary, body
+
+
+def _upload_file_to_backend(file_path: Path) -> None:
+    if not BACKEND_API_URL:
+        return
+    file_type = file_path.suffix.lower()
+    if file_type == ".xlsx":
+        endpoint = "upload/xlsx"
+        content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    elif file_type == ".pdf":
+        endpoint = "upload/pdf"
+        content_type = "application/pdf"
+    else:
+        return
+
+    url = f"{BACKEND_API_URL.rstrip('/')}/api/{endpoint}"
+    try:
+        with file_path.open("rb") as f:
+            content = f.read()
+        boundary, body = _build_multipart_body("file", file_path.name, content, content_type)
+        request = urllib.request.Request(
+            url,
+            data=body,
+            headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+            method="POST"
+        )
+        with urllib.request.urlopen(request, timeout=30) as response:
+            response_text = response.read().decode("utf-8", errors="replace")
+            print(f"[INFO] uploaded {file_path.name} to backend: {response_text[:200]}")
+    except urllib.error.HTTPError as exc:
+        print(f"[ERROR] backend upload failed {file_path.name}: {exc.code} {exc.reason}")
+    except urllib.error.URLError as exc:
+        print(f"[ERROR] backend upload failed {file_path.name}: {exc}")
+    except Exception as exc:
+        print(f"[ERROR] unexpected backend upload error for {file_path.name}: {exc}")
+
+
+def sync_reports_to_backend() -> None:
+    if not BACKEND_API_URL:
+        return
+    if not REPORTS_DIR.exists():
+        return
+
+    for file_path in sorted(REPORTS_DIR.glob("*.xlsx")) + sorted(REPORTS_DIR.glob("*.pdf")):
+        _upload_file_to_backend(file_path)
+
+
+def write_dashboard_data_to_db(data: Dict[str, Any]) -> None:
+    """Save aggregated dashboard metrics into PostgreSQL."""
+    try:
+        engine = get_db_engine()
+        metadata = MetaData()
+        employee_scores = Table(
+            "employee_scores",
+            metadata,
+            Column("id", Integer, primary_key=True),
+            Column("employee_name", String),
+            Column("period", String),
+            Column("tqs", Float),
+            Column("aht", Float),
+            Column("activity_count", Integer),
+            Column("scores", JSON),
+            Column("created_at", DateTime),
+            Column("updated_at", DateTime),
+            extend_existing=True,
+        )
+        metadata.create_all(engine, checkfirst=True)
+
+        with engine.begin() as conn:
+            for employee_name, employee_data in data.items():
+                for month_data in employee_data["months"].values():
+                    for period_item in month_data["periods"]:
+                        row = {
+                            "employee_name": employee_name,
+                            "period": period_item["period"],
+                            "tqs": float(period_item["tqs"] or 0.0),
+                            "aht": float(period_item["aht"] if isinstance(period_item["aht"], (int, float)) else 0.0),
+                            "activity_count": int(period_item.get("activity_count", 0)),
+                            "scores": period_item.get("svp", {}),
+                            "updated_at": datetime.utcnow(),
+                        }
+                        select_stmt = select(employee_scores.c.id).where(
+                            employee_scores.c.employee_name == employee_name,
+                            employee_scores.c.period == period_item["period"],
+                        )
+                        existing = conn.execute(select_stmt).first()
+                        if existing:
+                            update_stmt = (
+                                employee_scores.update()
+                                .where(employee_scores.c.id == existing[0])
+                                .values(**row)
+                            )
+                            conn.execute(update_stmt)
+                        else:
+                            row["created_at"] = datetime.utcnow()
+                            conn.execute(employee_scores.insert().values(**row))
+        print("[INFO] dashboard data written to PostgreSQL")
+    except SQLAlchemyError as exc:
+        print(f"[ERROR] Could not write dashboard data to DB: {exc}")
+    except Exception as exc:
+        print(f"[ERROR] Unexpected DB write failure: {exc}")
+
+
+def refresh_dashboard() -> None:
+    try:
+        data = read_xlsx_files()
+        read_pdf_files(data)
+        if not data:
+            print("[WARNING] no dashboard data generated")
+            return
+        update_index_html(data)
+        write_dashboard_data_to_db(data)
+        sync_reports_to_backend()
+    except Exception:
+        print("[ERROR] failed to refresh dashboard")
+        traceback.print_exc()
+
+
+class ReportsHandler(FileSystemEventHandler):
+    def on_created(self, event):
+        if event.is_directory:
+            return
+        if event.src_path.lower().endswith((".xlsx", ".pdf")):
+            print(f"[INFO] detected new file: {event.src_path}")
+            time.sleep(1.5)
+            refresh_dashboard()
+
+    def on_modified(self, event):
+        if event.is_directory:
+            return
+        if event.src_path.lower().endswith((".xlsx", ".pdf")):
+            print(f"[INFO] detected modified file: {event.src_path}")
+            time.sleep(1.5)
+            refresh_dashboard()
+
+
+def main() -> None:
+    refresh_dashboard()
+    observer = Observer()
+    observer.schedule(ReportsHandler(), str(REPORTS_DIR), recursive=False)
+    observer.start()
+    print(f"[INFO] watching {REPORTS_DIR} for XLSX/PDF updates...")
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
+
+
+if __name__ == "__main__":
+    main()

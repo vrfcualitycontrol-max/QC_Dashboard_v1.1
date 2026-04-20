@@ -1,0 +1,63 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: qc_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: qc_user
+      POSTGRES_PASSWORD: qc_password
+      POSTGRES_DB: qc_dashboard
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - qc_network
+
+  backend:
+    build:
+      context: "C:/Users/user/AppData/Local/Programs/Microsoft VS Code/Dashboard_QC/backend"
+      dockerfile: Dockerfile
+    container_name: qc_backend
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql+psycopg2://qc_user:qc_password@postgres:5432/qc_dashboard
+      REPORTS_DIR: /app/reports
+    volumes:
+      - type: bind
+        source: "C:/Users/user/AppData/Local/Programs/Microsoft VS Code/Dashboard_QC/backend"
+        target: /app
+      - type: bind
+        source: "D:/Doc/Doc/Doc/Оценка качества звонков/Отчеты/Итоговый отчет/Dashboard_SC/reports"
+        target: /app/reports
+    ports:
+      - "8000:8000"
+    networks:
+      - qc_network
+
+  nginx:
+    image: nginx:stable
+    container_name: qc_nginx
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    volumes:
+      - type: bind
+        source: "D:/Doc/Doc/Doc/Оценка качества звонков/Отчеты/Итоговый отчет/Dashboard_SC"
+        target: /usr/share/nginx/html
+      - type: bind
+        source: ./nginx.conf
+        target: /etc/nginx/conf.d/default.conf
+    networks:
+      - qc_network
+
+volumes:
+  postgres_data:
+    external: true
+    name: dashboard_qc_postgres_data
+
+networks:
+  qc_network:
+    driver: bridge
