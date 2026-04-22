@@ -1,0 +1,985 @@
+
+    // ========== 1. DASHBOARD DATA ==========
+    
+    // ========== 2. STATIC DATA ==========
+    const CRITERIA = [
+      { n: 1, name: 'Приветствие, идентификация и прощание', weight: 5, color: '#6366f1', desc: 'Соблюдение официального протокола входа в контакт.' },
+      { n: 2, name: 'Этика общения', weight: 5, color: '#8b5cf6', desc: 'Отсутствие конфликтогенов, соблюдение норм делового этикета.' },
+      { n: 3, name: 'Работа в системе (CRM)', weight: 10, color: '#a78bfa', desc: 'Соответствие статуса в CRM фактическому итогу.' },
+      { n: 4, name: 'Легендирование', weight: 15, color: '#7c3aed', desc: 'Тактическое использование сценариев: «компетенция» + «эскалация».' },
+      { n: 5, name: 'Информирование о задолженности', weight: 10, color: '#4f46e5', desc: 'Точность и полнота данных о суммах, сроках DPD.' },
+      { n: 6, name: 'Аргументация', weight: 20, color: '#ec4899', desc: 'Глубина и логика работы с отказами. НПА РУз.' },
+      { n: 7, name: 'Манипуляция', weight: 10, color: '#f59e0b', desc: 'Применение психологических триггеров давления.' },
+      { n: 8, name: 'Выставление требований', weight: 15, color: '#10b981', desc: 'Чёткость: конкретный срок, сумма, способ оплаты.' },
+      { n: 9, name: 'Подведение итогов (Якунлаш)', weight: 10, color: '#06b6d4', desc: 'Резюмирование + фиксация разговора.' },
+    ];
+
+    const SVP_STAGES_REG = [
+      { num: 'Этап 1', title: 'Фаза входа в контакт', desc: 'Приветствие · Идентификация · Легендирование', detail: 'Установление стандартов приветствия. Тактическое легендирование: «компетенция» + «эскалация».' },
+      { num: 'Этап 2', title: 'Информационный блок', desc: 'Информирование о долге · DPD · Открытые вопросы', detail: 'Озвучивание суммы и срока. Диагностика ситуации через открытые вопросы.' },
+      { num: 'Этап 3', title: 'Блок активного взыскания', desc: 'Аргументация · Манипуляция · РсВ', detail: 'Переход от стандартных доводов к нормативной аргументации (НПА и условия Оферты).' },
+      { num: 'Этап 4', title: 'Фиксация обязательств', desc: 'Требования · Итоги (Якунлаш) · Прощание', detail: 'Стандартизация требований: конкретный срок PTP, полная сумма, способы оплаты.' },
+      { num: 'Этап 5', title: 'Интеграция в систему QC', desc: 'Весовые коэффициенты · TQS', detail: 'Увязка каждого этапа СВП с весовыми коэффициентами (5–20%) в оценочном листе QC.' },
+    ];
+
+    const LAWS = [
+      { art: 'Ст. 236', name: 'Надлежащее исполнение', text: 'Обязательства должны исполняться надлежащим образом в соответствии с условиями договора.', use: '«Согласно ст. 236 ГК РУз, Вы обязаны исполнить обязательства в точном соответствии с условиями оферты...»' },
+      { art: 'Ст. 237', name: 'Запрет одностороннего отказа', text: 'Односторонний отказ от исполнения обязательства и одностороннее изменение его условий не допускаются.', use: '«Согласно ст. 237 ГК РУз, Вы не вправе в одностороннем порядке отказаться от исполнения договорных обязательств...»' },
+      { art: 'Ст. 333', name: 'Ответственность за неисполнение', text: 'Отсутствие у должника денежных средств само по себе не освобождает его от ответственности.', use: '«Ст. 333 ГК РУз прямо указывает: отсутствие денег не снимает с Вас обязательств...»' },
+      { art: 'Ст. 421', name: 'Залог до полной оплаты', text: 'Товар, проданный в кредит, находится в залоге у продавца до момента его полной оплаты.', use: '«В соответствии со ст. 421 ГК РУз приобретённый Вами товар является залоговым имуществом VRF...»' },
+    ];
+
+    const OBJECTIONS = [
+      { id: 1, cat: 'Финансы', q: '«Нет денег / не могу заплатить»', script: `Понимаю вашу ситуацию. Однако согласно ст. 333 ГК РУз, отсутствие денежных средств само по себе не освобождает должника от ответственности. Подскажите: когда именно вы сможете внести платёж?`, laws: ['Ст. 333'] },
+      { id: 2, cat: 'Финансы', q: '«Сейчас нет возможности / зарплата придёт позже»', script: `Согласно ст. 236 ГК РУз, обязательства по договору должны исполняться в установленный срок. Назовите конкретную дату — я внесу PTP.`, laws: ['Ст. 236'] },
+      { id: 3, cat: 'Финансы', q: '«Я уже оплатил / это ошибка»', script: `Предоставьте подтверждение оплаты. Платёж по системе не поступал. По регламенту п. 5.4 Оферты платёж считается принятым после отражения в системе.`, laws: [] },
+      { id: 4, cat: 'Финансы', q: '«Почему так много пени?»', script: `Сумма формируется из: основного долга, пени (п. 5.10 Оферты) и затрат на взыскание (ст. 324 ГК РУз). Погасив сегодня, вы зафиксируете текущий размер долга.`, laws: ['Ст. 324'] },
+      { id: 5, cat: 'Финансы', q: '«Я не знал о штрафах»', script: `Согласно п. 4.1.6 Оферты, при просрочке более 60 дней сумма увеличивается. Ст. 324 ГК РУз подтверждает право на возмещение убытков.`, laws: ['Ст. 324'] },
+      { id: 6, cat: 'Личные обстоятельства', q: '«Почему вы звоните мне на работу / в махаллю?»', script: `Подписывая договор, вы предоставили Компании право уведомлять (п. 4.1.7 Договора). Самый быстрый способ прекратить — погасить задолженность.`, laws: [] },
+      { id: 7, cat: 'Личные обстоятельства', q: '«Я не давал согласия на запись»', script: `Обработка данных производится в целях исполнения Договора (ст. 18 ЗРУ «О персональных данных»). Запись — внутренний регламент QC.`, laws: [] },
+      { id: 8, cat: 'Товар', q: '«Я продал/подарил товар»', script: `По ст. 421 ГК РУз товар в залоге до полной оплаты. Отчуждение — ст. 168 УК РУз (мошенничество) и ст. 233 УК РУз.`, laws: ['Ст. 421'] },
+      { id: 9, cat: 'Товар', q: '«Товар бракованный»', script: `Факт приёмки подтверждает исправность. По ст. 417 ГК РУз все риски перешли к вам. Претензии — отдельный процесс.`, laws: [] },
+      { id: 10, cat: 'Товар', q: '«Товар сломался — не плачу»', script: `По п. 5.6 Договора выплаты независимы от состояния товара (ст. 236 ГК РУз). Гарантия — через Магазин.`, laws: ['Ст. 236'] },
+      { id: 11, cat: 'Юридические вопросы', q: '«Пусть подают в суд»', script: `По п. 9.4 Договора и ПКМ № 26 — бесспорный порядок через нотариуса. БПИ арестует счета немедленно.`, laws: [] },
+      { id: 12, cat: 'Юридические вопросы', q: '«Оферта — не договор»', script: `Договор — публичная оферта (ст. 369 ГК РУз). SMS-код = акцепт (ст. 360, 107 ГК РУз).`, laws: ['Ст. 237'] },
+      { id: 13, cat: 'Юридические вопросы', q: '«Почему сразу всю сумму?»', script: `При просрочке 30+ дней — досрочное погашение (п. 9.3 Договора, ст. 422 ГК РУз).`, laws: ['Ст. 236'] },
+      { id: 14, cat: 'Юридические вопросы', q: '«Мне угрожают уголовной ответственностью»', script: `Сотрудники информируют о законных последствиях. Добровольное погашение устранит правовые риски.`, laws: [] },
+      { id: 15, cat: 'Юридические вопросы', q: '«БПИ придёт не скоро»', script: `Ст. 23 ЗРУ — постановление в течение 1 рабочего дня. Расходы растут ежедневно.`, laws: [] },
+      { id: 16, cat: 'Личные обстоятельства', q: '«Я болен / в больнице»', script: `По ст. 237 ГК РУз обязательства не прекращаются. Кто из близких может оплатить через Payme/Click?`, laws: ['Ст. 237'] },
+      { id: 17, cat: 'Личные обстоятельства', q: '«Я в другом городе/стране»', script: `Payme, Click, Paynet — дистанционно. Местонахождение не влияет на обязательства (ст. 236).`, laws: ['Ст. 236'] },
+      { id: 18, cat: 'Личные обстоятельства', q: '«Я не тот человек»', script: `ФИО, дата рождения совпадают. SMS-акцепт = электронная подпись (ст. 107, 369 ГК РУз).`, laws: [] },
+      { id: 19, cat: 'Финансы', q: '«Готов платить частями»', script: `Частичная оплата не останавливает пени (п. 5.10). Но снизит базу. Готовы к оплате сегодня?`, laws: ['Ст. 333'] },
+      { id: 20, cat: 'Юридические вопросы', q: '«Подам жалобу / в суд / к прокурору»', script: `Ваше право. Компания действует в рамках закона (ст. 360, 369 ГК РУз, ПКМ № 26). Обязательства продолжают действовать.`, laws: ['Ст. 236', 'Ст. 237'] },
+    ];
+
+    const SVP_STAGES_B2B = [{"stage": "DPD 1-10", "title": "Зеленый уровень", "desc": "Лояльность и Репутация", "detail": "Цель: Профилактика просрочки, акцент на добросовестности (ст. 9 ГК РУз) и сохранении доступа к кредитным инструментам."}, {"stage": "DPD 10-20", "title": "Желтый уровень", "desc": "Финансовое давление и Убытки – потеря контроля", "detail": "Цель: Обозначение существенного характера нарушения и подготовка к принудительным мерам."}, {"stage": "DPD 20-30", "title": "Красный уровень", "desc": "Принудительное взыскание", "detail": "Цель: Ультимативное требование, трансляция неизбежности расторжения сотрудничества, возможного изъятия имущества и краха репутации."}];
+    const LAWS_B2B = [{"art": "Ст. 236", "name": "Надлежащее исполнение", "text": "Обязательства должны исполняться надлежащим образом в соответствии с условиями обязательства и требованиями законодательства.", "use": "Используется для аргументации соблюдения графика платежей."}, {"art": "Ст. 237", "name": "Недопустимость отказа", "text": "Односторонний отказ от исполнения обязательств и одностороннее изменение его условий не допускаются.", "use": "Сотрудник не имеет права нарушать договоренности."}, {"art": "Ст. 14, 324", "name": "Взыскание убытков", "text": "Лицо, право которого нарушено, может требовать полного возмещения причиненных ему убытков.", "use": "Для предупреждения о дополнительных финансовых потерях при суде."}, {"art": "Ст. 736", "name": "Досрочное взыскание", "text": "Кредитор вправе потребовать досрочного возврата всей оставшейся суммы долга вместе с причитающимися процентами.", "use": "При нарушении сроков возврата кредита."}, {"art": "Ст. 259", "name": "Взыскание на имущество", "text": "Обязательства могут погашаться за счет реализации имущества должника.", "use": "Информирование о крайней мере взыскания."}, {"art": "Ст. 293", "name": "Солидарная ответственность", "text": "Поручитель и должник отвечают перед кредитором солидарно.", "use": "Используется при работе с поручителем."}, {"art": "Ст. 48", "name": "Ответственность юрлиц", "text": "Юридические лица несут ответственность по обязательствам всем своим имуществом.", "use": "Давление на активы предприятия."}, {"art": "Ст. 100", "name": "Защита чести", "text": "Защита чести, достоинства и деловой репутации.", "use": "Аргументация риска для деловой репутации должника."}];
+    const OBJECTIONS_B2B = [
+  {
+    "id": 1,
+    "cat": "Бизнес-риски",
+    "q": "Сначала взыскивайте с основного должника (от поручителя)",
+    "script": "Договор устанавливает солидарный характер ответственности. Кредитор наделен правом требовать исполнения от любого из ответчиков по своему усмотрению, не соблюдая очередность. Вы отвечаете в полном объеме наравне с заемщиком.",
+    "laws": [
+      "Ст. 293"
+    ]
+  },
+  {
+    "id": 2,
+    "cat": "Финансы",
+    "q": "У меня нет денежных средств и ликвидного имущества",
+    "script": "Ваше финансовое положение не является основанием для невыплаты (Ст. 333 ГК РУз). Вы несете ответственность по своим обязательствам всем принадлежащим имуществом, включая то, которое будет приобретено в будущем (Ст. 48 ГК РУз).",
+    "laws": [
+      "Ст. 48",
+      "Ст. 333"
+    ]
+  },
+  {
+    "id": 3,
+    "cat": "Условия",
+    "q": "Я думал иначе/не понимал условия договора",
+    "script": "Подписывая договор, вы подтвердили факт волеизъявления и понимание условий. Субъективное непонимание при наличии вашей подписи не освобождает от обязательств.",
+    "laws": [
+      "Ст. 101",
+      "Ст. 108",
+      "Ст. 365"
+    ]
+  },
+  {
+    "id": 4,
+    "cat": "Отговорки",
+    "q": "Я выступал лишь в качестве свидетеля",
+    "script": "Понятие «свидетель» отсутствует в кредитных правоотношениях. Подписав договор поручительства, вы взяли на себя обязанность исполнить обязательство за должника в полном объеме.",
+    "laws": [
+      "Ст. 292"
+    ]
+  },
+  {
+    "id": 5,
+    "cat": "Условия",
+    "q": "Я требую сначала закрывать основной долг",
+    "script": "Законом установлена строгая очередность погашения, при которой штрафы гасятся после основного долга и процентов, и этот порядок обязателен для всех.",
+    "laws": [
+      "Ст. 248"
+    ]
+  },
+  {
+    "id": 6,
+    "cat": "Финансы",
+    "q": "В связи с кризисом я не имею возможности платить",
+    "script": "Односторонний отказ недопустим. Изменение финансового положения или рыночной конъюнктуры не является законным основанием для прекращения выплат.",
+    "laws": [
+      "Ст. 237"
+    ]
+  },
+  {
+    "id": 7,
+    "cat": "Условия",
+    "q": "Я буду платить частями по своим возможностям",
+    "script": "Обязательство должно исполняться надлежащим образом — в полном объеме и в сроки по графику. Иное частичное исполнение не является надлежащим.",
+    "laws": [
+      "Ст. 234",
+      "Ст. 236"
+    ]
+  },
+  {
+    "id": 8,
+    "cat": "Отговорки",
+    "q": "Банк должен войти в положение и подождать",
+    "script": "Вы обязаны полностью соблюдать график платежей. Отсутствие денег не является непреодолимой силой, и банк вправе требовать возврата долга со штрафами.",
+    "laws": [
+      "Ст. 333",
+      "Ст. 327"
+    ]
+  }
+];
+    let currentObjMode = 'B2C';
+
+    function setObjMode(mode) {
+      currentObjMode = mode;
+      const b2c = document.getElementById('btn-b2c');
+      const b2b = document.getElementById('btn-b2b');
+      if(b2c) b2c.className = 'cat-tab' + (mode === 'B2C' ? ' active' : '');
+      if(b2b) {
+          b2b.className = 'cat-tab' + (mode === 'B2B' ? ' active' : '');
+          b2b.style.background = mode === 'B2B' ? '#eab308' : 'rgba(234,179,8,0.1)';
+          b2b.style.color = mode === 'B2B' ? '#0f1117' : '#facc15';
+      }
+      
+      currentCat = 'Все';
+      renderSVP();
+      renderLaws();
+      renderCatTabs();
+      renderObjList();
+    }
+
+    const CATEGORIES = ['Все', 'Финансы', 'Товар', 'Юридические вопросы', 'Личные обстоятельства'];
+    const CAT_COLORS = { 'Финансы': { bg: 'rgba(74,222,128,0.15)', color: '#4ade80' }, 'Товар': { bg: 'rgba(251,146,60,0.15)', color: '#fb923c' }, 'Юридические вопросы': { bg: 'rgba(167,139,250,0.15)', color: '#a78bfa' }, 'Личные обстоятельства': { bg: 'rgba(96,165,250,0.15)', color: '#60a5fa' } };
+
+    // ========== 3. GRADING ALGORITHM ==========
+    const SVP_KEYS = ["Приветствие", "Этика", "CRM", "Легенда", "Задолж.", "Аргумент.", "Манипул.", "Требования", "Итоги"];
+
+    function getDiagnosticForCriterion(allPeriods, criterion) {
+      if (!allPeriods || !allPeriods.length) return { text: 'Нет данных', bg: '#64748b', rank: -1 };
+      
+      const rawVals = [];
+      allPeriods.forEach(p => {
+        if (p?.raw_scores && p.raw_scores[criterion]) {
+          rawVals.push(...p.raw_scores[criterion]);
+        } else if (p?.svp && p.svp[criterion] !== undefined) {
+          rawVals.push(p.svp[criterion]);
+        }
+      });
+      
+      const n = rawVals.length;
+      if (n === 0) return { text: 'Нет данных', bg: '#64748b', rank: -1 };
+      
+      const zeros = rawVals.filter(v => v === 0).length;
+      const halves = rawVals.filter(v => v === 0.5).length;
+      
+      if (zeros === n) return { text: 'Несоответствие СВП', bg: '#ef4444', rank: 6 };
+      if (zeros >= 2) return { text: 'Критическая просадка', bg: '#ef4444', rank: 5 };
+      if (zeros === 1) return { text: 'Отсутствие критерия', bg: '#ef4444', rank: 4 };
+      if (halves === n) return { text: 'Абсолютная недоработка', bg: '#eab308', rank: 3 };
+      if (halves >= 2) return { text: 'Недоработка', bg: '#eab308', rank: 2 };
+      if (halves === 1) return { text: 'Критерий требует внимания', bg: '#eab308', rank: 1 };
+      
+      return { text: 'В норме ✅', bg: '#22c55e', rank: 0 };
+    }
+
+    // ========== 4. UI ENGINE ==========
+    let currentMonth = "Апрель 2026";
+    let currentPeriod = "Все";
+    let selectedEmployee = null;
+    let trendChart = null;
+
+    function showSection(id) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById('section-' + id).classList.add('active');
+      const navs = document.querySelectorAll('.nav-item');
+      navs.forEach(n => { if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(id)) n.classList.add('active'); });
+      if (id === 'objections') { if (!document.getElementById('catTabs').children.length) { renderCatTabs(); renderObjList(); } if (!document.getElementById('svpContainer').children.length) { renderSVP(); renderLaws(); } }
+      if (id === 'reglament' && !document.getElementById('criteriaGrid').children.length) { renderCriteria(); }
+      if (id === 'operations' && !trendChart) buildCharts();
+    }
+
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('light-mode');
+      document.getElementById('theme-toggle').innerHTML = isLight ? '☀️' : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+      localStorage.setItem('sc-theme', isLight ? 'light' : 'dark');
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+      document.getElementById('main').classList.toggle('collapsed');
+    }
+
+    function initFilters() {
+      const mSelect = document.getElementById('monthSelect');
+      const months = new Set();
+      Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => {
+        if (name.includes('Промежуточный')) return;
+        if (emp?.months) {
+          Object.keys(emp.months).forEach(m => {
+            if (m.includes('Февраль') || m.includes('Март') || m.includes('Апрель')) {
+              months.add(m);
+            }
+          });
+        }
+      });
+      const sorted = Array.from(months).sort().reverse();
+      if(mSelect) {
+          mSelect.innerHTML = '';
+          sorted.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; if (m === currentMonth) o.selected = true; mSelect.appendChild(o); });
+          mSelect.onchange = (e) => { currentMonth = e.target.value; currentPeriod = "Все"; selectedEmployee = null; updatePeriodTabs(); updateDashboard(); };
+      }
+      updatePeriodTabs();
+    }
+
+    function updatePeriodTabs() {
+      const el = document.getElementById('periodTabs');
+      if (!el) return;
+      const periods = new Set();
+      Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => { 
+          if(name.includes('Промежуточный')) return;
+          const m = emp.months[currentMonth]; 
+          if (m && m.periods) m.periods.forEach(p => periods.add(p.period)); 
+      });
+      el.innerHTML = '';
+      const allBtn = document.createElement('div'); allBtn.className = 'cat-tab' + (currentPeriod === "Все" ? ' active' : ''); allBtn.textContent = 'Сводка';
+      allBtn.onclick = () => { currentPeriod = "Все"; updatePeriodTabs(); updateDashboard(); };
+      el.appendChild(allBtn);
+      Array.from(periods).sort().forEach(p => { const b = document.createElement('div'); b.className = 'cat-tab' + (currentPeriod === p ? ' active' : ''); b.textContent = p; b.onclick = () => { currentPeriod = p; updatePeriodTabs(); updateDashboard(); }; el.appendChild(b); });
+    }
+
+    // ── Вспомогательные функции агрегации ────────────────────────────────────
+    function _ahtToSecs(t) {
+      if (!t || t === 'N/A') return 0;
+      const p = t.split(':');
+      return parseInt(p[0] || 0) * 60 + parseInt(p[1] || 0);
+    }
+    function _secsToAht(s) {
+      return Math.floor(s / 60) + ':' + (s % 60).toString().padStart(2, '0');
+    }
+    function _getEffectiveData(empMonthObj) {
+      if (!empMonthObj) return null;
+      if (currentPeriod === "Все") {
+        const allPs = empMonthObj.periods || [];
+        if (!allPs.length) return empMonthObj.summary || null;
+        const tqsPs = allPs.filter(p => p?.tqs > 0);
+        const avgTqs = tqsPs.length ? Math.round(tqsPs.reduce((a, p) => a + (p.tqs || 0), 0) / tqsPs.length * 10) / 10 : 0;
+        const ahtPs = allPs.filter(p => p?.aht && p.aht !== 'N/A');
+        const avgSecs = ahtPs.length ? Math.round(ahtPs.reduce((a, p) => a + _ahtToSecs(p.aht), 0) / ahtPs.length) : 0;
+        
+        const avgSvp = {};
+        SVP_KEYS.forEach(k => {
+          let validSvpPeriods = allPs.filter(p => p?.svp && p.svp[k] !== undefined);
+          if (validSvpPeriods.length > 0) {
+            avgSvp[k] = Math.round(validSvpPeriods.reduce((a, p) => a + p.svp[k], 0) / validSvpPeriods.length * 100) / 100;
+          } else {
+            avgSvp[k] = 1.0;
+          }
+        });
+        
+        const allTend = allPs.map(p => p?.tendencies).filter(t => t && String(t).trim() !== '').join('<br><br>');
+        const allRec = allPs.map(p => p?.rec).filter(r => r && String(r).trim() !== '').join('<br><br>');
+        return {
+          period: "Все",
+          tqs: avgTqs,
+          aht: _secsToAht(avgSecs),
+          svp: avgSvp,
+          tendencies: allTend || 'Нет данных',
+          rec: allRec || 'Нет системных рекомендаций'
+        };
+      }
+      return empMonthObj.periods?.find(p => p?.period === currentPeriod) || null;
+    }
+
+    function updateDashboard() {
+      let tqs = 0, tCount = 0, secs = 0, aCount = 0, riskEmps = new Set();
+      Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => {
+        if (name.includes('Промежуточный')) return;
+        const m = emp.months[currentMonth]; if (!m) return;
+        const d = _getEffectiveData(m);
+        if (!d) return;
+        if (d.tqs > 0) { tqs += d.tqs; tCount++; }
+        if (d.aht && d.aht !== 'N/A' && d.aht !== '0:00') { secs += _ahtToSecs(d.aht); aCount++; }
+        if (d.svp) {
+          let hasZeroSvp = Object.values(d.svp).some(v => v === 0);
+          if (hasZeroSvp && name) riskEmps.add(name);
+        }
+      });
+      if(document.getElementById('kpi-tqs')) document.getElementById('kpi-tqs').textContent = tCount ? ((tqs / tCount) * 100).toFixed(1) + '%' : '-';
+      const avgTqs = tCount ? tqs / tCount : 0;
+      if(document.getElementById('badge-tqs')) document.getElementById('badge-tqs').innerHTML = avgTqs >= 0.75 ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> Цель достигнута' : '⚠ Ниже цели';
+      if(document.getElementById('kpi-aht')) document.getElementById('kpi-aht').textContent = aCount ? _secsToAht(Math.round(secs / aCount)) : '-';
+      if(document.getElementById('kpi-risk')) document.getElementById('kpi-risk').textContent = riskEmps.size;
+      renderHeatmap();
+      buildLineChart();
+      buildCharts();
+      buildGrowthTable();
+      buildLeaderboard();
+      buildTopBottomCharts();
+      
+      if (selectedEmployee) showEmployee(selectedEmployee);
+      
+      if (document.getElementById('forecast-tqs') || document.getElementById('lineChart')) {
+          runForecastUpdate();
+      }
+    }
+
+    // ========== 2b. FORECAST MATH ORCHESTRATOR ==========
+
+    function runForecastUpdate() {
+      const timeline = [];
+      const monthOrder = ['Февраль 2026', 'Март 2026', 'Апрель 2026'];
+      
+      monthOrder.forEach(mName => {
+        const pNamesSet = new Set();
+        Object.values(DASHBOARD_DATA).forEach(emp => {
+          if (emp.months?.[mName]?.periods) {
+            emp.months[mName].periods.forEach(p => pNamesSet.add(p.period));
+          }
+        });
+        
+        const sortedPeriods = [...pNamesSet].sort();
+        sortedPeriods.forEach(pName => {
+          let sum = 0, count = 0;
+          Object.values(DASHBOARD_DATA).forEach(emp => {
+            const m = emp.months?.[mName];
+            if (m?.periods) {
+              const p = m.periods.find(x => x.period === pName);
+              if (p && p.tqs > 0) {
+                sum += p.tqs;
+                count++;
+              }
+            }
+          });
+          if (count > 0) {
+            timeline.push({ label: `${mName.split(' ')[0]} ${pName}`, value: sum / count });
+          }
+        });
+      });
+
+      if (timeline.length < 2) return;
+
+      const dataValues = timeline.map(t => t.value);
+      const forecastCount = 3;
+      const forecastResult = calculateHolt(dataValues, 0.4, 0.3, forecastCount);
+      
+      if (document.getElementById('forecast-tqs')) {
+          const nextVal = forecastResult.forecast[0];
+          document.getElementById('forecast-tqs').textContent = (nextVal * 100).toFixed(1) + '%';
+          
+          const aiEl = document.getElementById('forecast-ai');
+          const lastValid = dataValues[dataValues.length - 1];
+          const diff = nextVal - lastValid;
+          
+          if (diff > 0.01) {
+            aiEl.textContent = 'Умеренный рост (TQS ↑)'; aiEl.style.color = '#22c55e';
+          } else if (diff < -0.01) {
+            aiEl.textContent = 'Риск просадки (TQS ↓)'; aiEl.style.color = '#ef4444';
+          } else {
+            aiEl.textContent = 'Стабильный тренд'; aiEl.style.color = '#facc15';
+          }
+      }
+
+      const canvas = document.getElementById('lineChart');
+      if (canvas && (window.location.pathname.includes('forecast') || document.title.includes('Прогнозирование'))) {
+         buildAreaForecastChart(timeline, forecastResult);
+      }
+    }
+
+    function calculateHolt(data, alpha, beta, n) {
+      let level = data[0];
+      let trend = data[1] - data[0];
+      const fits = [level];
+      
+      for (let i = 1; i < data.length; i++) {
+        let lastLevel = level;
+        level = alpha * data[i] + (1 - alpha) * (level + trend);
+        trend = beta * (level - lastLevel) + (1 - beta) * trend;
+        fits.push(level + trend);
+      }
+      
+      const forecast = [];
+      for (let i = 1; i <= n; i++) {
+        forecast.push(level + i * trend);
+      }
+
+      let ssRes = 0, ssTot = 0;
+      const mean = data.reduce((a, b) => a + b, 0) / data.length;
+      for (let i = 0; i < data.length; i++) {
+        ssRes += Math.pow(data[i] - fits[i], 2);
+        ssTot += Math.pow(data[i] - mean, 2);
+      }
+      const r2 = 1 - (ssRes / (ssTot || 1));
+      
+      return { fits, forecast, r2: Math.max(0, r2) };
+    }
+
+    let forecastChartInstance = null;
+
+    function buildAreaForecastChart(history, results) {
+      const canvas = document.getElementById('lineChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (forecastChartInstance) forecastChartInstance.destroy();
+
+      const labels = [...history.map(h => h.label)];
+      for (let i = 1; i <= results.forecast.length; i++) labels.push(`Прогноз +${i}`);
+
+      const historyData = history.map(h => h.value * 100);
+      const forecastData = Array(history.length - 1).fill(null);
+      forecastData.push(historyData[historyData.length - 1]);
+      results.forecast.forEach(f => forecastData.push(f * 100));
+
+      const grad = ctx.createLinearGradient(0, 0, 0, 400);
+      grad.addColorStop(0, 'rgba(129, 140, 248, 0.4)');
+      grad.addColorStop(1, 'rgba(129, 140, 248, 0)');
+
+      forecastChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Исторические данные (Факт)',
+              data: historyData,
+              borderColor: '#818cf8',
+              backgroundColor: grad,
+              fill: true,
+              borderWidth: 4,
+              pointBackgroundColor: '#818cf8',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              pointRadius: 6,
+              pointHoverRadius: 8,
+              tension: 0.4
+            },
+            {
+              label: 'Прогноз (Double Exp Smoothing)',
+              data: forecastData,
+              borderColor: '#f97316',
+              borderDash: [6, 4],
+              borderWidth: 3,
+              pointBackgroundColor: '#fff',
+              pointBorderColor: '#f97316',
+              pointBorderWidth: 3,
+              pointRadius: 6,
+              fill: false,
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top', labels: { color: '#94a3b8', font: { weight: '600', size: 12 }, padding: 20 } },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              titleColor: '#f1f5f9',
+              bodyColor: '#cbd5e1',
+              padding: 12,
+              cornerRadius: 8,
+              callbacks: {
+                label: (ctx) => {
+                  const type = ctx.datasetIndex === 0 ? ' Факт: ' : ' Прогноз: ';
+                  return type + ctx.parsed.y.toFixed(1) + '%';
+                },
+                afterFooter: () => `Accuracy (R²): ${(results.r2 * 100).toFixed(1)}%`
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 11 } } },
+            y: { min: 40, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 11 } } }
+          }
+        },
+        plugins: [{
+          afterDraw: chart => {
+            const ctx = chart.ctx;
+            ctx.save();
+            ctx.fillStyle = 'rgba(148, 163, 184, 0.5)';
+            ctx.font = 'bold 11px Inter';
+            ctx.textAlign = 'right';
+            ctx.fillText(`R² = ${results.r2.toFixed(3)}`, chart.width - 25, 45);
+            ctx.restore();
+          }
+        }]
+      });
+    }
+
+    function getSmartTooltip(periods) {
+      if (!periods || !periods.length) return { text: "Нет данных", rank: -1, bg: '#64748b' };
+      let worstRank = -1;
+      let worstText = "В норме ✅";
+      let worstBg = '#22c55e';
+      SVP_KEYS.forEach(k => {
+        let diag = getDiagnosticForCriterion(periods, k);
+        if (diag.rank > worstRank) {
+          worstRank = diag.rank;
+          worstText = diag.text;
+          worstBg = diag.bg;
+        }
+      });
+      return { text: worstText, rank: worstRank, bg: worstBg };
+    }
+
+    function renderHeatmap() {
+      const el = document.getElementById('heatmapContainer');
+      if (!el) return;
+      el.innerHTML = '';
+
+      let html = '<div style="display:flex;gap:2px;margin-bottom:8px;font-size:9px;color:#64748b;"><div style="width:160px">ОПЕРАТОР</div>';
+      SVP_KEYS.forEach(s => html += `<div style="flex:1;text-align:center">${s.substring(0, 3)}</div>`);
+      html += '</div>';
+      Object.keys(DASHBOARD_DATA).sort().forEach(name => {
+        if (name.includes('Промежуточный')) return;
+        const m = DASHBOARD_DATA[name]?.months?.[currentMonth]; if (!m) return;
+        const d = _getEffectiveData(m);
+        if (!d || !d.svp) return;
+
+        const periodsToAnalyze = currentPeriod === "Все" ? (m.periods || []) : [d];
+
+        let border = name === selectedEmployee ? 'border:1px solid #a78bfa;background:rgba(167,139,250,0.1);' : '';
+        html += `<div style="display:flex;gap:2px;margin-bottom:2px;cursor:pointer;padding:2px;border-radius:4px;${border}" onclick="showEmployee('${name.replace(/'/g, "\\'")}')">`;
+        html += `<div style="width:160px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>`;
+        SVP_KEYS.forEach(st => {
+          const v = (d.svp[st] !== undefined) ? d.svp[st] : 1;
+          let bg = v >= 1 ? '#22c55e' : (v >= 0.5 ? '#eab308' : '#ef4444');
+          
+          const diag = getDiagnosticForCriterion(periodsToAnalyze, st);
+          let textInfo = st + ':\n' + diag.text;
+          
+          html += `<div class="hm-tooltip" style="flex:1;"><div style="background:${bg};height:14px;opacity:0.65;border-radius:2px;"></div><div class="tt" style="white-space:pre-wrap;text-align:center;">${textInfo}</div></div>`;
+        });
+        html += '</div>';
+      });
+      el.innerHTML = html || '<div style="color:#64748b;padding:12px">Нет данных за этот период</div>';
+    }
+
+    let drillPieChart = null;
+    let drillTrendChart = null;
+
+    function showEmployee(name) {
+      selectedEmployee = name;
+      const empData = DASHBOARD_DATA[name];
+      if (!empData) return;
+      const m = empData.months[currentMonth];
+      const el = document.getElementById('drilldownContent');
+      if (!el) return;
+      if (!m) {
+        el.innerHTML = `<h4 style="color:#a78bfa;margin-bottom:12px">${name}</h4><p style="color:#64748b">Нет данных за ${currentMonth}</p>`;
+        return;
+      }
+      const d = _getEffectiveData(m);
+      if (!d) {
+        el.innerHTML = `<h4 style="color:#a78bfa;margin-bottom:12px">${name}</h4><p style="color:#64748b">Нет данных за период ${currentPeriod}</p>`;
+        return;
+      }
+      // Зоны роста из SVP данных текущего периода
+      let growthHtml = '';
+      if (d.svp) {
+        const problems = Object.entries(d.svp).filter(([k, v]) => v < 1);
+        if (problems.length) {
+          growthHtml = '<p style="margin-top:8px"><strong>Зоны роста:</strong><br>';
+          growthHtml += problems.map(([k, v]) => {
+            const cls = v === 0 ? 'badge-red' : 'badge-yellow';
+            return `<span class="kpi-badge ${cls}" style="margin:2px 2px 0 0">${k}: ${Math.round(v * 100)}%</span>`;
+          }).join('');
+          growthHtml += '</p>';
+        }
+      }
+      el.innerHTML = `<h4 style="color:#f97316;margin-bottom:12px;font-weight:800;">${name}</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+    <div class="card" style="padding:10px"><small>TQS</small><br><strong>${d.tqs !== undefined ? (d.tqs * 100).toFixed(1) + '%' : 'N/A'}</strong></div>
+    <div class="card" style="padding:10px"><small>AHT</small><br><strong>${d.aht || 'N/A'}</strong></div>
+  </div>
+  <div style="text-align:left;font-size:11px">
+    <p style="margin-bottom:8px"><strong>Тенденции:</strong><br>${d.tendencies || 'Нет данных'}</p>
+    <p><strong>Рекомендации:</strong><br>${d.rec || 'Нет данных'}</p>
+    ${growthHtml}
+  </div>
+  <div style="display:grid;grid-template-columns:1fr;gap:16px;margin-top:20px;">
+    <div>
+        <div style="font-size:11px;color:#94a3b8;margin-bottom:8px;font-weight:600;text-align:left;">Распределение ошибок СВП:</div>
+        <div style="height:150px;position:relative;width:100%"><canvas id="drillPie"></canvas></div>
+    </div>
+    <div>
+        <div style="font-size:11px;color:#94a3b8;margin-bottom:8px;font-weight:600;text-align:left;">Динамика TQS (периоды месяца):</div>
+        <div style="height:120px;position:relative;width:100%"><canvas id="drillTrend"></canvas></div>
+    </div>
+  </div>
+  `;
+      
+      // Render Charts for Drilldown
+      if (drillPieChart) drillPieChart.destroy();
+      if (drillTrendChart) drillTrendChart.destroy();
+
+      if (d.svp) {
+         let pieLabels = [];
+         let pieData = [];
+         let pieColors = [];
+         SVP_KEYS.forEach(k => {
+            if(d.svp[k] !== undefined && d.svp[k] < 1) {
+                pieLabels.push(k.substring(0,25));
+                pieData.push(1 - d.svp[k]); // amount of error
+                pieColors.push(d.svp[k] <= 0.25 ? '#ef4444' : '#eab308');
+            }
+         });
+         
+         if(pieData.length > 0) {
+             const ctxPie = document.getElementById('drillPie').getContext('2d');
+             drillPieChart = new Chart(ctxPie, {
+                 type: 'doughnut',
+                 data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: pieColors, borderWidth: 1, borderColor: '#1e2435' }] },
+                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e2435', titleColor: '#f1f5f9', bodyColor: '#94a3b8' } }, cutout: '70%'}
+             });
+         } else {
+             document.getElementById('drillPie').parentElement.innerHTML = '<div style="color:#22c55e;font-size:12px;padding:20px;text-align:center;">Ошибок СВП нет ✅</div>';
+         }
+      }
+
+      const mAll = DASHBOARD_DATA[name].months[currentMonth];
+      if (mAll && mAll.periods) {
+          const trendLabels = mAll.periods.map(p => p.period);
+          const trendData = mAll.periods.map(p => p.tqs * 100);
+          const ctxTrend = document.getElementById('drillTrend').getContext('2d');
+          drillTrendChart = new Chart(ctxTrend, {
+              type: 'line',
+              data: { labels: trendLabels, datasets: [{ label: 'TQS %', data: trendData, borderColor: '#f97316', backgroundColor: '#f9731622', fill: true, tension: 0.4, pointRadius: 3 }] },
+              options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { min: 30, max: 100, ticks: { color: '#64748b', font: {size: 9} } } } }
+          });
+      }
+
+      renderHeatmap();
+    }
+
+
+    let lineChartInstance = null;
+    const LINE_COLORS = ['#a78bfa', '#4ade80', '#f87171', '#facc15', '#60a5fa', '#fb923c', '#34d399', '#e879f9', '#94a3b8', '#ffba08', '#818cf8', '#f472b6', '#2dd4bf', '#fbbf24', '#c084fc', '#22d3ee', '#fb7185', '#a3e635', '#e2e8f0', '#f97316'];
+
+    function shortN(name) {
+      const p = name.split(' ');
+      return p.length > 1 ? `${p[0]} ${p[1][0]}.` : name;
+    }
+
+    function buildLineChart() {
+      const canvas = document.getElementById('lineChart');
+      if (!canvas) return;
+      // Skip if this is the forecast page (it has its own area chart)
+      if (window.location.pathname.includes('forecast') || document.title.includes('Прогнозирование')) return;
+      
+      const ctx = canvas.getContext('2d');
+      if (lineChartInstance) lineChartInstance.destroy();
+
+      const monthData = {};
+      Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => {
+        if (name.includes('Промежуточный')) return;
+        const m = emp.months[currentMonth];
+        if (!m || !m.periods || !m.periods.length) return;
+        monthData[name] = m.periods.map(p => ({ period: p.period, tqs: p.tqs * 100 })); // Convert to 0-100
+      });
+
+      if (!Object.keys(monthData).length) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+      }
+
+      const periodLabels = [...new Set(Object.values(monthData).flatMap(ps => ps.map(p => p.period)))].sort();
+      const datasets = Object.entries(monthData).map(([name, ps], i) => {
+        // Map TQS strictly by matching periods. Push null if completely missing or tqs essentially 0 unrecorded
+        const dataArr = periodLabels.map(lbl => {
+          const e = ps.find(p => p.period === lbl);
+          return (e && e.tqs > 0) ? e.tqs : null;
+        });
+
+        return {
+          label: shortN(name),
+          data: dataArr,
+          borderColor: LINE_COLORS[i % LINE_COLORS.length],
+          backgroundColor: LINE_COLORS[i % LINE_COLORS.length] + '22',
+          borderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 7,
+          tension: 0.4,
+          spanGaps: true // Ensure lines connect!
+        };
+      });
+
+      lineChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: { labels: periodLabels, datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: '#94a3b8', font: { size: 10 } } },
+            tooltip: {
+              backgroundColor: '#1e2435', borderColor: '#2d3748', borderWidth: 1, titleColor: '#f1f5f9', bodyColor: '#94a3b8',
+              callbacks: { label: c => c.dataset.label + ': ' + (c.parsed.y !== null ? c.parsed.y.toFixed(1) + '%' : '—') }
+            }
+          },
+          scales: {
+            x: { grid: { color: '#1e2435' }, ticks: { color: '#64748b', font: { size: 10 } } },
+            y: { min: 30, max: 100, grid: { color: '#232b3e' }, ticks: { color: '#64748b', font: { size: 10 }, callback: v => v + '%' } }
+          }
+        }
+      });
+    }
+    function buildCharts() {
+      const trendEl = document.getElementById('trendChart');
+      if (!trendEl) return;
+      const ctx = trendEl.getContext('2d');
+      if (trendChart) trendChart.destroy();
+      let labels = [], data = [], colors = [];
+      Object.keys(DASHBOARD_DATA).sort().forEach(name => {
+        if(name.includes('Промежуточный')) return;
+        const m = DASHBOARD_DATA[name].months[currentMonth]; if (!m) return;
+        const d = _getEffectiveData(m);
+        if (!d || !d.svp) return; // показываем всех, у кого есть данные
+        const t = (d.tqs || 0) * 100; // Convert 0-1 to 0-100
+        labels.push(shortN(name)); data.push(t);
+        colors.push(t >= 75 ? '#22c55e' : (t >= 60 ? '#eab308' : '#f87171'));
+      });
+      if (!labels.length) return;
+      trendChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets: [{ label: 'TQS %', data, backgroundColor: colors, borderRadius: 4 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          scales: {
+            y: { min: 0, max: 100, grid: { color: '#232b3e' }, ticks: { color: '#64748b', callback: v => v + '%' } },
+            x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 }, maxRotation: 45 } }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1e2435', borderColor: '#2d3748', borderWidth: 1, titleColor: '#f1f5f9', bodyColor: '#94a3b8',
+              callbacks: { label: c => c.parsed.y > 0 ? 'TQS: ' + c.parsed.y + '%' : 'Нет данных TQS' }
+            }
+          }
+        }
+      });
+    }
+
+    function buildGrowthTable() {
+      const tbody = document.getElementById('growthTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const empProblems = [];
+      Object.keys(DASHBOARD_DATA).forEach(name => {
+        if(name.includes('Промежуточный')) return;
+        const m = DASHBOARD_DATA[name]?.months?.[currentMonth]; if (!m) return;
+        const d = _getEffectiveData(m);
+        if (!d || !d.svp) return;
+
+        const periodsToAnalyze = currentPeriod === "Все" ? (m.periods || []) : [d];
+        const rankInfo = getSmartTooltip(periodsToAnalyze);
+
+        let critList = [];
+        SVP_KEYS.forEach(k => {
+          let v = d.svp[k];
+          if (v !== undefined && v < 1) {
+            let diag = getDiagnosticForCriterion(periodsToAnalyze, k);
+            critList.push({ name: k, val: v, diag: diag });
+          }
+        });
+
+        if (critList.length > 0) {
+          critList.sort((a, b) => {
+            if (a.val !== b.val) return a.val - b.val;
+            return b.diag.rank - a.diag.rank;
+          });
+          
+          let critHtml = '';
+          let statHtml = '';
+          critList.forEach(c => {
+            let cls = c.val <= 0.25 ? 'badge-red' : 'badge-yellow';
+            critHtml += `<div style="height:24px;display:flex;align-items:center;margin-bottom:6px;"><span class="kpi-badge ${cls}" style="margin:0">${c.name} (${Math.round(c.val * 100)}%)</span></div>`;
+            statHtml += `<div style="height:24px;display:flex;align-items:center;margin-bottom:6px;font-size:11px;font-weight:600;color:${c.diag.bg};">${c.diag.text}</div>`;
+          });
+
+          empProblems.push({
+            name: name,
+            tqs: d.tqs,
+            rank: rankInfo.rank,
+            critHtml: critHtml,
+            statHtml: statHtml,
+            rec: d.rec || 'Нет системных рекомендаций'
+          });
+        }
+      });
+
+      empProblems.sort((a, b) => b.rank - a.rank || a.tqs - b.tqs);
+
+      let html = '';
+      empProblems.forEach(ep => {
+        html += `<tr style="cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);" onclick="showEmployee('${ep.name.replace(/'/g, "\\'")}')">
+          <td style="font-weight:600;vertical-align:top;padding-top:14px;">${ep.name}</td>
+          <td style="vertical-align:top;padding-top:14px;">${ep.tqs !== undefined && ep.tqs !== null ? (ep.tqs * 100).toFixed(1) + '%' : '—'}</td>
+          <td style="vertical-align:top;padding-top:14px;">${ep.critHtml}</td>
+          <td style="vertical-align:top;padding-top:14px;">${ep.statHtml}</td>
+          <td style="font-size:11px;color:#94a3b8;line-height:1.5;white-space:pre-wrap;vertical-align:top;padding:14px 12px 14px 0;">${ep.rec}</td>
+        </tr>`;
+      });
+      tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:#64748b;padding:20px;">Нет зон роста (все показатели 100%)</td></tr>';
+    }
+
+    function buildLeaderboard() {
+      const tbody = document.getElementById('leaderboardBody');
+      if (!tbody) return;
+      
+      const empDataList = [];
+      Object.keys(DASHBOARD_DATA).forEach(name => {
+        if(name.includes('Промежуточный')) return;
+        const m = DASHBOARD_DATA[name]?.months?.[currentMonth]; if (!m) return;
+        const d = _getEffectiveData(m);
+        if (!d || d.tqs === undefined) return;
+        
+        let trend = 0; // 0 = stable, >0 = up, <0 = down
+        if (m.periods && m.periods.length >= 2) {
+           const last = m.periods[m.periods.length - 1];
+           const prev = m.periods[m.periods.length - 2];
+           if (last && prev) {
+               trend = last.tqs - prev.tqs;
+           }
+        }
+        empDataList.push({ name, tqs: d.tqs * 100, trend: trend * 100 });
+      });
+
+      empDataList.sort((a, b) => b.tqs - a.tqs);
+
+      let html = '';
+      empDataList.forEach((ep, idx) => {
+        let trendHtml = '<span style="color:#94a3b8">▬ 0.0%</span>';
+        if (ep.trend > 0.5) trendHtml = `<span style="color:#22c55e">▲ +${ep.trend.toFixed(1)}%</span>`;
+        if (ep.trend < -0.5) trendHtml = `<span style="color:#ef4444">▼ ${ep.trend.toFixed(1)}%</span>`;
+        
+        let rankColor = idx === 0 ? '#fbbf24' : (idx === 1 ? '#94a3b8' : (idx === 2 ? '#b45309' : '#4a5568'));
+        
+        html += `<tr style="cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);" onclick="showEmployee('${ep.name.replace(/'/g, "\\'")}')">
+          <td style="font-weight:800;color:${rankColor};font-size:14px;">${idx + 1}</td>
+          <td style="font-weight:600;">${ep.name}</td>
+          <td style="font-weight:800;color:#e2e8f0;">${ep.tqs.toFixed(1)}%</td>
+          <td style="font-size:12px;">${trendHtml}</td>
+        </tr>`;
+      });
+      tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center;color:#64748b;padding:20px;">Нет данных для рейтинга</td></tr>';
+    }
+
+    // ========== 5. REGLAMENT RENDERING ==========
+    function renderCriteria() {
+      const g = document.getElementById('criteriaGrid');
+      CRITERIA.forEach(c => {
+        g.innerHTML += `<div class="crit-card" style="border-top:3px solid ${c.color}"><div class="crit-num">${c.n}</div><div class="crit-weight" style="color:${c.color}">${c.weight}%</div><div class="crit-name">${c.name}</div><div class="crit-desc">${c.desc}</div><div class="crit-bar" style="background:linear-gradient(90deg,${c.color},${c.color}44);width:${c.weight * 5}%"></div></div>`;
+      });
+    }
+
+    function renderSVP() {
+      const c = document.getElementById('svpContainer'); c.innerHTML = '';
+      const svpData = currentObjMode === 'B2C' ? SVP_STAGES_REG : SVP_STAGES_B2B; svpData.forEach((s, i) => {
+        const el = document.createElement('div'); el.className = 'svp-stage' + (i === 0 ? ' active' : '');
+        el.innerHTML = `<div class="svp-num">${s.num}</div><div class="svp-title">${s.title}</div><div class="svp-desc">${s.desc}</div><div class="svp-detail">${s.detail}</div>`;
+        el.onclick = () => { document.querySelectorAll('.svp-stage').forEach(x => x.classList.remove('active')); el.classList.add('active'); };
+        c.appendChild(el);
+      });
+    }
+
+    function renderLaws() {
+      const g = document.getElementById('lawGrid'); g.innerHTML = '';
+      const lawData = currentObjMode === 'B2C' ? LAWS : LAWS_B2B; lawData.forEach((l, i) => { g.innerHTML += `<div class="law-card" onclick="openLawModal(${i})"><div class="law-art">${l.art}</div><div class="law-name">${l.name}</div><div class="law-text">${l.text.substring(0, 80)}...</div></div>`; });
+    }
+    function openLawModal(i) {
+      const l = currentObjMode === 'B2C' ? LAWS[i] : LAWS_B2B[i];
+      document.getElementById('lawModalContent').innerHTML = `<div style="font-size:22px;font-weight:800;color:#a78bfa;margin-bottom:4px">${l.art}</div><div style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:12px">${l.name}</div><div style="font-size:12px;color:#94a3b8;line-height:1.6;margin-bottom:16px">${l.text}</div><div style="background:rgba(167,139,250,0.1);border:1px solid #4c1d95;border-radius:8px;padding:14px;"><div style="font-size:10px;font-weight:700;color:#a78bfa;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:3px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Пример цитирования</div><div style="font-size:12px;color:#c4b5fd;line-height:1.6;font-style:italic">"${l.use}"</div></div>`;
+      document.getElementById('lawModal').classList.add('open');
+    }
+    function closeLawModal() { document.getElementById('lawModal').classList.remove('open'); }
+
+    // ========== 6. OBJECTIONS ==========
+    let currentCat = 'Все', searchTerm = '';
+    function renderCatTabs() { const el = document.getElementById('catTabs'); el.innerHTML = ''; CATEGORIES.forEach(cat => { const btn = document.createElement('div'); btn.className = 'cat-tab' + (cat === currentCat ? ' active' : ''); const objData = currentObjMode === 'B2C' ? OBJECTIONS : OBJECTIONS_B2B; const cnt = cat === 'Все' ? objData.length : objData.filter(o => o.cat === cat).length; btn.textContent = cat + ' (' + cnt + ')'; btn.onclick = () => { currentCat = cat; renderCatTabs(); renderObjList(); }; el.appendChild(btn); }) }
+    function filterObj() { searchTerm = document.getElementById('objSearch').value.toLowerCase().trim(); renderObjList(); }
+    function renderObjList() {
+      const container = document.getElementById('objList');
+      const objData = currentObjMode === 'B2C' ? OBJECTIONS : OBJECTIONS_B2B; const filtered = objData.filter(o => (currentCat === 'Все' || o.cat === currentCat) && (!searchTerm || o.q.toLowerCase().includes(searchTerm) || o.script.toLowerCase().includes(searchTerm)));
+      document.getElementById('objCount').textContent = 'Найдено: ' + filtered.length + ' из ' + objData.length + ' кейсов';
+      if (!filtered.length) { container.innerHTML = '<div style="text-align:center;padding:40px;color:#4a5568;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> Ничего не найдено</div>'; return; }
+      const groups = {}; filtered.forEach(o => { if (!groups[o.cat]) groups[o.cat] = []; groups[o.cat].push(o); });
+      let html = '';
+      Object.entries(groups).forEach(([cat, items]) => {
+        const c = CAT_COLORS[cat] || {};
+        html += `<div class="obj-group"><div class="obj-group-title">${cat} — ${items.length} кейс${items.length < 5 ? 'а' : 'ов'}</div>`;
+        items.forEach(o => {
+          const lawsHtml = o.laws.length ? `<div class="laws-line">${o.laws.map(l => `<span class="law-chip" onclick="openLawByName('${l}')">${l} ГК РУз ↗</span>`).join('')}</div>` : '';
+          const bs = c.bg ? `background:${c.bg};color:${c.color}` : '';
+          html += `<div class="acc-item" id="acc-${o.id}"><div class="acc-header" onclick="toggleAcc(${o.id})"><span class="acc-num">#${String(o.id).padStart(2, '0')}</span><span class="acc-q">${o.q}</span><div class="acc-meta"><span class="acc-cat-badge" style="${bs}">${cat}</span><span class="acc-chevron">▼</span></div></div><div class="acc-body"><div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin:14px 0 6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:3px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Скрипт отработки</div><div class="script-box" id="script-${o.id}">${o.script}</div>${lawsHtml}<button class="copy-btn" id="copy-${o.id}" onclick="copyScript(${o.id})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg> Скопировать скрипт</button></div></div>`;
+        });
+        html += '</div>';
+      });
+      container.innerHTML = html;
+    }
+    function toggleAcc(id) { document.getElementById('acc-' + id).classList.toggle('open'); }
+    function copyScript(id) { const t = document.getElementById('script-' + id).textContent; navigator.clipboard.writeText(t).then(() => { const b = document.getElementById('copy-' + id); b.textContent = '✅ Скопировано!'; b.classList.add('copied'); setTimeout(() => { b.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg> Скопировать скрипт'; b.classList.remove('copied'); }, 2000); }); }
+    function openLawByName(name) {
+      const lawData = currentObjMode === 'B2C' ? LAWS : LAWS_B2B;
+      const idx = lawData.findIndex(l => l.art.includes(name));
+      if (idx !== -1) { showSection('reglament'); setTimeout(() => openLawModal(idx), 300); }
+    }
+
+    let topChartIns = null;
+    let botChartIns = null;
+
+    function buildTopBottomCharts() {
+      const topCanvas = document.getElementById('topChart');
+      const botCanvas = document.getElementById('bottomChart');
+      if (!topCanvas || !botCanvas) return;
+
+      const empDataList = [];
+      Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => {
+        if(name.includes('Промежуточный')) return;
+        const m = emp.months[currentMonth]; if (!m) return;
+        const d = _getEffectiveData(m);
+        if (!d || d.tqs === undefined || isNaN(d.tqs)) return;
+        empDataList.push({ name: name.split(' ')[0], tqs: parseFloat((d.tqs * 100).toFixed(1)) });
+      });
+
+      empDataList.sort((a, b) => b.tqs - a.tqs);
+      
+      const top5 = empDataList.slice(0, 5);
+      const bot3 = empDataList.slice(-3).reverse();
+
+      if(topChartIns) topChartIns.destroy();
+      if(botChartIns) botChartIns.destroy();
+
+      topChartIns = new Chart(topCanvas.getContext('2d'), {
+          type: 'bar',
+          data: { labels: top5.map(e => e.name), datasets: [{ label: 'TQS %', data: top5.map(e=>e.tqs), backgroundColor: '#22c55e', borderRadius: 4 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                     scales: { y: { min: 50, max: 100, ticks: {color:'#94a3b8'} }, x:{ ticks: {color:'#94a3b8'} } }
+          }
+      });
+
+      botChartIns = new Chart(botCanvas.getContext('2d'), {
+          type: 'bar',
+          data: { labels: bot3.map(e => e.name), datasets: [{ label: 'TQS %', data: bot3.map(e=>e.tqs), backgroundColor: '#ef4444', borderRadius: 4 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                     scales: { y: { min: 20, max: 100, ticks: {color:'#94a3b8'} }, x:{ ticks: {color:'#94a3b8'} } }
+          }
+      });
+    }
+
+    // ========== 7. INIT ==========
+    document.addEventListener('DOMContentLoaded', () => {
+      initFilters(); updateDashboard();
+      if (localStorage.getItem('sc-theme') === 'light') toggleTheme();
+    });
+    window.showSection = showSection; window.toggleTheme = toggleTheme; window.showEmployee = showEmployee;
+    window.openLawModal = openLawModal; window.closeLawModal = closeLawModal; window.copyScript = copyScript;
+    window.filterObj = filterObj; window.toggleAcc = toggleAcc; window.openLawByName = openLawByName;
+  

@@ -28,7 +28,7 @@ from watchdog.observers import Observer
 
 SCRIPT_DIR = Path(__file__).parent.resolve()
 REPORTS_DIR = SCRIPT_DIR / "reports"
-INDEX_HTML_PATH = SCRIPT_DIR / "index.html"
+INDEX_HTML_PATH = SCRIPT_DIR / "assets" / "js" / "data.js"
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
     "postgresql+psycopg2://qc_user:qc_password@postgres:5432/qc_dashboard"
@@ -149,11 +149,20 @@ def format_duration(minutes: float) -> str:
 
 
 def extract_month_and_period(filename: str) -> (str, str):
+    # Try format: "13.04.2026 - 19.04.2026"
     match = re.search(r"(\d{2})\.(\d{2})\.(\d{4})\s*-\s*(\d{2})\.(\d{2})\.(\d{4})", filename)
     if match:
         month = MONTHS_MAP.get(match.group(2), f"{match.group(2)}.{match.group(3)}")
         period = f"{match.group(1)}-{match.group(4)}"
         return month, period
+    
+    # Try format: "13-19.04.2026"
+    match = re.search(r"(\d{2})-(\d{2})\.(\d{2})\.(\d{4})", filename)
+    if match:
+        month = MONTHS_MAP.get(match.group(3), f"{match.group(3)}.{match.group(4)}")
+        period = f"{match.group(1)}-{match.group(2)}"
+        return month, period
+    
     return "Неизвестно", "Неизвестно"
 
 
@@ -245,10 +254,32 @@ def extract_pdf_sections(text: str) -> List[str]:
 
 
 def extract_section_text(block: str, key: str) -> str:
-    pattern = re.search(fr"{re.escape(key)}\s*[:：]?\s*(.*)", block, flags=re.IGNORECASE)
-    if pattern:
-        return pattern.group(1).strip().replace("\n", " ")
-    return ""
+    # Find the line with the key
+    pattern = re.search(fr"{re.escape(key)}\s*[:：]?\s*", block, flags=re.IGNORECASE)
+    if not pattern:
+        return ""
+    
+    # Get everything after the key
+    start_pos = pattern.end()
+    remaining = block[start_pos:]
+    
+    # If this is "Рекомендации", capture everything until paragraph break or end
+    if "рекомендаци" in key.lower():
+        # Stop at double newline (paragraph break) - this is where recommendations end
+        match_break = re.search(r"\n\s*\n", remaining)
+        if match_break:
+            text = remaining[:match_break.start()]
+        else:
+            text = remaining
+    else:
+        # For other sections, just take until end of line (existing behavior)
+        match_newline = re.search(r"\n", remaining)
+        if match_newline:
+            text = remaining[:match_newline.start()]
+        else:
+            text = remaining
+    
+    return text.strip().replace("\n", " ").replace("\r", " ")
 
 
 def read_pdf_files(data: Dict[str, Any]) -> None:

@@ -1,69 +1,37 @@
-# README_AGENT — Dashboard QC
+# 🤖 README_AGENT — Dashboard QC Handover (v1.2.4)
 
-## Краткий статус
+## 📋 ТЕКУЩИЙ КОНТЕКСТ (Среда)
+Проект успешно мигрировал с монолитного `index.html` на **чистую многостраничную архитектуру**. Это критический момент: больше не нужно править 20к строк в одном файле.
 
-- **Текущий проект:** Dashboard Quality Control (Soft Collection Unit)
-- **Рабочая папка:** `d:\Doc\Doc\Doc\Оценка качества звонков\Отчеты\Итоговый отчет\Dashboard_SC`
-- **Стабильность:** backend восстановлен, nginx исправлен, PostgreSQL работает на `postgres:16-alpine`
-- **Основные файлы:** `index.html`, `docker-compose.yml`, `nginx.conf`, `backend/app.py`, `backend/init_db.py`
+- **Версия:** v1.2.4
+- **Архитектура:** Статический Multi-Page (HTML + Shared JS).
+- **Важные папки:** 
+  - `assets/js/`: Здесь "мозги". `app.js` содержит общую бизнес-логику и отрисовку графиков. `sidebar.js` — управление навигацией.
+  - `regulations/`: Интерактивные версии регламентов (вместо PDF).
+  - `reports/`: XLSX/PDF источники данных.
 
-## Что уже сделано
+## 🚀 ГАЙД ДЛЯ СЛЕДУЮЩЕГО АГЕНТА
 
-1. Исправлен `docker-compose.yml`:
-   - `postgres` образ обновлён до `postgres:16-alpine`
-   - том данных сохранён как `external: true` с именем `dashboard_qc_postgres_data`
-   - `backend` и `nginx` монтируют правильные пути
-2. Исправлен `nginx.conf`:
-   - `location / { try_files $uri $uri/ /index.html; }`
-   - `location /api/` проксирует на `http://backend:8000`
-3. Восстановлен backend и проверены API:
-   - `http://localhost:8000/api/health` → 200
-   - `http://localhost:8000/api/employees` → 200
-4. Проверено работоспособность frontend через nginx:
-   - `http://localhost/` → 200
+### 1. Как добавить новую страницу?
+1. Создай `new_page.html` на основе шаблона (скопируй `rating.html`).
+2. Зарегистрируй новую страницу в `assets/js/sidebar.js` в массиве `menuStructure`.
+3. В `app.js` добавь логику инициализации (если нужны уникальные графики), используя проверку `if (document.getElementById('unique-id'))`.
 
-## Что важно знать
+### 2. Ключевые нововведения v1.2.4
+- **Holt Forecast**: Математика реализована в `app.js` (функции `calculateHolt` и `runForecastUpdate`). Не пытайся дергать `/api/trends/forecast` — теперь все считается локально на основе `DASHBOARD_DATA`.
+- **Global Filter**: В `updateDashboard()` вшит фильтр, исключающий "Промежуточный отчет". Не удаляй его, это требование бизнеса.
+- **Sidebar Persistence**: Меню строится динамически. Если пункт меню не отображается — проверь `sidebar.js`.
 
-### Данные и структура
+### 3. Работа с Docker
+`Dockerfile` обновлен. Теперь он копирует **все** `.html` файлы и всю папку `assets/`. При добавлении новых папок не забудь обновить `Dockerfile`.
 
-- `Dashboard_SC` содержит основной фронтенд и отчёты.
-- `Dashboard_QC/backend` содержит backend-код, который запускается в контейнере `qc_backend`.
-- `reports/` в `Dashboard_SC` монтируется в backend как `/app/reports`.
-- PostgreSQL том уже содержит данные, совместимые с PostgreSQL 16.
+### 4. Git Flow
+Всегда делай коммит после крупных функциональных блоков. Используй `v1.2.4` как точку отсчета стабильности.
 
-### Ключевой баг, который был устранён
+## ⚠️ ВАЖНЫЕ ПРЕДОСТЕРЕЖЕНИЯ
+- **Не возвращайся к index.html как единственному файлу.** Весь функционал разнесен по страницам.
+- **Null Checks**: Всегда проверяй существование элемента перед вызовом `Chart.js` или `innerHTML`, иначе скрипт упадет на других страницах.
+- **Data format**: Следи за форматом TQS (0.00 - 1.00 в данных, 0 - 100 в отображении).
 
-- **Причина 502/500**: nginx proxy пытался обращаться к backend, который был не запущен или некорректно настроен.
-- **Причина падения PostgreSQL**: контейнер запускался на `postgres:15`, тогда как данные были созданы PostgreSQL 16.
-
-### Важно для следующего агента
-
-- Не трать время на переизучение `index.html` как единственного источника правды — основной backend и nginx уже восстановлены.
-- При любых изменениях проверяй `docker-compose.yml`, `nginx.conf` и `backend/app.py` в первую очередь.
-- Если нужен контекст, сначала читай `AGENT_BRIEF.md` и `README_AGENT.md`.
-
-## Быстрые команды
-
-```powershell
-cd "d:\Doc\Doc\Doc\Оценка качества звонков\Отчеты\Итоговый отчет\Dashboard_SC"
-docker compose up -d
-
-docker ps -a
-
-docker logs qc_backend --tail 50
-docker logs qc_nginx --tail 50
-docker logs qc_postgres --tail 50
-
-docker restart qc_backend
-docker restart qc_nginx
-
-curl http://localhost:8000/api/health
-curl http://localhost:8000/api/employees
-curl http://localhost/
-```
-
-## Контекст и память
-
-- Сохраняй важные факты в документацию, а не только в переписке.
-- Следующий агент или новая сессия может потерять краткосрочный контекст, но файл остаётся.
-- Не удаляй эту страницу: она должна быть первым файлом для чтения.
+---
+*Удачи, коллега. Проект теперь структурирован и готов к масштабированию.*
