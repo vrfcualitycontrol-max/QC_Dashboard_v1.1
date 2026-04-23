@@ -26,36 +26,51 @@ function initSidebar(activeId) {
       <div class="nav-section-title" style="margin-top:15px;">ОПЕРАЦИОННЫЕ ИНСТРУМЕНТЫ</div>
       
       <!-- РсВ Dropdown Placeholder for future CSS/JS toggle -->
-      <div style="padding: 10px 16px; color: #a0aec0; font-size: 10px; font-weight: bold; letter-spacing: 0.5px;">БАЗА ВОЗРАЖЕНИЙ</div>
+      <div class="nav-subsection-title" style="padding: 10px 16px; color: #a0aec0; font-size: 10px; font-weight: bold; letter-spacing: 0.5px;">БАЗА ВОЗРАЖЕНИЙ</div>
       <a href="objections_b2c.html" class="nav-item ${activeId === 'obj_b2c' ? 'active' : ''}" title="Физ. лица">
-        <span class="nav-icon">👤</span> B2C
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0"></path><circle cx="12" cy="7" r="4"></circle></svg></span> B2C
       </a>
       <a href="objections_b2b.html" class="nav-item ${activeId === 'obj_b2b' ? 'active' : ''}" title="Юр. лица">
-        <span class="nav-icon">🏢</span> B2B
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18"></path><path d="M5 21V7l7-4 7 4v14"></path><path d="M9 10h.01"></path><path d="M12 10h.01"></path><path d="M15 10h.01"></path><path d="M9 14h.01"></path><path d="M12 14h.01"></path><path d="M15 14h.01"></path></svg></span> B2B
       </a>
 
-      <div style="padding: 10px 16px; color: #a0aec0; font-size: 10px; font-weight: bold; letter-spacing: 0.5px;">ТАКТИЧЕСКИЕ ИНСТРУМЕНТЫ</div>
+      <div class="nav-subsection-title" style="padding: 10px 16px; color: #a0aec0; font-size: 10px; font-weight: bold; letter-spacing: 0.5px;">ТАКТИЧЕСКИЕ ИНСТРУМЕНТЫ</div>
       <a href="law.html" class="nav-item ${activeId === 'law' ? 'active' : ''}">
-        <span class="nav-icon">⚖️</span> Нормат. аргументация <span class="nav-badge">В разраб.</span>
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 3v18"></path><path d="M5 7h14"></path><path d="M6 7l-3 5h6z"></path><path d="M18 7l-3 5h6z"></path><path d="M8 21h8"></path></svg></span> Нормат. аргументация <span class="nav-badge">Новый</span>
       </a>
       <a href="instruments.html" class="nav-item ${activeId === 'instruments' ? 'active' : ''}">
-        <span class="nav-icon">🔧</span> Инструментарий <span class="nav-badge">В разраб.</span>
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a3 3 0 0 0-4.2 4.2L3 18l3 3 7.5-7.5a3 3 0 0 0 4.2-4.2l-2.2 2.2-2-2z"></path></svg></span> Инструментарий <span class="nav-badge">Новый</span>
       </a>
 
       <a href="manual.html" class="nav-item ${activeId === 'manual' ? 'active' : ''}" style="margin-top:10px;">
-        <span class="nav-icon">📖</span> Мануал <span class="nav-badge">В разраб.</span>
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"></path><path d="M8 7h7"></path><path d="M8 11h7"></path><path d="M8 15h5"></path></svg></span> Мануал <span class="nav-badge">Новый</span>
       </a>
 
       <div class="nav-section-title" style="margin-top:15px;">РЕГЛАМЕНТ</div>
-      <a href="reg_mechanics.html" class="nav-item ${activeId === 'reg_mechanics' ? 'active' : ''}">Механика оценки</a>
-      <a href="reg_methodology.html" class="nav-item ${activeId === 'reg_methodology' ? 'active' : ''}">Методология (9 крит.)</a>
+      <a href="reg_mechanics.html" class="nav-item ${activeId === 'reg_mechanics' ? 'active' : ''}">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"></path><path d="M3 13l9 5 9-5"></path></svg></span>
+        Механика оценки
+      </a>
+      <a href="reg_methodology.html" class="nav-item ${activeId === 'reg_methodology' ? 'active' : ''}">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 19h16"></path><path d="M7 16V8"></path><path d="M12 16V5"></path><path d="M17 16v-6"></path></svg></span>
+        Методология (9 крит.)
+      </a>
 
       <div class="nav-section-title" style="margin-top:15px; font-size:9px;">АРХИТЕКТУРА СВП</div>
-      <a href="svp_mechanism.html" class="nav-item ${activeId === 'svp_mechanism' ? 'active' : ''}">Порядок механизма</a>
-      <a href="svp_crm.html" class="nav-item ${activeId === 'svp_crm' ? 'active' : ''}">CRM Soft Collection</a>
+      <a href="svp_mechanism.html" class="nav-item ${activeId === 'svp_mechanism' ? 'active' : ''}">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="6" r="2"></circle><circle cx="12" cy="18" r="2"></circle><path d="M8 6h8"></path><path d="M7.5 7.5l3.5 8"></path><path d="M16.5 7.5l-3.5 8"></path></svg></span>
+        Порядок механизма
+      </a>
+      <a href="svp_crm.html" class="nav-item ${activeId === 'svp_crm' ? 'active' : ''}">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"></rect><path d="M7 8h10"></path><path d="M7 12h6"></path><path d="M9 21h6"></path></svg></span>
+        CRM Soft Collection
+      </a>
 
       <div class="nav-section-title" style="margin-top:15px;">РЕГЛАМЕНТ РАБОТЫ QC</div>
-      <a href="qc_regulations.html" class="nav-item ${activeId === 'qc_regulations' ? 'active' : ''}">Документ</a>
+      <a href="qc_regulations.html" class="nav-item ${activeId === 'qc_regulations' ? 'active' : ''}">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"></path><path d="M14 3v5h5"></path><path d="M10 13h8"></path><path d="M10 17h8"></path></svg></span>
+        Документ
+      </a>
 
     </div>
 

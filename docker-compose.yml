@@ -14,7 +14,7 @@ services:
 
   backend:
     build:
-      context: "C:/Users/user/AppData/Local/Programs/Microsoft VS Code/Dashboard_QC/backend"
+      context: ${BACKEND_CONTEXT:-./backend}
       dockerfile: Dockerfile
     container_name: qc_backend
     restart: unless-stopped
@@ -25,10 +25,10 @@ services:
       REPORTS_DIR: /app/reports
     volumes:
       - type: bind
-        source: "C:/Users/user/AppData/Local/Programs/Microsoft VS Code/Dashboard_QC/backend"
+        source: ${BACKEND_SOURCE:-./backend}
         target: /app
       - type: bind
-        source: "D:/Doc/Doc/Doc/Оценка качества звонков/Отчеты/Итоговый отчет/Dashboard_SC/reports"
+        source: ${REPORTS_SOURCE:-./reports}
         target: /app/reports
     ports:
       - "8000:8000"

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QC Dashboard - instruments</title>
+  <title>QC Dashboard - Инструментарий</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="assets/css/style.css">
@@ -20,28 +20,27 @@
   <div id="main" class="transition-all duration-300">
     <div style="background: rgba(249, 115, 22, 0.15); backdrop-filter: blur(8px); padding: 12px 28px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(249, 115, 22, 0.3);">
       <div style="font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 12px; color: #f1f5f9;">
-        <span style="background: linear-gradient(135deg, #f97316, #ea580c); color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(234, 88, 12, 0.4);">NEW v1.2.3</span>
-        Многостраничная архитектура активирована
+        <span style="background: linear-gradient(135deg, #f97316, #ea580c); color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px;">TACTICAL</span>
+        Инструментарий переговоров: базовые подходы и скрипты
       </div>
     </div>
     
     <div class="section active" style="padding:20px;">
-        <!-- CONTENT_START -->
-        <h2 style="color:#f97316;">instruments - В разработке</h2>
-        <p style="color:#64748b;">Данный раздел находится в стадии наполнения контентом.</p>
-        <!-- CONTENT_END -->
+      <div class="page-title">Инструментарий</div>
+      <div class="page-sub">Манипуляция, легендирование, аргументация, требование и подведение итогов.</div>
+      <div id="instruments-content"></div>
     </div>
   </div>
 
   <script src="assets/js/data.js"></script>
   <script src="assets/js/sidebar.js"></script>
+  <script src="assets/js/tactical-pages.js"></script>
   <script src="assets/js/app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       initSidebar('instruments');
       if (localStorage.getItem('sc-theme') === 'light') toggleTheme();
-      // Page specific init
-      if (typeof pageInit === 'function') pageInit();
+      if (typeof initInstrumentsPage === 'function') initInstrumentsPage();
     });
   </script>
 </body>

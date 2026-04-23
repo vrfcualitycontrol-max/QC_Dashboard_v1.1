@@ -192,6 +192,7 @@
     let currentPeriod = "Все";
     let selectedEmployee = null;
     let trendChart = null;
+    let currentHeatmapMode = localStorage.getItem('heatmap-mode') || 'heatmap';
 
     function showSection(id) {
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -235,6 +236,48 @@
           mSelect.onchange = (e) => { currentMonth = e.target.value; currentPeriod = "Все"; selectedEmployee = null; updatePeriodTabs(); updateDashboard(); };
       }
       updatePeriodTabs();
+    }
+
+    function initHeatmapModeTabs() {
+      const tabs = document.getElementById('heatmapModeTabs');
+      if (!tabs) return;
+
+      const modes = [
+        { id: 'heatmap', label: 'Heatmap' },
+        { id: 'pro', label: 'Pro' }
+      ];
+
+      tabs.innerHTML = '';
+      modes.forEach(mode => {
+        const btn = document.createElement('div');
+        btn.className = 'cat-tab' + (currentHeatmapMode === mode.id ? ' active' : '');
+        btn.textContent = mode.label;
+        btn.onclick = () => {
+          currentHeatmapMode = mode.id;
+          localStorage.setItem('heatmap-mode', mode.id);
+          initHeatmapModeTabs();
+          renderHeatmapByMode();
+        };
+        tabs.appendChild(btn);
+      });
+    }
+
+    function getProDiagnosticByPercent(percent) {
+      if (percent <= 24) return { text: 'Несоответствие СВП', color: '#ef4444', rank: 6 };
+      if (percent <= 49) return { text: 'Критическая просадка', color: '#f97316', rank: 5 };
+      if (percent <= 64) return { text: 'Систематическая недоработка', color: '#eab308', rank: 4 };
+      if (percent <= 74) return { text: 'Недоработка критерия', color: '#facc15', rank: 3 };
+      if (percent <= 84) return { text: 'Нестабильная отработка', color: '#60a5fa', rank: 2 };
+      if (percent <= 99) return { text: 'Критерий требует внимания', color: '#22c55e', rank: 1 };
+      return { text: 'Полное соответствие', color: '#16a34a', rank: 0 };
+    }
+
+    function renderHeatmapByMode() {
+      if (currentHeatmapMode === 'pro') {
+        renderHeatmapPro();
+      } else {
+        renderHeatmap();
+      }
     }
 
     function updatePeriodTabs() {
@@ -315,7 +358,7 @@
       if(document.getElementById('badge-tqs')) document.getElementById('badge-tqs').innerHTML = avgTqs >= 0.75 ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> Цель достигнута' : '⚠ Ниже цели';
       if(document.getElementById('kpi-aht')) document.getElementById('kpi-aht').textContent = aCount ? _secsToAht(Math.round(secs / aCount)) : '-';
       if(document.getElementById('kpi-risk')) document.getElementById('kpi-risk').textContent = riskEmps.size;
-      renderHeatmap();
+      renderHeatmapByMode();
       buildLineChart();
       buildCharts();
       buildGrowthTable();
@@ -562,6 +605,85 @@
       el.innerHTML = html || '<div style="color:#64748b;padding:12px">Нет данных за этот период</div>';
     }
 
+    function renderHeatmapPro() {
+      const el = document.getElementById('heatmapContainer');
+      if (!el) return;
+      el.innerHTML = '';
+
+      const viewport = window.innerWidth || 1280;
+      const isNarrow = viewport < 1100;
+      const isVeryNarrow = viewport < 900;
+      const operatorWidth = isVeryNarrow ? 170 : (isNarrow ? 180 : 190);
+      const scoreWidth = isVeryNarrow ? 124 : (isNarrow ? 136 : 150);
+      const cellMinWidth = isVeryNarrow ? 52 : (isNarrow ? 56 : 58);
+      const cellHeight = isVeryNarrow ? 24 : 28;
+      const headerFont = isVeryNarrow ? 9 : 10;
+      const nameFont = isVeryNarrow ? 11 : 12;
+      const percentFont = isVeryNarrow ? 10 : 11;
+      const scoreFont = isVeryNarrow ? 11 : 12;
+      const rowPadding = isVeryNarrow ? 5 : 6;
+      const colGap = isVeryNarrow ? 3 : 4;
+      const minTableWidth = operatorWidth + scoreWidth + (SVP_KEYS.length * cellMinWidth) + (SVP_KEYS.length + 2) * colGap + 60;
+
+      const legendItems = [
+        { range: '0-24%', color: '#b91c1c', bg: 'rgba(185,28,28,0.22)', label: 'Несоответствие' },
+        { range: '25-49%', color: '#c2410c', bg: 'rgba(194,65,12,0.20)', label: 'Критическая просадка' },
+        { range: '50-64%', color: '#a16207', bg: 'rgba(161,98,7,0.20)', label: 'Систематическая недоработка' },
+        { range: '65-74%', color: '#a16207', bg: 'rgba(161,98,7,0.14)', label: 'Недоработка' },
+        { range: '75-84%', color: '#1d4ed8', bg: 'rgba(29,78,216,0.18)', label: 'Нестабильная отработка' },
+        { range: '85-99%', color: '#166534', bg: 'rgba(22,101,52,0.18)', label: 'Требует внимания' },
+        { range: '100%', color: '#14532d', bg: 'rgba(20,83,45,0.22)', label: 'Полное соответствие' }
+      ];
+
+      let html = '<div style="margin-bottom:12px;padding:12px;border:1px solid #2d3748;border-radius:10px;background:rgba(15,23,42,0.45);">';
+      html += '<div style="font-size:12px;font-weight:600;color:#cbd5e1;margin-bottom:9px;">Pro-диагноз по процентной шкале (7 уровней)</div>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:7px;">';
+      legendItems.forEach(item => {
+        html += `<span style="font-size:10px;border-radius:7px;padding:5px 8px;background:${item.bg};color:${item.color};border:1px solid ${item.color}55;">${item.range}: ${item.label}</span>`;
+      });
+      html += '</div></div>';
+
+      html += `<div style="overflow-x:auto;padding-bottom:2px;"><div style="min-width:${minTableWidth}px;">`;
+      html += `<div style="display:flex;gap:${colGap}px;margin-bottom:10px;font-size:${headerFont}px;font-weight:700;color:#94a3b8;letter-spacing:0.3px;"><div style="width:${operatorWidth}px">ОПЕРАТОР</div>`;
+      SVP_KEYS.forEach(s => html += `<div style="flex:1;min-width:${cellMinWidth}px;text-align:center">${s.substring(0, 3)}</div>`);
+      html += `<div style="width:${scoreWidth}px;text-align:center">Pro-score</div></div>`;
+
+      Object.keys(DASHBOARD_DATA).sort().forEach(name => {
+        if (name.includes('Промежуточный')) return;
+        const m = DASHBOARD_DATA[name]?.months?.[currentMonth];
+        if (!m) return;
+        const d = _getEffectiveData(m);
+        if (!d || !d.svp) return;
+
+        let rankSum = 0;
+        let criteriaCount = 0;
+        const border = name === selectedEmployee
+          ? 'border:1px solid #a78bfa;background:rgba(167,139,250,0.12);'
+          : 'border:1px solid rgba(45,55,72,0.65);background:rgba(15,23,42,0.28);';
+
+        html += `<div style="display:flex;gap:${colGap}px;margin-bottom:4px;cursor:pointer;padding:${rowPadding}px;border-radius:8px;transition:all .15s ease;${border}" onclick="showEmployee('${name.replace(/'/g, "\\'")}')">`;
+        html += `<div style="width:${operatorWidth}px;font-size:${nameFont}px;font-weight:600;line-height:${cellHeight}px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e2e8f0;">${name}</div>`;
+
+        SVP_KEYS.forEach(st => {
+          const v = d.svp[st] !== undefined ? d.svp[st] : 1;
+          const percent = Math.round(v * 100);
+          const diag = getProDiagnosticByPercent(percent);
+          rankSum += diag.rank;
+          criteriaCount++;
+          html += `<div class="hm-tooltip" style="flex:1;min-width:${cellMinWidth}px;"><div style="background:${diag.color};height:${cellHeight}px;opacity:0.88;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#ffffff;font-size:${percentFont}px;font-weight:700;line-height:1;">${percent}%</div><div class="tt" style="white-space:pre-wrap;text-align:center;">${st}: ${percent}%\n${diag.text}</div></div>`;
+        });
+
+        const proScore = criteriaCount ? ((rankSum / (criteriaCount * 6)) * 100) : 0;
+        const scoreColor = proScore >= 65 ? '#dc2626' : (proScore >= 40 ? '#c2410c' : (proScore >= 20 ? '#a16207' : '#166534'));
+        const scoreBg = proScore >= 65 ? 'rgba(220,38,38,0.16)' : (proScore >= 40 ? 'rgba(194,65,12,0.16)' : (proScore >= 20 ? 'rgba(161,98,7,0.16)' : 'rgba(22,101,52,0.16)'));
+        html += `<div style="width:${scoreWidth}px;display:flex;align-items:center;justify-content:center;"><span style="font-size:${scoreFont}px;font-weight:700;color:${scoreColor};background:${scoreBg};border:1px solid ${scoreColor}55;border-radius:8px;padding:${isVeryNarrow ? 5 : 6}px ${isVeryNarrow ? 8 : 10}px;min-width:${isVeryNarrow ? 74 : 82}px;text-align:center;">${proScore.toFixed(1)}%</span></div>`;
+        html += '</div>';
+      });
+
+      html += '</div></div>';
+      el.innerHTML = html || '<div style="color:#64748b;padding:12px">Нет данных за этот период</div>';
+    }
+
     let drillPieChart = null;
     let drillTrendChart = null;
 
@@ -656,7 +778,7 @@
           });
       }
 
-      renderHeatmap();
+      renderHeatmapByMode();
     }
 
 
@@ -976,7 +1098,9 @@
 
     // ========== 7. INIT ==========
     document.addEventListener('DOMContentLoaded', () => {
-      initFilters(); updateDashboard();
+      initFilters();
+      initHeatmapModeTabs();
+      updateDashboard();
       if (localStorage.getItem('sc-theme') === 'light') toggleTheme();
     });
     window.showSection = showSection; window.toggleTheme = toggleTheme; window.showEmployee = showEmployee;
