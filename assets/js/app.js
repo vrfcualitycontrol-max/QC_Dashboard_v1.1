@@ -1,4 +1,5 @@
 
+
     // ========== 1. DASHBOARD DATA ==========
     
     // ========== 2. STATIC DATA ==========
@@ -188,6 +189,10 @@
     }
 
     // ========== 4. UI ENGINE ==========
+    
+    function isLight() { return document.body.classList.contains('light-mode'); }
+    function thmC(dark, light) { return isLight() ? light : dark; }
+
     let currentMonth = "Апрель 2026";
     let currentPeriod = "Все";
     let selectedEmployee = null;
@@ -205,16 +210,70 @@
       if (id === 'operations' && !trendChart) buildCharts();
     }
 
-    function toggleTheme() {
-      const isLight = document.body.classList.toggle('light-mode');
-      document.getElementById('theme-toggle').innerHTML = isLight ? '☀️' : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
-      localStorage.setItem('sc-theme', isLight ? 'light' : 'dark');
+    function initTheme() {
+  const urlParams = new URLSearchParams(window.location.search);
+  let theme = urlParams.get('theme');
+  if (!theme) theme = localStorage.getItem('sc-theme');
+  if (!theme) theme = 'light';
+
+  localStorage.setItem('sc-theme', theme);
+
+  if (theme === 'light') {
+    document.body.classList.add('light-mode');
+    const btn = document.getElementById('theme-toggle');
+    if (btn) btn.innerHTML = '🌞';
+  } else {
+    document.body.classList.remove('light-mode');
+    const btn = document.getElementById('theme-toggle');
+    if (btn) btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+  }
+
+  // Handle Sidebar State
+  let sidebarState = urlParams.get('sidebar');
+  if (!sidebarState) sidebarState = localStorage.getItem('sc-sidebar');
+  if (!sidebarState) sidebarState = 'expanded';
+
+  localStorage.setItem('sc-sidebar', sidebarState);
+
+  const sidebar = document.getElementById('sidebar');
+  const main = document.getElementById('main');
+
+  if (sidebar && main) {
+    // Freeze transitions so the initial class application is instant (no jitter)
+    sidebar.style.transition = 'none';
+    main.style.transition = 'none';
+
+    if (sidebarState === 'collapsed') {
+      sidebar.classList.add('collapsed');
+      main.classList.add('collapsed');
+    } else {
+      sidebar.classList.remove('collapsed');
+      main.classList.remove('collapsed');
     }
 
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('collapsed');
-      document.getElementById('main').classList.toggle('collapsed');
-    }
+    // Restore transitions after the browser has painted the new state
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        sidebar.style.transition = '';
+        main.style.transition = '';
+      });
+    });
+  }
+}
+
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light-mode');
+  const theme = isLight ? 'light' : 'dark';
+  localStorage.setItem('sc-theme', theme);
+  const btn = document.getElementById('theme-toggle');
+  if (btn) btn.innerHTML = isLight ? '🌞' : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+  
+  const url = new URL(window.location.href);
+  url.searchParams.set('theme', theme);
+  window.history.replaceState({}, '', url);
+
+  if(typeof updateDashboard === 'function') updateDashboard();
+}
 
     function initFilters() {
       const mSelect = document.getElementById('monthSelect');
@@ -521,11 +580,11 @@
           maintainAspectRatio: false,
           interaction: { mode: 'index', intersect: false },
           plugins: {
-            legend: { position: 'top', labels: { color: '#94a3b8', font: { weight: '600', size: 12 }, padding: 20 } },
+            legend: { position: 'top', labels: { color: thmC('#94a3b8', '#71717a'), font: { weight: '600', size: 12 }, padding: 20 } },
             tooltip: {
-              backgroundColor: 'rgba(15, 23, 42, 0.95)',
-              titleColor: '#f1f5f9',
-              bodyColor: '#cbd5e1',
+              backgroundColor: thmC('rgba(15, 23, 42, 0.95)', '#ffffff'),
+              titleColor: thmC('#f1f5f9', '#27272a'),
+              bodyColor: thmC('#cbd5e1', '#52525b'),
               padding: 12,
               cornerRadius: 8,
               callbacks: {
@@ -538,8 +597,8 @@
             }
           },
           scales: {
-            x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 11 } } },
-            y: { min: 40, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 11 } } }
+            x: { grid: { display: false }, ticks: { color: thmC('#64748b', '#71717a'), font: { size: 11 } } },
+            y: { min: 40, max: 100, grid: { color: thmC('rgba(255,255,255,0.05)', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) }, ticks: { color: thmC('#64748b', '#71717a'), font: { size: 11 } } }
           }
         },
         plugins: [{
@@ -759,7 +818,7 @@
              drillPieChart = new Chart(ctxPie, {
                  type: 'doughnut',
                  data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: pieColors, borderWidth: 1, borderColor: '#1e2435' }] },
-                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e2435', titleColor: '#f1f5f9', bodyColor: '#94a3b8' } }, cutout: '70%'}
+                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: thmC('#1e2435', '#ffffff'), titleColor: thmC('#f1f5f9', '#27272a'), bodyColor: thmC('#94a3b8', '#52525b') } }, cutout: '70%'}
              });
          } else {
              document.getElementById('drillPie').parentElement.innerHTML = '<div style="color:#22c55e;font-size:12px;padding:20px;text-align:center;">Ошибок СВП нет ✅</div>';
@@ -774,7 +833,7 @@
           drillTrendChart = new Chart(ctxTrend, {
               type: 'line',
               data: { labels: trendLabels, datasets: [{ label: 'TQS %', data: trendData, borderColor: '#f97316', backgroundColor: '#f9731622', fill: true, tension: 0.4, pointRadius: 3 }] },
-              options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { min: 30, max: 100, ticks: { color: '#64748b', font: {size: 9} } } } }
+              options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { min: 30, max: 100, ticks: { color: thmC('#64748b', '#71717a'), font: {size: 9} } } } }
           });
       }
 
@@ -839,15 +898,15 @@
         options: {
           responsive: true, maintainAspectRatio: false,
           plugins: {
-            legend: { labels: { color: '#94a3b8', font: { size: 10 } } },
+            legend: { labels: { color: thmC('#94a3b8', '#71717a'), font: { size: 10 } } },
             tooltip: {
-              backgroundColor: '#1e2435', borderColor: '#2d3748', borderWidth: 1, titleColor: '#f1f5f9', bodyColor: '#94a3b8',
+              backgroundColor: thmC('#1e2435', '#ffffff'), borderColor: thmC('#2d3748', '#e4e4e7'), borderWidth: 1, titleColor: thmC('#f1f5f9', '#27272a'), bodyColor: thmC('#94a3b8', '#52525b'),
               callbacks: { label: c => c.dataset.label + ': ' + (c.parsed.y !== null ? c.parsed.y.toFixed(1) + '%' : '—') }
             }
           },
           scales: {
-            x: { grid: { color: '#1e2435' }, ticks: { color: '#64748b', font: { size: 10 } } },
-            y: { min: 30, max: 100, grid: { color: '#232b3e' }, ticks: { color: '#64748b', font: { size: 10 }, callback: v => v + '%' } }
+            x: { grid: { color: thmC('#1e2435', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) }, ticks: { color: thmC('#64748b', '#71717a'), font: { size: 10 } } },
+            y: { min: 30, max: 100, grid: { color: thmC('#232b3e', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) }, ticks: { color: thmC('#64748b', '#71717a'), font: { size: 10 }, callback: v => v + '%' } }
           }
         }
       });
@@ -874,13 +933,13 @@
         options: {
           responsive: true, maintainAspectRatio: false,
           scales: {
-            y: { min: 0, max: 100, grid: { color: '#232b3e' }, ticks: { color: '#64748b', callback: v => v + '%' } },
-            x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 }, maxRotation: 45 } }
+            y: { min: 0, max: 100, grid: { color: thmC('#232b3e', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) }, ticks: { color: thmC('#64748b', '#71717a'), callback: v => v + '%' } },
+            x: { grid: { display: false }, ticks: { color: thmC('#64748b', '#71717a'), font: { size: 10 }, maxRotation: 45 } }
           },
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: '#1e2435', borderColor: '#2d3748', borderWidth: 1, titleColor: '#f1f5f9', bodyColor: '#94a3b8',
+              backgroundColor: thmC('#1e2435', '#ffffff'), borderColor: thmC('#2d3748', '#e4e4e7'), borderWidth: 1, titleColor: thmC('#f1f5f9', '#27272a'), bodyColor: thmC('#94a3b8', '#52525b'),
               callbacks: { label: c => c.parsed.y > 0 ? 'TQS: ' + c.parsed.y + '%' : 'Нет данных TQS' }
             }
           }
@@ -1101,9 +1160,9 @@
       initFilters();
       initHeatmapModeTabs();
       updateDashboard();
-      if (localStorage.getItem('sc-theme') === 'light') toggleTheme();
+      
     });
     window.showSection = showSection; window.toggleTheme = toggleTheme; window.showEmployee = showEmployee;
     window.openLawModal = openLawModal; window.closeLawModal = closeLawModal; window.copyScript = copyScript;
     window.filterObj = filterObj; window.toggleAcc = toggleAcc; window.openLawByName = openLawByName;
-  
+    window.toggleSidebar = toggleSidebar;

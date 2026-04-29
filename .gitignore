@@ -1,2 +1,11 @@
 __pycache__/
 *.pyc
+
+# One-shot refactor scripts
+refactor_*.py
+fix_*.py
+update_*.py
+replace_*.py
+write_*.py
+clean_*.py
+

@@ -130,7 +130,7 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       initSidebar('analytics');
-      if (localStorage.getItem('sc-theme') === 'light') toggleTheme();
+      initTheme();
       // Page specific init
       if (typeof pageInit === 'function') pageInit();
     });

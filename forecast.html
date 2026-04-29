@@ -57,7 +57,7 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       initSidebar('forecast');
-      if (localStorage.getItem('sc-theme') === 'light') toggleTheme();
+      initTheme();
       
       // Override monthSelect since it's missing in this DOM snippet but required by app.js initFilters()
       window.currentMonth = 'Апрель 2026';

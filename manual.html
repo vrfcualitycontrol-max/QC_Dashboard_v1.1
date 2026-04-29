@@ -45,12 +45,12 @@
 
   <script src="assets/js/data.js"></script>
   <script src="assets/js/sidebar.js"></script>
-  <script src="assets/js/tactical-pages.js?v=20260429-1018"></script>
+  <script src="assets/js/tactical-pages.js?v=20260429-1707"></script>
   <script src="assets/js/app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       initSidebar('manual');
-      if (localStorage.getItem('sc-theme') === 'light') toggleTheme();
+      initTheme();
       if (typeof initManualPage === 'function') initManualPage();
     });
   </script>

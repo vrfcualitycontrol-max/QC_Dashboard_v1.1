@@ -28,7 +28,7 @@ function formatInline(text) {
   return escapeHtml(cleanupDisplayText(text))
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code style="color:#f8fafc;background:rgba(15,23,42,.75);padding:1px 5px;border-radius:4px;">$1</code>')
+    .replace(/`([^`]+)`/g, '<code class="tactical-code">$1</code>')
     .replace(/&lt;br\s*\/?&gt;/gi, '<br/>');
 }
 
@@ -60,17 +60,17 @@ function markdownToSimpleHtml(mdText) {
     }
     if (l.startsWith('# ')) {
       close();
-      html += `<h3 style="font-size:18px;color:#f1f5f9;margin:16px 0 10px;">${formatInline(l.slice(2))}</h3>`;
+      html += `<h3 class="tactical-text-title" style="font-size:18px;margin:16px 0 10px;">${formatInline(l.slice(2))}</h3>`;
       return;
     }
     if (l.startsWith('## ')) {
       close();
-      html += `<h4 style="font-size:15px;color:#fb923c;margin:14px 0 8px;">${formatInline(l.slice(3))}</h4>`;
+      html += `<h4 class="tactical-text-accent" style="font-size:15px;margin:14px 0 8px;">${formatInline(l.slice(3))}</h4>`;
       return;
     }
     if (l.startsWith('### ')) {
       close();
-      html += `<h5 style="font-size:14px;color:#fdba74;margin:12px 0 6px;">${formatInline(l.slice(4))}</h5>`;
+      html += `<h5 class="tactical-text-accent" style="font-size:14px;margin:12px 0 6px;">${formatInline(l.slice(4))}</h5>`;
       return;
     }
     if (l.startsWith('- ')) {
@@ -79,7 +79,7 @@ function markdownToSimpleHtml(mdText) {
         inTable = false;
       }
       if (!inList) {
-        html += '<ul style="margin:6px 0 12px 18px;color:#cbd5e1;line-height:1.6;font-size:13px;">';
+        html += `<ul class="tactical-text-body" style="margin:6px 0 12px 18px;line-height:1.6;font-size:13px;">`;
         inList = true;
       }
       html += `<li style="margin:4px 0;">${formatInline(l.slice(2))}</li>`;
@@ -92,8 +92,8 @@ function markdownToSimpleHtml(mdText) {
       }
       const next = lines[idx + 1] ? lines[idx + 1].trim() : '';
       if (!inTable && next && isSep(next)) {
-        html += '<div style="overflow-x:auto;margin:8px 0 14px;"><table style="width:100%;border-collapse:collapse;font-size:12px;color:#cbd5e1;"><thead><tr>';
-        cells(l).forEach((c) => { html += `<th style="text-align:left;padding:8px;border:1px solid #334155;background:rgba(30,41,59,.8);color:#f8fafc;">${c}</th>`; });
+        html += `<div style="overflow-x:auto;margin:8px 0 14px;"><table class="tactical-text-body" style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr>`;
+        cells(l).forEach((c) => { html += `<th class="tactical-th" style="text-align:left;padding:8px;">${c}</th>`; });
         html += '</tr></thead><tbody>';
         inTable = true;
         return;
@@ -101,13 +101,13 @@ function markdownToSimpleHtml(mdText) {
       if (isSep(l)) return;
       if (inTable) {
         html += '<tr>';
-        cells(l).forEach((c) => { html += `<td style="vertical-align:top;padding:8px;border:1px solid #334155;">${c}</td>`; });
+        cells(l).forEach((c) => { html += `<td class="tactical-td" style="vertical-align:top;padding:8px;">${c}</td>`; });
         html += '</tr>';
         return;
       }
     }
     close();
-    html += `<p style="font-size:13px;color:#cbd5e1;line-height:1.7;margin:8px 0;">${formatInline(l)}</p>`;
+    html += `<p class="tactical-text-body" style="font-size:13px;line-height:1.7;margin:8px 0;">${formatInline(l)}</p>`;
   });
 
   close();
@@ -193,8 +193,8 @@ function mountPager(container, pages) {
   const render = () => {
     idx = Math.max(0, Math.min(idx, pages.length - 1));
     const p = pages[idx];
-    stage.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div style="color:#fb923c;font-weight:700;">${escapeHtml(p.title)}</div><div style="font-size:11px;color:#94a3b8;">Страница ${idx + 1} из ${pages.length}</div></div>${markdownToSimpleHtml(p.content)}`;
-    pills.innerHTML = pages.map((_, i) => `<button type="button" data-i="${i}" style="cursor:pointer;border:1px solid ${i === idx ? '#f97316' : '#334155'};background:${i === idx ? 'rgba(249,115,22,0.16)' : 'rgba(15,23,42,.7)'};color:${i === idx ? '#fb923c' : '#94a3b8'};border-radius:999px;padding:3px 8px;font-size:11px;">${i + 1}</button>`).join('');
+    stage.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div class="tactical-text-accent" style="font-weight:700;">${escapeHtml(p.title)}</div><div class="tactical-text-muted" style="font-size:11px;">Страница ${idx + 1} из ${pages.length}</div></div>${markdownToSimpleHtml(p.content)}`;
+    pills.innerHTML = pages.map((_, i) => `<button type="button" data-i="${i}" class="tactical-pill ${i === idx ? 'active' : ''}" style="cursor:pointer;border-radius:999px;padding:3px 8px;font-size:11px;">${i + 1}</button>`).join('');
     pills.querySelectorAll('[data-i]').forEach((b) => b.addEventListener('click', () => { idx = Number(b.getAttribute('data-i')); render(); }));
     prev.disabled = idx === 0;
     next.disabled = idx === pages.length - 1;
@@ -214,7 +214,7 @@ async function initLawPage() {
   const md = await loadMarkdown(path);
   if (!String(md).trim()) return renderEmptyTemplate(root, 'Нормативная аргументация', path, 'Добавьте пункты оферты, кейсы и примеры реплик.');
   const sections = splitByHeading(md, 2);
-  root.innerHTML = `<div class="card"><div class="card-title">База нормативной аргументации</div>${sections.map((s, i) => `<details ${i === 0 ? 'open' : ''} style="margin:8px 0;border:1px solid #334155;border-radius:8px;overflow:hidden;"><summary style="cursor:pointer;padding:9px 10px;background:rgba(30,41,59,.6);color:#fb923c;font-size:13px;font-weight:600;">${escapeHtml(s.title)}</summary><div style="padding:10px 12px;">${markdownToSimpleHtml(s.content)}</div></details>`).join('')}</div>`;
+  root.innerHTML = `<div class="card"><div class="card-title">База нормативной аргументации</div>${sections.map((s, i) => `<details ${i === 0 ? 'open' : ''} class="law-details" style="margin:8px 0;border-radius:8px;overflow:hidden;"><summary class="law-summary" style="cursor:pointer;padding:9px 10px;font-size:13px;font-weight:600;">${escapeHtml(s.title)}</summary><div style="padding:10px 12px;">${markdownToSimpleHtml(s.content)}</div></details>`).join('')}</div>`;
 }
 
 async function initInstrumentsPage() {
@@ -227,7 +227,7 @@ async function initInstrumentsPage() {
     { title: 'Выставление требования', path: 'content/tactical/instruments/demand-setting.md' },
     { title: 'Подведение итогов', path: 'content/tactical/instruments/closing-summary.md' }
   ];
-  root.innerHTML = `<div class="card" style="margin-bottom:12px;"><div class="card-title">Быстрый поиск по инструментам</div><input id="instruments-search" type="text" placeholder="Введите ключевое слово..." style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:8px 10px;color:#f8fafc;font-size:13px;" /></div><div id="instruments-cards"></div>`;
+  root.innerHTML = `<div class="card" style="margin-bottom:12px;"><div class="card-title">Быстрый поиск по инструментам</div><input id="instruments-search" type="text" placeholder="Введите ключевое слово..." class="tactical-input" style="width:100%;border-radius:8px;padding:8px 10px;font-size:13px;" /></div><div id="instruments-cards"></div>`;
   const host = document.getElementById('instruments-cards');
   const search = document.getElementById('instruments-search');
   const cards = [];
@@ -239,7 +239,7 @@ async function initInstrumentsPage() {
     block.className = 'card';
     block.style.marginBottom = '12px';
     if (!md) {
-      block.innerHTML = `<div class="card-title">${escapeHtml(file.title)}</div><p style="color:#94a3b8;">Контент не заполнен: <code>${escapeHtml(file.path)}</code></p>`;
+      block.innerHTML = `<div class="card-title">${escapeHtml(file.title)}</div><p class="tactical-text-muted">Контент не заполнен: <code>${escapeHtml(file.path)}</code></p>`;
       host.appendChild(block);
       cards.push(block);
       continue;
@@ -248,7 +248,7 @@ async function initInstrumentsPage() {
     const source = sections.length ? sections : splitByHeading(md, 3);
     const pages = source.flatMap((s) => splitLong(s.content, s.title, 38));
     block.dataset.search = `${file.title}\n${md}\n${pages.map((p) => p.title).join('\n')}`;
-    block.innerHTML = `<div class="card-title">${escapeHtml(file.title)}</div><div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:8px;"><div style="font-size:12px;color:#94a3b8;">Тем: ${pages.length}</div><div style="display:flex;gap:8px;"><button class="cat-tab js-prev" type="button">Назад</button><button class="cat-tab js-next" type="button">Вперед</button></div></div><div class="js-pills" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;"></div><div class="js-stage" style="border:1px solid #334155;border-radius:10px;background:rgba(15,23,42,.4);padding:10px 12px;"></div>`;
+    block.innerHTML = `<div class="card-title">${escapeHtml(file.title)}</div><div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:8px;"><div class="tactical-text-muted" style="font-size:12px;">Тем: ${pages.length}</div><div style="display:flex;gap:8px;"><button class="cat-tab js-prev" type="button">Назад</button><button class="cat-tab js-next" type="button">Вперед</button></div></div><div class="js-pills" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;"></div><div class="js-stage" class="tactical-stage" style="border-radius:10px;padding:10px 12px;"></div>`;
     host.appendChild(block);
     cards.push(block);
     pagers.push({ card: block, pager: mountPager(block, pages) });
@@ -283,7 +283,7 @@ async function initManualPage() {
   let stepPage = 0;
 
   const renderTiles = () => {
-    graph.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">${steps.map((s, i) => `<button type="button" data-step="${i}" style="text-align:left;cursor:pointer;border:1px solid ${i === stepIdx ? '#f97316' : '#334155'};background:${i === stepIdx ? 'rgba(249,115,22,0.16)' : 'rgba(15,23,42,.55)'};border-radius:12px;padding:10px 12px;color:#f8fafc;"><div style="font-size:12px;color:${i === stepIdx ? '#fb923c' : '#94a3b8'};">Тема ${i + 1}</div><div style="font-size:13px;font-weight:700;line-height:1.35;">${escapeHtml(s.label)}</div></button>`).join('')}</div>`;
+    graph.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">${steps.map((s, i) => `<button type="button" data-step="${i}" class="tactical-graph-btn ${i === stepIdx ? 'active' : ''}" style="text-align:left;cursor:pointer;border-radius:12px;padding:10px 12px;"><div class="tactical-topic-label ${i === stepIdx ? 'active' : ''}" style="font-size:12px;">Тема ${i + 1}</div><div style="font-size:13px;font-weight:700;line-height:1.35;">${escapeHtml(s.label)}</div></button>`).join('')}</div>`;
     graph.querySelectorAll('[data-step]').forEach((b) => b.addEventListener('click', () => { stepIdx = Number(b.getAttribute('data-step')); stepPage = 0; renderTiles(); renderDetail(); }));
   };
 
@@ -291,9 +291,9 @@ async function initManualPage() {
     const pages = pagesByStep[stepIdx] || [{ title: steps[stepIdx].label, content: '' }];
     if (stepPage >= pages.length) stepPage = pages.length - 1;
     const p = pages[stepPage];
-    detail.innerHTML = `<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><h4 style="margin:0;color:#f1f5f9;font-size:16px;">${escapeHtml(steps[stepIdx].label)}</h4><div style="font-size:11px;color:#94a3b8;">Шаг ${stepIdx + 1} из ${steps.length}</div></div><label style="display:block;font-size:11px;color:#94a3b8;margin-bottom:4px;">Быстрый переход к теме</label><select id="manual-step-select" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:8px 10px;color:#f8fafc;font-size:13px;margin-bottom:8px;">${steps.map((s, i) => `<option value="${i}" ${i === stepIdx ? 'selected' : ''}>${escapeHtml(s.label)}</option>`).join('')}</select><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div style="font-size:12px;color:#fb923c;font-weight:600;">${escapeHtml(p.title)}</div><div style="font-size:11px;color:#94a3b8;">Страница ${stepPage + 1} из ${pages.length}</div></div><div style="border:1px solid #334155;border-radius:10px;background:rgba(15,23,42,.45);padding:10px 12px;">${markdownToSimpleHtml(p.content)}</div><div id="manual-step-pills" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;"></div><div style="display:flex;gap:8px;margin-top:8px;"><button type="button" id="manual-step-page-prev" class="cat-tab">Стр. назад</button><button type="button" id="manual-step-page-next" class="cat-tab">Стр. вперед</button></div>`;
+    detail.innerHTML = `<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><h4 class="tactical-text-title" style="margin:0;font-size:16px;">${escapeHtml(steps[stepIdx].label)}</h4><div class="tactical-text-muted" style="font-size:11px;">Шаг ${stepIdx + 1} из ${steps.length}</div></div><label class="tactical-text-muted" style="display:block;font-size:11px;margin-bottom:4px;">Быстрый переход к теме</label><select id="manual-step-select" class="tactical-input" style="width:100%;border-radius:8px;padding:8px 10px;font-size:13px;margin-bottom:8px;">${steps.map((s, i) => `<option value="${i}" ${i === stepIdx ? 'selected' : ''}>${escapeHtml(s.label)}</option>`).join('')}</select><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div class="tactical-text-accent" style="font-size:12px;font-weight:600;">${escapeHtml(p.title)}</div><div class="tactical-text-muted" style="font-size:11px;">Страница ${stepPage + 1} из ${pages.length}</div></div><div class="tactical-stage-alt" style="border-radius:10px;padding:10px 12px;">${markdownToSimpleHtml(p.content)}</div><div id="manual-step-pills" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;"></div><div style="display:flex;gap:8px;margin-top:8px;"><button type="button" id="manual-step-page-prev" class="cat-tab">Стр. назад</button><button type="button" id="manual-step-page-next" class="cat-tab">Стр. вперед</button></div>`;
     const pills = detail.querySelector('#manual-step-pills');
-    pills.innerHTML = pages.map((_, i) => `<button type="button" data-i="${i}" style="cursor:pointer;border:1px solid ${i === stepPage ? '#f97316' : '#334155'};background:${i === stepPage ? 'rgba(249,115,22,0.16)' : 'rgba(15,23,42,.7)'};color:${i === stepPage ? '#fb923c' : '#94a3b8'};border-radius:999px;padding:3px 8px;font-size:11px;">${i + 1}</button>`).join('');
+    pills.innerHTML = pages.map((_, i) => `<button type="button" data-i="${i}" class="tactical-pill ${i === stepPage ? 'active' : ''}" style="cursor:pointer;border-radius:999px;padding:3px 8px;font-size:11px;">${i + 1}</button>`).join('');
     pills.querySelectorAll('[data-i]').forEach((b) => b.addEventListener('click', () => { stepPage = Number(b.getAttribute('data-i')); renderDetail(); }));
     detail.querySelector('#manual-step-page-prev').addEventListener('click', () => { if (stepPage > 0) { stepPage -= 1; renderDetail(); } });
     detail.querySelector('#manual-step-page-next').addEventListener('click', () => { if (stepPage < pages.length - 1) { stepPage += 1; renderDetail(); } });
@@ -310,7 +310,7 @@ async function initManualPage() {
     wrap.id = 'manual-sections';
     wrap.className = 'card';
     wrap.style.marginTop = '14px';
-    wrap.innerHTML = `<div class="card-title">Полный мануал по темам</div><label style="display:block;font-size:11px;color:#94a3b8;margin-bottom:4px;">Быстрый переход к теме</label><select id="manual-topic-select" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:8px 10px;color:#f8fafc;font-size:13px;margin-bottom:8px;">${topics.map((t, i) => `<option value="${i}">${escapeHtml(t.title || `Тема ${i + 1}`)}</option>`).join('')}</select><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div id="manual-topic-title" style="font-size:13px;color:#fb923c;font-weight:700;"></div><div id="manual-topic-meta" style="font-size:11px;color:#94a3b8;"></div></div><div id="manual-topic-stage" style="border:1px solid #334155;border-radius:10px;background:rgba(15,23,42,.45);padding:10px 12px;"></div><div id="manual-topic-pills" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;"></div><div style="display:flex;gap:8px;margin-top:8px;"><button type="button" id="manual-topic-prev" class="cat-tab">Тема назад</button><button type="button" id="manual-topic-next" class="cat-tab">Тема вперед</button></div>`;
+    wrap.innerHTML = `<div class="card-title">Полный мануал по темам</div><label class="tactical-text-muted" style="display:block;font-size:11px;margin-bottom:4px;">Быстрый переход к теме</label><select id="manual-topic-select" class="tactical-input" style="width:100%;border-radius:8px;padding:8px 10px;font-size:13px;margin-bottom:8px;">${topics.map((t, i) => `<option value="${i}">${escapeHtml(t.title || `Тема ${i + 1}`)}</option>`).join('')}</select><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div id="manual-topic-title" class="tactical-text-accent" style="font-size:13px;font-weight:700;"></div><div id="manual-topic-meta" class="tactical-text-muted" style="font-size:11px;"></div></div><div id="manual-topic-stage" class="tactical-stage-alt" style="border-radius:10px;padding:10px 12px;"></div><div id="manual-topic-pills" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;"></div><div style="display:flex;gap:8px;margin-top:8px;"><button type="button" id="manual-topic-prev" class="cat-tab">Тема назад</button><button type="button" id="manual-topic-next" class="cat-tab">Тема вперед</button></div>`;
     const card = detail.closest('.card');
     if (card) card.insertAdjacentElement('afterend', wrap);
     const titleEl = wrap.querySelector('#manual-topic-title');
@@ -329,7 +329,7 @@ async function initManualPage() {
       selectEl.value = String(i);
       prevEl.disabled = i === 0;
       nextEl.disabled = i === topics.length - 1;
-      pillsEl.innerHTML = topics.map((_, n) => `<button type="button" data-i="${n}" style="cursor:pointer;border:1px solid ${n === i ? '#f97316' : '#334155'};background:${n === i ? 'rgba(249,115,22,0.16)' : 'rgba(15,23,42,.7)'};color:${n === i ? '#fb923c' : '#94a3b8'};border-radius:999px;padding:3px 8px;font-size:11px;">${n + 1}</button>`).join('');
+      pillsEl.innerHTML = topics.map((_, n) => `<button type="button" data-i="${n}" class="tactical-pill ${n === i ? 'active' : ''}" style="cursor:pointer;border-radius:999px;padding:3px 8px;font-size:11px;">${n + 1}</button>`).join('');
       pillsEl.querySelectorAll('[data-i]').forEach((b) => b.addEventListener('click', () => { i = Number(b.getAttribute('data-i')); render(); }));
     };
     prevEl.addEventListener('click', () => { if (i > 0) { i -= 1; render(); } });
