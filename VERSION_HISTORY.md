@@ -2,6 +2,27 @@
 
 ---
 
+## v1.3.1 (06 мая 2026)
+**Тип:** tactical_restoration + ui_hardening  
+**Статус:** ✅ ЗАВЕРШЕНО
+**Описание:**
+- Выполнен переход тактических страниц на встроенный источник данных (`assets/js/tactical-data.js`) без runtime `fetch()`.
+- Завершены доработки markdown-рендера (`assets/js/tactical-pages.js`) и очистка визуальных артефактов.
+- Обновлена тактическая типографика и карточные стили в `assets/css/style.css`.
+- Обновлён sidebar (`assets/js/sidebar.js`): удалены бейджи `Новый`, выровнены секционные заголовки, ссылки без подчёркивания.
+- Обновлены иконки переключения темы на SVG-стиль в `assets/js/app.js` и `assets/js/core.js`.
+
+**Ключевые файлы:**
+- `assets/js/tactical-data.js`
+- `assets/js/tactical-pages.js`
+- `assets/css/style.css`
+- `assets/js/sidebar.js`
+- `assets/js/app.js`
+- `assets/js/core.js`
+- `law.html`, `instruments.html`, `manual.html`
+
+---
+
 ## v1.2.3 (стабилизация — 20 апреля 2026)
 **Тип:** bugfix + stabilization
 **Статус:** 🟢 ГОТОВО К PRODUCTION

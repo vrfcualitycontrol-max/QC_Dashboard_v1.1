@@ -2,8 +2,7 @@ function initSidebar(activeId) {
   const sidebarHtml = `
     <div class="logo" style="display: flex; justify-content: space-between; align-items: center;">
       <div class="logo-text">
-        <h1>QC Dashboard</h1>
-        <p>Variant Retail Finance \xb7 SC Unit</p>
+        <div class="sidebar-slogan-text">Leaderboard for Soft Collection unit</div>
       </div>
       <div class="hamburger" onclick="toggleSidebar()" style="cursor: pointer; font-size: 20px; color: #f97316;">\u2630</div>
     </div>
@@ -33,15 +32,15 @@ function initSidebar(activeId) {
         <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18"></path><path d="M5 21V7l7-4 7 4v14"></path><path d="M9 10h.01"></path><path d="M12 10h.01"></path><path d="M15 10h.01"></path><path d="M9 14h.01"></path><path d="M12 14h.01"></path><path d="M15 14h.01"></path></svg></span> B2B
       </a>
 
-      <div class="nav-subsection-title" style="padding: 10px 16px; color: #a0aec0; font-size: 10px; font-weight: bold; letter-spacing: 0.5px;">\u0422\u0410\u041a\u0422\u0418\u0427\u0415\u0421\u041a\u0418\u0415 \u0418\u041d\u0421\u0422\u0420\u0423\u041c\u0415\u041d\u0422\u042b</div>
+      <div class="nav-section-title" style="margin-top:15px;">\u0422\u0410\u041a\u0422\u0418\u0427\u0415\u0421\u041a\u0418\u0415 \u0418\u041d\u0421\u0422\u0420\u0423\u041c\u0415\u041d\u0422\u042b</div>
       <a href="law.html" class="nav-item ${activeId === 'law' ? 'active' : ''}">
-        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 3v18"></path><path d="M5 7h14"></path><path d="M6 7l-3 5h6z"></path><path d="M18 7l-3 5h6z"></path><path d="M8 21h8"></path></svg></span> \u041d\u043e\u0440\u043c\u0430\u0442. \u0430\u0440\u0433\u0443\u043c\u0435\u043d\u0442\u0430\u0446\u0438\u044f <span class="nav-badge">\u041d\u043e\u0432\u044b\u0439</span>
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 3v18"></path><path d="M5 7h14"></path><path d="M6 7l-3 5h6z"></path><path d="M18 7l-3 5h6z"></path><path d="M8 21h8"></path></svg></span> \u041d\u043e\u0440\u043c\u0430\u0442. \u0430\u0440\u0433\u0443\u043c\u0435\u043d\u0442\u0430\u0446\u0438\u044f
       </a>
       <a href="instruments.html" class="nav-item ${activeId === 'instruments' ? 'active' : ''}">
-        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a3 3 0 0 0-4.2 4.2L3 18l3 3 7.5-7.5a3 3 0 0 0 4.2-4.2l-2.2 2.2-2-2z"></path></svg></span> \u0418\u043d\u0441\u0442\u0440\u0443\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0439 <span class="nav-badge">\u041d\u043e\u0432\u044b\u0439</span>
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a3 3 0 0 0-4.2 4.2L3 18l3 3 7.5-7.5a3 3 0 0 0 4.2-4.2l-2.2 2.2-2-2z"></path></svg></span> \u0418\u043d\u0441\u0442\u0440\u0443\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0439
       </a>
       <a href="manual.html" class="nav-item ${activeId === 'manual' ? 'active' : ''}" style="margin-top:10px;">
-        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"></path><path d="M8 7h7"></path><path d="M8 11h7"></path><path d="M8 15h5"></path></svg></span> \u041c\u0430\u043d\u0443\u0430\u043b <span class="nav-badge">\u041d\u043e\u0432\u044b\u0439</span>
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"></path><path d="M8 7h7"></path><path d="M8 11h7"></path><path d="M8 15h5"></path></svg></span> \u041c\u0430\u043d\u0443\u0430\u043b
       </a>
 
       <div class="nav-section-title" style="margin-top:15px;">\u0420\u0415\u0413\u041b\u0410\u041c\u0415\u041d\u0422</div>
@@ -73,7 +72,7 @@ function initSidebar(activeId) {
 
     <div style="margin-top:auto;padding:12px 16px;border-top:1px solid #2d3748;" class="bottom-info">
       <div style="display:flex;align-items:center;gap:10px;">
-        <div style="width:52px;height:36px;background:#f97316;border-radius:6px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:14px;">VRF</div>
+        <img src="logo/New logo1.1.jpg" alt="Логотип организации" class="sidebar-org-logo">
         <div class="bottom-text">
           <div style="font-size:10px;color:#94a3b8;font-weight:600;">\u0424\u0435\u0432\u0440\u0430\u043b\u044c\u2013\u0410\u043f\u0440\u0435\u043b\u044c 2026</div>
           <div style="font-size:9px;color:#4a5568;margin-top:1px;">Soft Collection Unit</div>

@@ -1,4 +1,12 @@
+// ========== GLOBAL ERROR BOUNDARY ==========
+window.onerror = function(msg, src, line, col, err) {
+  console.error('[QC Dashboard Error]', msg, 'at', src, line + ':' + col, err);
+  return true;
+};
 
+window.addEventListener('unhandledrejection', function(e) {
+  console.error('[QC Dashboard Promise Error]', e.reason);
+});
 
     // ========== 1. DASHBOARD DATA ==========
     
@@ -210,6 +218,13 @@
       if (id === 'operations' && !trendChart) buildCharts();
     }
 
+function getThemeIcon(isLight) {
+  if (isLight) {
+    return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2.5v2.2"></path><path d="M12 19.3v2.2"></path><path d="M4.9 4.9l1.6 1.6"></path><path d="M17.5 17.5l1.6 1.6"></path><path d="M2.5 12h2.2"></path><path d="M19.3 12h2.2"></path><path d="M4.9 19.1l1.6-1.6"></path><path d="M17.5 6.5l1.6-1.6"></path></svg>';
+  }
+  return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 14.2A8.8 8.8 0 1 1 9.8 3.2a7.2 7.2 0 0 0 11 11z"></path><circle cx="17.2" cy="6.3" r="0.8" fill="currentColor" stroke="none"></circle><circle cx="14.9" cy="4.5" r="0.55" fill="currentColor" stroke="none"></circle></svg>';
+}
+
     function initTheme() {
   const urlParams = new URLSearchParams(window.location.search);
   let theme = urlParams.get('theme');
@@ -221,11 +236,11 @@
   if (theme === 'light') {
     document.body.classList.add('light-mode');
     const btn = document.getElementById('theme-toggle');
-    if (btn) btn.innerHTML = '🌞';
+    if (btn) btn.innerHTML = getThemeIcon(true);
   } else {
     document.body.classList.remove('light-mode');
     const btn = document.getElementById('theme-toggle');
-    if (btn) btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+    if (btn) btn.innerHTML = getThemeIcon(false);
   }
 
   // Handle Sidebar State
@@ -266,7 +281,7 @@ function toggleTheme() {
   const theme = isLight ? 'light' : 'dark';
   localStorage.setItem('sc-theme', theme);
   const btn = document.getElementById('theme-toggle');
-  if (btn) btn.innerHTML = isLight ? '🌞' : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+  if (btn) btn.innerHTML = getThemeIcon(isLight);
   
   const url = new URL(window.location.href);
   url.searchParams.set('theme', theme);
@@ -359,10 +374,15 @@ function toggleTheme() {
     function _ahtToSecs(t) {
       if (!t || t === 'N/A') return 0;
       const p = t.split(':');
-      return parseInt(p[0] || 0) * 60 + parseInt(p[1] || 0);
+      if (p.length === 3) {
+        return parseInt(p[0] || 0, 10) * 3600 + parseInt(p[1] || 0, 10) * 60 + parseInt(p[2] || 0, 10);
+      }
+      return parseInt(p[0] || 0, 10) * 60 + parseInt(p[1] || 0, 10);
     }
     function _secsToAht(s) {
-      return Math.floor(s / 60) + ':' + (s % 60).toString().padStart(2, '0');
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return m.toString().padStart(2, '0') + ':' + sec.toString().padStart(2, '0');
     }
     function _getEffectiveData(empMonthObj) {
       if (!empMonthObj) return null;
@@ -372,7 +392,13 @@ function toggleTheme() {
         const tqsPs = allPs.filter(p => p?.tqs > 0);
         const avgTqs = tqsPs.length ? Math.round(tqsPs.reduce((a, p) => a + (p.tqs || 0), 0) / tqsPs.length * 10) / 10 : 0;
         const ahtPs = allPs.filter(p => p?.aht && p.aht !== 'N/A');
-        const avgSecs = ahtPs.length ? Math.round(ahtPs.reduce((a, p) => a + _ahtToSecs(p.aht), 0) / ahtPs.length) : 0;
+        const weightedAht = ahtPs.reduce((acc, p) => {
+          const cnt = Number(p.activity_count || 1);
+          acc.totalSecs += _ahtToSecs(p.aht) * cnt;
+          acc.totalCalls += cnt;
+          return acc;
+        }, { totalSecs: 0, totalCalls: 0 });
+        const avgSecs = weightedAht.totalCalls ? Math.floor(weightedAht.totalSecs / weightedAht.totalCalls) : 0;
         
         const avgSvp = {};
         SVP_KEYS.forEach(k => {
@@ -390,6 +416,7 @@ function toggleTheme() {
           period: "Все",
           tqs: avgTqs,
           aht: _secsToAht(avgSecs),
+          activity_count: weightedAht.totalCalls,
           svp: avgSvp,
           tendencies: allTend || 'Нет данных',
           rec: allRec || 'Нет системных рекомендаций'
@@ -399,6 +426,7 @@ function toggleTheme() {
     }
 
     function updateDashboard() {
+      try {
       let tqs = 0, tCount = 0, secs = 0, aCount = 0, riskEmps = new Set();
       Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => {
         if (name.includes('Промежуточный')) return;
@@ -406,7 +434,11 @@ function toggleTheme() {
         const d = _getEffectiveData(m);
         if (!d) return;
         if (d.tqs > 0) { tqs += d.tqs; tCount++; }
-        if (d.aht && d.aht !== 'N/A' && d.aht !== '0:00') { secs += _ahtToSecs(d.aht); aCount++; }
+        if (d.aht && d.aht !== 'N/A' && d.aht !== '00:00') {
+          const callCount = Number(d.activity_count || 1);
+          secs += _ahtToSecs(d.aht) * callCount;
+          aCount += callCount;
+        }
         if (d.svp) {
           let hasZeroSvp = Object.values(d.svp).some(v => v === 0);
           if (hasZeroSvp && name) riskEmps.add(name);
@@ -428,6 +460,9 @@ function toggleTheme() {
       
       if (document.getElementById('forecast-tqs') || document.getElementById('lineChart')) {
           runForecastUpdate();
+      }
+      } catch (e) {
+        console.error('[updateDashboard failed]', e);
       }
     }
 
@@ -632,6 +667,7 @@ function toggleTheme() {
     }
 
     function renderHeatmap() {
+      try {
       const el = document.getElementById('heatmapContainer');
       if (!el) return;
       el.innerHTML = '';
@@ -662,9 +698,13 @@ function toggleTheme() {
         html += '</div>';
       });
       el.innerHTML = html || '<div style="color:#64748b;padding:12px">Нет данных за этот период</div>';
+      } catch (e) {
+        console.error('[renderHeatmap failed]', e);
+      }
     }
 
     function renderHeatmapPro() {
+      try {
       const el = document.getElementById('heatmapContainer');
       if (!el) return;
       el.innerHTML = '';
@@ -694,8 +734,8 @@ function toggleTheme() {
         { range: '100%', color: '#14532d', bg: 'rgba(20,83,45,0.22)', label: 'Полное соответствие' }
       ];
 
-      let html = '<div style="margin-bottom:12px;padding:12px;border:1px solid #2d3748;border-radius:10px;background:rgba(15,23,42,0.45);">';
-      html += '<div style="font-size:12px;font-weight:600;color:#cbd5e1;margin-bottom:9px;">Pro-диагноз по процентной шкале (7 уровней)</div>';
+      let html = '<div class="pro-heatmap-legend">';
+      html += '<div class="pro-heatmap-legend-title">Pro-диагноз по процентной шкале (7 уровней)</div>';
       html += '<div style="display:flex;flex-wrap:wrap;gap:7px;">';
       legendItems.forEach(item => {
         html += `<span style="font-size:10px;border-radius:7px;padding:5px 8px;background:${item.bg};color:${item.color};border:1px solid ${item.color}55;">${item.range}: ${item.label}</span>`;
@@ -716,12 +756,10 @@ function toggleTheme() {
 
         let rankSum = 0;
         let criteriaCount = 0;
-        const border = name === selectedEmployee
-          ? 'border:1px solid #a78bfa;background:rgba(167,139,250,0.12);'
-          : 'border:1px solid rgba(45,55,72,0.65);background:rgba(15,23,42,0.28);';
+        const rowClass = 'pro-heatmap-row' + (name === selectedEmployee ? ' selected' : '');
 
-        html += `<div style="display:flex;gap:${colGap}px;margin-bottom:4px;cursor:pointer;padding:${rowPadding}px;border-radius:8px;transition:all .15s ease;${border}" onclick="showEmployee('${name.replace(/'/g, "\\'")}')">`;
-        html += `<div style="width:${operatorWidth}px;font-size:${nameFont}px;font-weight:600;line-height:${cellHeight}px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e2e8f0;">${name}</div>`;
+        html += `<div class="${rowClass}" style="gap:${colGap}px;padding:${rowPadding}px;border-radius:8px;transition:all .15s ease;" onclick="showEmployee('${name.replace(/'/g, "\\'")}')">`;
+        html += `<div class="pro-heatmap-name" style="width:${operatorWidth}px;font-size:${nameFont}px;line-height:${cellHeight}px;">${name}</div>`;
 
         SVP_KEYS.forEach(st => {
           const v = d.svp[st] !== undefined ? d.svp[st] : 1;
@@ -741,12 +779,16 @@ function toggleTheme() {
 
       html += '</div></div>';
       el.innerHTML = html || '<div style="color:#64748b;padding:12px">Нет данных за этот период</div>';
+      } catch (e) {
+        console.error('[renderHeatmapPro failed]', e);
+      }
     }
 
     let drillPieChart = null;
     let drillTrendChart = null;
 
     function showEmployee(name) {
+      try {
       selectedEmployee = name;
       const empData = DASHBOARD_DATA[name];
       if (!empData) return;
@@ -838,6 +880,11 @@ function toggleTheme() {
       }
 
       renderHeatmapByMode();
+      } catch (e) {
+        console.error('[showEmployee failed]', e);
+        const el = document.getElementById('drilldownContent');
+        if (el) el.innerHTML = '<p style="color:#ef4444;padding:20px;">Ошибка загрузки данных сотрудника</p>';
+      }
     }
 
 

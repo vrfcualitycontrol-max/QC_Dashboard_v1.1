@@ -1,15 +1,15 @@
 function escapeHtml(value) {
-  return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function cleanupDisplayText(value) {
-  return String(value || '')
-    .replace(/\uFFFD/g, '')
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '')
-    .replace(/\(\s*\d{2}(?:\s+\d{2}){2,}[^)]*\)/g, '')
-    .replace(/!B@0=8F0|1I89|@0745;|B5<0|:>=B5=B/gi, '')
-    .replace(/\r/g, '')
-    .replace(/[ \t]+$/gm, '');
+  return String(value || "")
+    .replace(/\uFFFD/g, "")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+    .replace(/\(\s*\d{2}(?:\s+\d{2}){2,}[^)]*\)/g, "")
+    .replace(/!B@0=8F0|1I89|@0745;|B5<0|:>=B5=B/gi, "")
+    .replace(/\r/g, "")
+    .replace(/[ \t]+$/gm, "");
 }
 
 function normalizeSearchText(value) {
@@ -28,20 +28,40 @@ function formatInline(text) {
   return escapeHtml(cleanupDisplayText(text))
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/~~(.+?)~~/g, '<del>$1</del>')
     .replace(/`([^`]+)`/g, '<code class="tactical-code">$1</code>')
-    .replace(/&lt;br\s*\/?&gt;/gi, '<br/>');
+    .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:#f97316;">$1</a>')
+    .replace(/&lt;br\s*\/?&gt;/gi, '<br/>')
+    .replace(/\t/g, '&emsp;')
+    .replace(/\\([#\*\-\_`\.])/g, '$1');
+}
+
+function loadMarkdownSync(key) {
+  const parts = key.split(".");
+  let data = window.TACTICAL_DATA;
+  for (const p of parts) {
+    if (!data || typeof data !== "object") return "";
+    data = data[p];
+  }
+  return typeof data === "string" ? data : "";
 }
 
 function markdownToSimpleHtml(mdText) {
-  const lines = cleanupDisplayText(mdText).split(/\r?\n/);
+  const normalized = cleanupDisplayText(mdText).replace(/\\([_*`#[\]{}()\-+.!\\|>~])/g, "$1");
+  const lines = normalized.split(/\r?\n/);
   let html = '';
   let inList = false;
+  let inOrderedList = false;
   let inTable = false;
 
   const close = () => {
     if (inList) {
       html += '</ul>';
       inList = false;
+    }
+    if (inOrderedList) {
+      html += "</ol>";
+      inOrderedList = false;
     }
     if (inTable) {
       html += '</tbody></table></div>';
@@ -56,6 +76,24 @@ function markdownToSimpleHtml(mdText) {
     const l = line.trim();
     if (!l) {
       close();
+      return;
+    }
+    const plainUnderscoreLine = l.replace(/[\\\s]/g, "");
+    if (/^_+$/.test(plainUnderscoreLine)) {
+      close();
+      return;
+    }
+    if (l === "*" || l === "#") return;
+    if (l === "---" || l === "___") {
+      close();
+      html += '<hr class="tactical-hr">';
+      return;
+    }
+    const h = l.match(/^\\?(#{1,6})\s+(.+)$/);
+    if (h) {
+      close();
+      const headingLevel = Math.min(6, Math.max(3, h[1].length + 2));
+      html += `<h${headingLevel} class="tactical-text-title" style="font-size:14px;margin:12px 0 8px;">${formatInline(h[2])}</h${headingLevel}>`;
       return;
     }
     if (l.startsWith('# ')) {
@@ -73,16 +111,36 @@ function markdownToSimpleHtml(mdText) {
       html += `<h5 class="tactical-text-accent" style="font-size:14px;margin:12px 0 6px;">${formatInline(l.slice(4))}</h5>`;
       return;
     }
-    if (l.startsWith('- ')) {
+    if (/^\d+\.\s+/.test(l)) {
       if (inTable) {
         html += '</tbody></table></div>';
         inTable = false;
+      }
+      if (inList) {
+        html += "</ul>";
+        inList = false;
+      }
+      if (!inOrderedList) {
+        html += '<ol class="tactical-text-body">';
+        inOrderedList = true;
+      }
+      html += `<li>${formatInline(l.replace(/^\d+\.\s+/, ""))}</li>`;
+      return;
+    }
+    if (l.startsWith('- ') || l.startsWith('• ') || /^o\s+/i.test(l)) {
+      if (inTable) {
+        html += '</tbody></table></div>';
+        inTable = false;
+      }
+      if (inOrderedList) {
+        html += "</ol>";
+        inOrderedList = false;
       }
       if (!inList) {
         html += `<ul class="tactical-text-body" style="margin:6px 0 12px 18px;line-height:1.6;font-size:13px;">`;
         inList = true;
       }
-      html += `<li style="margin:4px 0;">${formatInline(l.slice(2))}</li>`;
+      html += `<li style="margin:4px 0;">${formatInline(l.replace(/^(-|•|o)\s+/i, ""))}</li>`;
       return;
     }
     if (l.startsWith('|')) {
@@ -140,6 +198,14 @@ function buildManualTopics(mdText) {
   return best.length ? best : splitByHeading(clean, 2);
 }
 
+function normalizeTopicTitle(value, fallback) {
+  const text = cleanupDisplayText(value || fallback || "")
+    .replace(/\*\*/g, "")
+    .replace(/^[#\s]+/, "")
+    .trim();
+  return text || fallback || "Тема";
+}
+
 function splitLong(content, title, maxLines) {
   const lines = cleanupDisplayText(content).split(/\r?\n/);
   const pages = [];
@@ -175,15 +241,6 @@ function renderEmptyTemplate(targetEl, title, path, helper) {
   targetEl.innerHTML = `<div class="card"><div class="card-title">Шаблон контента</div><p>Для раздела <strong>${escapeHtml(title)}</strong> файл пуст: <code>${escapeHtml(path)}</code></p><p style="color:#94a3b8">${escapeHtml(helper)}</p></div>`;
 }
 
-async function loadMarkdown(path) {
-  try {
-    const res = await fetch(path, { cache: 'no-store' });
-    return res.ok ? res.text() : '';
-  } catch {
-    return '';
-  }
-}
-
 function mountPager(container, pages) {
   const stage = container.querySelector('.js-stage');
   const pills = container.querySelector('.js-pills');
@@ -207,25 +264,25 @@ function mountPager(container, pages) {
   return { set: (n) => { idx = n; render(); }, get: () => idx, pages };
 }
 
-async function initLawPage() {
+function initLawPage() {
   const root = document.getElementById('law-content');
   if (!root) return;
-  const path = 'content/law/law-offer.md';
-  const md = await loadMarkdown(path);
-  if (!String(md).trim()) return renderEmptyTemplate(root, 'Нормативная аргументация', path, 'Добавьте пункты оферты, кейсы и примеры реплик.');
+  const key = 'law.offer';
+  const md = loadMarkdownSync(key);
+  if (!String(md).trim()) return renderEmptyTemplate(root, 'Нормативная аргументация', key, 'Добавьте пункты оферты, кейсы и примеры реплик.');
   const sections = splitByHeading(md, 2);
   root.innerHTML = `<div class="card"><div class="card-title">База нормативной аргументации</div>${sections.map((s, i) => `<details ${i === 0 ? 'open' : ''} class="law-details" style="margin:8px 0;border-radius:8px;overflow:hidden;"><summary class="law-summary" style="cursor:pointer;padding:9px 10px;font-size:13px;font-weight:600;">${escapeHtml(s.title)}</summary><div style="padding:10px 12px;">${markdownToSimpleHtml(s.content)}</div></details>`).join('')}</div>`;
 }
 
-async function initInstrumentsPage() {
+function initInstrumentsPage() {
   const root = document.getElementById('instruments-content');
   if (!root) return;
   const files = [
-    { title: 'Манипуляция', path: 'content/tactical/instruments/manipulation.md' },
-    { title: 'Легендирование', path: 'content/tactical/instruments/legending.md' },
-    { title: 'Аргументация', path: 'content/tactical/instruments/argumentation.md' },
-    { title: 'Выставление требования', path: 'content/tactical/instruments/demand-setting.md' },
-    { title: 'Подведение итогов', path: 'content/tactical/instruments/closing-summary.md' }
+    { title: 'Манипуляция', key: 'instruments.manipulation' },
+    { title: 'Легендирование', key: 'instruments.legending' },
+    { title: 'Аргументация', key: 'instruments.argumentation' },
+    { title: 'Выставление требования', key: 'instruments.demandSetting' },
+    { title: 'Подведение итогов', key: 'instruments.closingSummary' }
   ];
   root.innerHTML = `<div class="card" style="margin-bottom:12px;"><div class="card-title">Быстрый поиск по инструментам</div><input id="instruments-search" type="text" placeholder="Введите ключевое слово..." class="tactical-input" style="width:100%;border-radius:8px;padding:8px 10px;font-size:13px;" /></div><div id="instruments-cards"></div>`;
   const host = document.getElementById('instruments-cards');
@@ -234,12 +291,12 @@ async function initInstrumentsPage() {
   const pagers = [];
 
   for (const file of files) {
-    const md = cleanupDisplayText((await loadMarkdown(file.path)).trim());
+    const md = cleanupDisplayText(loadMarkdownSync(file.key).trim());
     const block = document.createElement('div');
-    block.className = 'card';
+    block.className = 'card instrument-card';
     block.style.marginBottom = '12px';
     if (!md) {
-      block.innerHTML = `<div class="card-title">${escapeHtml(file.title)}</div><p class="tactical-text-muted">Контент не заполнен: <code>${escapeHtml(file.path)}</code></p>`;
+      block.innerHTML = `<div class="card-title">${escapeHtml(file.title)}</div><p class="tactical-text-muted">Контент не заполнен: <code>${escapeHtml(file.key)}</code></p>`;
       host.appendChild(block);
       cards.push(block);
       continue;
@@ -267,23 +324,25 @@ async function initInstrumentsPage() {
   search.addEventListener('input', applyFilter);
 }
 
-async function initManualPage() {
+function initManualPage() {
   const graph = document.getElementById('manual-graph');
   const detail = document.getElementById('manual-step-detail');
   const prev = document.getElementById('manual-prev');
   const next = document.getElementById('manual-next');
   if (!graph || !detail || !prev || !next) return;
 
-  const md = await loadMarkdown('content/tactical/manual/manual-flow.md');
+  const md = loadMarkdownSync('manual.flow');
   const topics = buildManualTopics(md);
-  const steps = topics.length ? topics.map((t, i) => ({ id: `topic-${i + 1}`, label: t.title || `Тема ${i + 1}` })) : [{ id: 'step-1', label: 'Тема 1' }];
+  const steps = topics.length
+    ? topics.map((t, i) => ({ id: `topic-${i + 1}`, label: normalizeTopicTitle(t.title, `Тема ${i + 1}`) }))
+    : [{ id: 'step-1', label: 'Тема 1' }];
   const pagesByStep = steps.map((s, i) => splitLong(topics[i] ? topics[i].content : `## ${s.label}\nМатериал не загружен`, s.label, 30));
 
   let stepIdx = 0;
   let stepPage = 0;
 
   const renderTiles = () => {
-    graph.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">${steps.map((s, i) => `<button type="button" data-step="${i}" class="tactical-graph-btn ${i === stepIdx ? 'active' : ''}" style="text-align:left;cursor:pointer;border-radius:12px;padding:10px 12px;"><div class="tactical-topic-label ${i === stepIdx ? 'active' : ''}" style="font-size:12px;">Тема ${i + 1}</div><div style="font-size:13px;font-weight:700;line-height:1.35;">${escapeHtml(s.label)}</div></button>`).join('')}</div>`;
+    graph.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">${steps.map((s, i) => `<button type="button" data-step="${i}" class="tactical-graph-btn manual-tile ${i === stepIdx ? 'active' : ''}" style="font-size:13px;font-weight:700;line-height:1.35;"><div class="tactical-topic-label ${i === stepIdx ? 'active' : ''}" style="font-size:12px;">Тема ${i + 1}</div><div>${escapeHtml(s.label)}</div></button>`).join('')}</div>`;
     graph.querySelectorAll('[data-step]').forEach((b) => b.addEventListener('click', () => { stepIdx = Number(b.getAttribute('data-step')); stepPage = 0; renderTiles(); renderDetail(); }));
   };
 
@@ -291,12 +350,10 @@ async function initManualPage() {
     const pages = pagesByStep[stepIdx] || [{ title: steps[stepIdx].label, content: '' }];
     if (stepPage >= pages.length) stepPage = pages.length - 1;
     const p = pages[stepPage];
-    detail.innerHTML = `<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><h4 class="tactical-text-title" style="margin:0;font-size:16px;">${escapeHtml(steps[stepIdx].label)}</h4><div class="tactical-text-muted" style="font-size:11px;">Шаг ${stepIdx + 1} из ${steps.length}</div></div><label class="tactical-text-muted" style="display:block;font-size:11px;margin-bottom:4px;">Быстрый переход к теме</label><select id="manual-step-select" class="tactical-input" style="width:100%;border-radius:8px;padding:8px 10px;font-size:13px;margin-bottom:8px;">${steps.map((s, i) => `<option value="${i}" ${i === stepIdx ? 'selected' : ''}>${escapeHtml(s.label)}</option>`).join('')}</select><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div class="tactical-text-accent" style="font-size:12px;font-weight:600;">${escapeHtml(p.title)}</div><div class="tactical-text-muted" style="font-size:11px;">Страница ${stepPage + 1} из ${pages.length}</div></div><div class="tactical-stage-alt" style="border-radius:10px;padding:10px 12px;">${markdownToSimpleHtml(p.content)}</div><div id="manual-step-pills" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;"></div><div style="display:flex;gap:8px;margin-top:8px;"><button type="button" id="manual-step-page-prev" class="cat-tab">Стр. назад</button><button type="button" id="manual-step-page-next" class="cat-tab">Стр. вперед</button></div>`;
+    detail.innerHTML = `<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><h4 class="tactical-text-title" style="margin:0;font-size:16px;">${escapeHtml(steps[stepIdx].label)}</h4><div class="tactical-text-muted" style="font-size:11px;">Шаг ${stepIdx + 1} из ${steps.length}</div></div><label class="tactical-text-muted" style="display:block;font-size:11px;margin-bottom:4px;">Быстрый переход к теме</label><select id="manual-step-select" class="tactical-input" style="width:100%;border-radius:8px;padding:8px 10px;font-size:13px;margin-bottom:8px;">${steps.map((s, i) => `<option value="${i}" ${i === stepIdx ? 'selected' : ''}>${escapeHtml(s.label)}</option>`).join('')}</select><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div class="tactical-text-accent" style="font-size:12px;font-weight:600;">${escapeHtml(p.title)}</div><div class="tactical-text-muted" style="font-size:11px;">Страница ${stepPage + 1} из ${pages.length}</div></div><div class="tactical-stage-alt manual-content-area">${markdownToSimpleHtml(p.content)}</div><div id="manual-step-pills" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;"></div>`;
     const pills = detail.querySelector('#manual-step-pills');
     pills.innerHTML = pages.map((_, i) => `<button type="button" data-i="${i}" class="tactical-pill ${i === stepPage ? 'active' : ''}" style="cursor:pointer;border-radius:999px;padding:3px 8px;font-size:11px;">${i + 1}</button>`).join('');
     pills.querySelectorAll('[data-i]').forEach((b) => b.addEventListener('click', () => { stepPage = Number(b.getAttribute('data-i')); renderDetail(); }));
-    detail.querySelector('#manual-step-page-prev').addEventListener('click', () => { if (stepPage > 0) { stepPage -= 1; renderDetail(); } });
-    detail.querySelector('#manual-step-page-next').addEventListener('click', () => { if (stepPage < pages.length - 1) { stepPage += 1; renderDetail(); } });
     detail.querySelector('#manual-step-select').addEventListener('change', (e) => { stepIdx = Number(e.target.value); stepPage = 0; renderTiles(); renderDetail(); });
     prev.disabled = stepIdx === 0;
     next.disabled = stepIdx === steps.length - 1;
