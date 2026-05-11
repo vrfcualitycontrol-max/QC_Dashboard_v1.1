@@ -31,9 +31,11 @@ REPORTS_DIR = SCRIPT_DIR / "reports"
 INDEX_HTML_PATH = SCRIPT_DIR / "assets" / "js" / "data.js"
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+psycopg2://qc_user:qc_password@postgres:5432/qc_dashboard"
+    "postgresql+psycopg2://qc_user:change_me@postgres:5432/qc_dashboard"
 )
-BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://localhost:8000")
+BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://backend:8000")
+DATA_MODE = os.getenv("DATA_MODE", "api")
+ENABLE_BACKEND_SYNC = os.getenv("ENABLE_BACKEND_SYNC", "1") == "1"
 
 MONTHS_MAP = {
     "01": "Январь 2026", "02": "Февраль 2026", "03": "Март 2026", "04": "Апрель 2026",
@@ -117,7 +119,14 @@ def parse_duration(value: Any) -> float:
     if pd.isna(value) or value is None:
         return 0.0
     if hasattr(value, 'hour') and hasattr(value, 'minute'):
-        return float(value.hour) * 60.0 + float(value.minute) + float(getattr(value, 'second', 0)) / 60.0
+        hour = float(value.hour)
+        minute = float(value.minute)
+        second = float(getattr(value, 'second', 0))
+        # XLSX often stores MM:SS as HH:MM:00 (e.g. 01:26:00 -> 1:26, 00:51:00 -> 0:51).
+        # For call-center AHT we treat any HH:MM:00 as minutes:seconds.
+        if second == 0:
+            return hour + minute / 60.0
+        return hour * 60.0 + minute + second / 60.0
     text = str(value).strip()
     if not text:
         return 0.0
@@ -125,7 +134,12 @@ def parse_duration(value: Any) -> float:
         parts = [p for p in text.split(':') if p.strip()]
         try:
             if len(parts) == 3:
-                return float(parts[0]) * 60.0 + float(parts[1]) + float(parts[2]) / 60.0
+                p0 = float(parts[0])
+                p1 = float(parts[1])
+                p2 = float(parts[2])
+                if p2 == 0:
+                    return p0 + p1 / 60.0
+                return p0 * 60.0 + p1 + p2 / 60.0
             if len(parts) == 2:
                 return float(parts[0]) + float(parts[1]) / 60.0
             return float(parts[0])
@@ -138,17 +152,16 @@ def parse_duration(value: Any) -> float:
 
 
 def format_duration(minutes: float) -> str:
+    """Возвращает строку в формате MM:SS (минуты:секунды)."""
     if minutes <= 0:
         return "N/A"
-    rounded = int(round(minutes * 60))
-    hours, remainder = divmod(rounded, 3600)
-    mins, seconds = divmod(remainder, 60)
-    if hours:
-        return f"{hours:02d}:{mins:02d}:{seconds:02d}"
-    return f"{mins:02d}:{seconds:02d}:00"
+    total_seconds = int(minutes * 60)
+    mins = total_seconds // 60
+    secs = total_seconds % 60
+    return f"{mins:02d}:{secs:02d}"
 
 
-def extract_month_and_period(filename: str) -> (str, str):
+def extract_month_and_period(filename: str) -> tuple[str, str]:
     # Try format: "13.04.2026 - 19.04.2026"
     match = re.search(r"(\d{2})\.(\d{2})\.(\d{4})\s*-\s*(\d{2})\.(\d{2})\.(\d{4})", filename)
     if match:
@@ -312,6 +325,33 @@ def read_pdf_files(data: Dict[str, Any]) -> None:
     return
 
 
+def clean_data(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Удаляет мусорные записи из собранных данных."""
+    cleaned: Dict[str, Any] = {}
+    for employee, emp_data in data.items():
+        if not employee or str(employee).strip() == "":
+            continue
+        clean_months: Dict[str, Any] = {}
+        for month, month_data in emp_data.get("months", {}).items():
+            if month == "Неизвестно":
+                continue
+            clean_periods: List[Dict[str, Any]] = []
+            for period in month_data.get("periods", []):
+                if period.get("period") == "Неизвестно":
+                    continue
+                if period.get("tqs", 0) == 0 and not period.get("_tqs_values"):
+                    continue
+                period.pop("_tqs_values", None)
+                period.pop("_durations", None)
+                period.pop("_activity_count", None)
+                clean_periods.append(period)
+            if clean_periods:
+                clean_months[month] = {"periods": clean_periods}
+        if clean_months:
+            cleaned[employee] = {"months": clean_months}
+    return cleaned
+
+
 def update_index_html(new_data: Dict[str, Any]) -> bool:
     if not INDEX_HTML_PATH.exists():
         print(f"[ERROR] index.html not found at {INDEX_HTML_PATH}")
@@ -334,7 +374,7 @@ def get_db_engine():
     return create_engine(DATABASE_URL, pool_pre_ping=True, future=True)
 
 
-def _build_multipart_body(field_name: str, filename: str, content: bytes, content_type: str) -> (str, bytes):
+def _build_multipart_body(field_name: str, filename: str, content: bytes, content_type: str) -> tuple[str, bytes]:
     boundary = "----WebKitFormBoundary" + uuid.uuid4().hex
     body_lines = [
         f"--{boundary}",
@@ -448,15 +488,36 @@ def write_dashboard_data_to_db(data: Dict[str, Any]) -> None:
 
 
 def refresh_dashboard() -> None:
+    """
+    Обновляет данные дашборда в зависимости от режима:
+      DATA_MODE=static  — обновляет assets/js/data.js (фронтенд читает его напрямую).
+      DATA_MODE=api     — НЕ обновляет data.js; данные берутся фронтом из /api/metrics.
+      ENABLE_BACKEND_SYNC=1 — параллельно записывает агрегаты в PostgreSQL.
+                              Используется при static-mode для накопления данных в БД
+                              в рамках подготовки к переходу на API Mode.
+    """
     try:
+        print(f"[INFO] refresh_dashboard | DATA_MODE={DATA_MODE} | ENABLE_BACKEND_SYNC={ENABLE_BACKEND_SYNC}")
         data = read_xlsx_files()
         read_pdf_files(data)
+        data = clean_data(data)
         if not data:
             print("[WARNING] no dashboard data generated")
             return
-        update_index_html(data)
-        write_dashboard_data_to_db(data)
-        sync_reports_to_backend()
+
+        # Static Mode: обновляем data.js — фронтенд работает без API
+        if DATA_MODE != "api":
+            update_index_html(data)
+        else:
+            print("[INFO] API Mode: пропускаем обновление data.js (фронтенд читает из /api/metrics)")
+
+        # Запись в PostgreSQL: всегда при API Mode; при Static Mode — если ENABLE_BACKEND_SYNC=1
+        if DATA_MODE == "api" or ENABLE_BACKEND_SYNC:
+            write_dashboard_data_to_db(data)
+            sync_reports_to_backend()
+        else:
+            print("[INFO] ENABLE_BACKEND_SYNC=0: пропускаем запись в БД и синхронизацию с backend")
+
     except Exception:
         print("[ERROR] failed to refresh dashboard")
         traceback.print_exc()
@@ -466,7 +527,7 @@ class ReportsHandler(FileSystemEventHandler):
     def on_created(self, event):
         if event.is_directory:
             return
-        if event.src_path.lower().endswith((".xlsx", ".pdf")):
+        if event.src_path.lower().endswith(".xlsx") or event.src_path.lower().endswith(".pdf"):
             print(f"[INFO] detected new file: {event.src_path}")
             time.sleep(1.5)
             refresh_dashboard()
@@ -474,7 +535,7 @@ class ReportsHandler(FileSystemEventHandler):
     def on_modified(self, event):
         if event.is_directory:
             return
-        if event.src_path.lower().endswith((".xlsx", ".pdf")):
+        if event.src_path.lower().endswith(".xlsx") or event.src_path.lower().endswith(".pdf"):
             print(f"[INFO] detected modified file: {event.src_path}")
             time.sleep(1.5)
             refresh_dashboard()

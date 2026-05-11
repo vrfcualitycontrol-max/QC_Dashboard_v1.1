@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QC Dashboard - obj_b2c</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
@@ -71,9 +70,9 @@
     </div>
   </div>
   
-  <div class="modal-overlay" id="lawModal" onclick="if(event.target===this)closeLawModal()">
-    <div class="modal" style="position:relative;">
-      <button class="modal-close" onclick="closeLawModal()" style="position:absolute;top:15px;right:15px;background:none;border:none;color:#94a3b8;font-size:24px;cursor:pointer;">×</button>
+  <div class="law-modal" id="lawModal" onclick="if(event.target===this)closeLawModal()">
+    <div class="law-modal-box">
+      <button class="law-modal-close" onclick="closeLawModal()">×</button>
       <div id="lawModalContent"></div>
     </div>
   </div>

@@ -1,15 +1,14 @@
 # Dashboard SC - Frontend
 # Version: 1.2.4
-# Build: 20260422
+# Build: 20260511
 
 FROM nginx:alpine
 
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+# Copy nginx server-block configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy frontend files (multi-page)
 COPY *.html /usr/share/nginx/html/
-COPY variant_retail_finance_logo.jpg /usr/share/nginx/html/
 COPY assets/ /usr/share/nginx/html/assets/
 
 # Optional: Create directories for reports and docs if they are mounted later
