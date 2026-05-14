@@ -28,9 +28,11 @@
       <div class="page-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Рейтинг сотрудников</div>
       <div class="page-sub" style="margin-bottom:24px">Топ 5 операторов и рейтинг требующих внимания</div>
       
-      <div style="background:rgba(30,36,53,0.4);padding:15px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);margin-bottom:24px;display:flex;align-items:center;gap:15px;">
-        <span style="font-size:11px;font-weight:700;color:#a78bfa;">ФИЛЬТР ВРЕМЕНИ:</span>
-        <select id="monthSelect" style="background:#0f172a;color:white;border:1px solid #334155;padding:6px 12px;border-radius:6px;font-size:12px;outline:none;cursor:pointer;"></select>
+      <div style="background:rgba(30,36,53,0.4);padding:15px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);margin-bottom:24px;display:flex;align-items:center;gap:15px;flex-wrap:wrap;">
+        <span style="font-size:11px;font-weight:700;color:#a78bfa;">МЕСЯЦ:</span>
+        <select id="monthSelect" style="background:#0f172a;color:white;border:1px solid #334155;padding:6px 12px;border-radius:6px;font-size:12px;outline:none;cursor:pointer;min-width:120px;"></select>
+        <span style="font-size:11px;font-weight:700;color:#a78bfa;margin-left:12px;">ПЕРИОД:</span>
+        <select id="periodSelect" style="background:#0f172a;color:white;border:1px solid #334155;padding:6px 12px;border-radius:6px;font-size:12px;outline:none;cursor:pointer;min-width:140px;"></select>
       </div>
       
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
@@ -50,10 +52,13 @@
           <table>
             <thead>
               <tr>
-                <th>#</th>
-                <th>Сотрудник</th>
-                <th>TQS</th>
-                <th>Динамика (vs прошлая неделя)</th>
+                <th style="min-width:40px;">#</th>
+                <th>ОПЕРАТОР SC</th>
+                <th style="min-width:80px;">тек.TQS</th>
+                <th style="min-width:70px;">Δ TQS</th>
+                <th style="min-width:80px;">TQS период</th>
+                <th style="min-width:70px;">Динамика периода</th>
+                <th style="min-width:80px;">Средний TQS</th>
               </tr>
             </thead>
             <tbody id="leaderboardBody"></tbody>

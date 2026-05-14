@@ -13,7 +13,7 @@ import traceback
 import urllib.error
 import urllib.request
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from statistics import mean
 from typing import Any, Dict, List, Optional
@@ -31,9 +31,9 @@ REPORTS_DIR = SCRIPT_DIR / "reports"
 INDEX_HTML_PATH = SCRIPT_DIR / "assets" / "js" / "data.js"
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+psycopg2://qc_user:change_me@postgres:5432/qc_dashboard"
+    "postgresql+psycopg2://qc_user:change_me@localhost:5432/qc_dashboard"
 )
-BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://backend:8000")
+BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://localhost:8000")
 DATA_MODE = os.getenv("DATA_MODE", "api")
 ENABLE_BACKEND_SYNC = os.getenv("ENABLE_BACKEND_SYNC", "1") == "1"
 
@@ -258,6 +258,21 @@ def read_xlsx_files() -> Dict[str, Any]:
                 period_item.pop("_tqs_values", None)
                 period_item.pop("_durations", None)
                 period_item.pop("_activity_count", None)
+    
+    # Сортировка месяцев по календарному порядку для каждого сотрудника
+    MONTH_ORDER = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
+                   'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
+    for employee, employee_data in data.items():
+        if 'months' in employee_data:
+            sorted_months = dict(sorted(
+                employee_data['months'].items(),
+                key=lambda item: (
+                    MONTH_ORDER.index(item[0].split(' ')[0]) if item[0].split(' ')[0] in MONTH_ORDER else 999,
+                    -int(item[0].split(' ')[1]) if len(item[0].split(' ')) > 1 and item[0].split(' ')[1].isdigit() else 0
+                )
+            ))
+            employee_data['months'] = sorted_months
+    
     return data
 
 
@@ -439,13 +454,17 @@ def write_dashboard_data_to_db(data: Dict[str, Any]) -> None:
         employee_scores = Table(
             "employee_scores",
             metadata,
-            Column("id", Integer, primary_key=True),
-            Column("employee_name", String),
-            Column("period", String),
-            Column("tqs", Float),
-            Column("aht", Float),
-            Column("activity_count", Integer),
-            Column("scores", JSON),
+            Column("id", Integer, primary_key=True, autoincrement=True),
+            Column("employee_name", String(255), nullable=False),
+            Column("month", String(50), nullable=False),
+            Column("period", String(50), nullable=False),
+            Column("tqs", Float, default=0.0),
+            Column("aht", String(20), default="N/A"),
+            Column("activity_count", Integer, default=0),
+            Column("svp_scores", JSON, default=dict),
+            Column("raw_scores", JSON, default=dict),
+            Column("tendencies", String, default=""),
+            Column("recommendations", String, default=""),
             Column("created_at", DateTime),
             Column("updated_at", DateTime),
             extend_existing=True,
@@ -454,19 +473,24 @@ def write_dashboard_data_to_db(data: Dict[str, Any]) -> None:
 
         with engine.begin() as conn:
             for employee_name, employee_data in data.items():
-                for month_data in employee_data["months"].values():
+                for month, month_data in employee_data["months"].items():
                     for period_item in month_data["periods"]:
                         row = {
                             "employee_name": employee_name,
+                            "month": month,
                             "period": period_item["period"],
                             "tqs": float(period_item["tqs"] or 0.0),
-                            "aht": float(period_item["aht"] if isinstance(period_item["aht"], (int, float)) else 0.0),
+                            "aht": str(period_item["aht"]),
                             "activity_count": int(period_item.get("activity_count", 0)),
-                            "scores": period_item.get("svp", {}),
-                            "updated_at": datetime.utcnow(),
+                            "svp_scores": period_item.get("svp", {}),
+                            "raw_scores": period_item.get("raw_scores", {}),
+                            "tendencies": period_item.get("tendencies", ""),
+                            "recommendations": period_item.get("rec", ""),
+                            "updated_at": datetime.now(timezone.utc),
                         }
                         select_stmt = select(employee_scores.c.id).where(
                             employee_scores.c.employee_name == employee_name,
+                            employee_scores.c.month == month,
                             employee_scores.c.period == period_item["period"],
                         )
                         existing = conn.execute(select_stmt).first()
@@ -478,7 +502,7 @@ def write_dashboard_data_to_db(data: Dict[str, Any]) -> None:
                             )
                             conn.execute(update_stmt)
                         else:
-                            row["created_at"] = datetime.utcnow()
+                            row["created_at"] = datetime.now(timezone.utc)
                             conn.execute(employee_scores.insert().values(**row))
         print("[INFO] dashboard data written to PostgreSQL")
     except SQLAlchemyError as exc:
@@ -491,7 +515,7 @@ def refresh_dashboard() -> None:
     """
     Обновляет данные дашборда в зависимости от режима:
       DATA_MODE=static  — обновляет assets/js/data.js (фронтенд читает его напрямую).
-      DATA_MODE=api     — НЕ обновляет data.js; данные берутся фронтом из /api/metrics.
+      DATA_MODE=api     — сейчас тоже обновляет assets/js/data.js, потому что фронтенд пока не умеет читать из API.
       ENABLE_BACKEND_SYNC=1 — параллельно записывает агрегаты в PostgreSQL.
                               Используется при static-mode для накопления данных в БД
                               в рамках подготовки к переходу на API Mode.
@@ -505,11 +529,8 @@ def refresh_dashboard() -> None:
             print("[WARNING] no dashboard data generated")
             return
 
-        # Static Mode: обновляем data.js — фронтенд работает без API
-        if DATA_MODE != "api":
-            update_index_html(data)
-        else:
-            print("[INFO] API Mode: пропускаем обновление data.js (фронтенд читает из /api/metrics)")
+        # Всегда обновляем data.js — фронтенд пока читает данные из этого файла
+        update_index_html(data)
 
         # Запись в PostgreSQL: всегда при API Mode; при Static Mode — если ENABLE_BACKEND_SYNC=1
         if DATA_MODE == "api" or ENABLE_BACKEND_SYNC:

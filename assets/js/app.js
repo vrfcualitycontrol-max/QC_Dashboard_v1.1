@@ -170,30 +170,35 @@ window.addEventListener('unhandledrejection', function(e) {
 
     function getDiagnosticForCriterion(allPeriods, criterion) {
       if (!allPeriods || !allPeriods.length) return { text: 'Нет данных', bg: '#64748b', rank: -1 };
-      
-      const rawVals = [];
+
+      // Собираем процентные значения по критерию из всех периодов
+      const percents = [];
       allPeriods.forEach(p => {
-        if (p?.raw_scores && p.raw_scores[criterion]) {
-          rawVals.push(...p.raw_scores[criterion]);
-        } else if (p?.svp && p.svp[criterion] !== undefined) {
-          rawVals.push(p.svp[criterion]);
+        if (p?.svp && p.svp[criterion] !== undefined) {
+          percents.push(p.svp[criterion] * 100);
+        } else if (p?.raw_scores && p.raw_scores[criterion]) {
+          // Если есть raw_scores, конвертируем в процент
+          const rawVals = p.raw_scores[criterion];
+          if (rawVals.length > 0) {
+            const avg = rawVals.reduce((a, b) => a + b, 0) / rawVals.length;
+            percents.push(avg * 100);
+          }
         }
       });
-      
-      const n = rawVals.length;
+
+      const n = percents.length;
       if (n === 0) return { text: 'Нет данных', bg: '#64748b', rank: -1 };
+
+      // Используем средний процент для диагностики (алгоритм Pro)
+      const avgPercent = percents.reduce((a, b) => a + b, 0) / n;
       
-      const zeros = rawVals.filter(v => v === 0).length;
-      const halves = rawVals.filter(v => v === 0.5).length;
-      
-      if (zeros === n) return { text: 'Несоответствие СВП', bg: '#ef4444', rank: 6 };
-      if (zeros >= 2) return { text: 'Критическая просадка', bg: '#ef4444', rank: 5 };
-      if (zeros === 1) return { text: 'Отсутствие критерия', bg: '#ef4444', rank: 4 };
-      if (halves === n) return { text: 'Абсолютная недоработка', bg: '#eab308', rank: 3 };
-      if (halves >= 2) return { text: 'Недоработка', bg: '#eab308', rank: 2 };
-      if (halves === 1) return { text: 'Критерий требует внимания', bg: '#eab308', rank: 1 };
-      
-      return { text: 'В норме ✅', bg: '#22c55e', rank: 0 };
+      if (avgPercent <= 24) return { text: 'Несоответствие СВП', bg: '#ef4444', rank: 6 };
+      if (avgPercent <= 49) return { text: 'Критическая просадка', bg: '#ef4444', rank: 5 };
+      if (avgPercent <= 64) return { text: 'Систематическая недоработка', bg: '#eab308', rank: 4 };
+      if (avgPercent <= 74) return { text: 'Недоработка критерия', bg: '#eab308', rank: 3 };
+      if (avgPercent <= 84) return { text: 'Нестабильная отработка', bg: '#eab308', rank: 2 };
+      if (avgPercent <= 99) return { text: 'Критерий требует внимания', bg: '#eab308', rank: 1 };
+      return { text: 'Полное соответствие', bg: '#22c55e', rank: 0 };
     }
 
     // ========== 4. UI ENGINE ==========
@@ -201,8 +206,10 @@ window.addEventListener('unhandledrejection', function(e) {
     function isLight() { return document.body.classList.contains('light-mode'); }
     function thmC(dark, light) { return isLight() ? light : dark; }
 
-    let currentMonth = "Апрель 2026";
+    let currentMonth = null; // будет установлен динамически из данных
     let currentPeriod = "Все";
+    // Для страницы Rating
+    let currentRatingPeriod = "Все"; // внутримесячный период для рейтинга
     let selectedEmployee = null;
     let trendChart = null;
     let currentHeatmapMode = localStorage.getItem('heatmap-mode') || 'heatmap';
@@ -297,19 +304,40 @@ function toggleTheme() {
         if (name.includes('Промежуточный')) return;
         if (emp?.months) {
           Object.keys(emp.months).forEach(m => {
-            if (m.includes('Февраль') || m.includes('Март') || m.includes('Апрель')) {
-              months.add(m);
-            }
+            months.add(m);
           });
         }
       });
-      const sorted = Array.from(months).sort().reverse();
+      // Календарная сортировка месяцев (Январь → Декабрь)
+      const MONTH_ORDER = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+      const sorted = Array.from(months).sort((a, b) => {
+        // Извлекаем название месяца из строки "Май 2026"
+        const aMonth = a.split(' ')[0];
+        const bMonth = b.split(' ')[0];
+        const aIdx = MONTH_ORDER.indexOf(aMonth);
+        const bIdx = MONTH_ORDER.indexOf(bMonth);
+        // Сортируем по порядку месяцев, затем по году (обратный порядок для года)
+        if (aIdx !== bIdx) return aIdx - bIdx;
+        const aYear = parseInt(a.split(' ')[1]) || 0;
+        const bYear = parseInt(b.split(' ')[1]) || 0;
+        return bYear - aYear;
+      }).reverse();
+      if (!currentMonth && sorted.length) currentMonth = sorted[0];
       if(mSelect) {
           mSelect.innerHTML = '';
           sorted.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; if (m === currentMonth) o.selected = true; mSelect.appendChild(o); });
-          mSelect.onchange = (e) => { currentMonth = e.target.value; currentPeriod = "Все"; selectedEmployee = null; updatePeriodTabs(); updateDashboard(); };
+          mSelect.onchange = (e) => { 
+            currentMonth = e.target.value; 
+            currentPeriod = "Все"; 
+            currentRatingPeriod = "Все периоды";
+            selectedEmployee = null; 
+            updatePeriodTabs(); 
+            initRatingPeriodSelect();
+            updateDashboard(); 
+          };
       }
       updatePeriodTabs();
+      initRatingPeriodSelect();
     }
 
     function initHeatmapModeTabs() {
@@ -358,16 +386,58 @@ function toggleTheme() {
       const el = document.getElementById('periodTabs');
       if (!el) return;
       const periods = new Set();
-      Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => { 
+      Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => {
           if(name.includes('Промежуточный')) return;
-          const m = emp.months[currentMonth]; 
-          if (m && m.periods) m.periods.forEach(p => periods.add(p.period)); 
+          const m = emp.months[currentMonth];
+          if (m && m.periods) m.periods.forEach(p => periods.add(p.period));
       });
       el.innerHTML = '';
       const allBtn = document.createElement('div'); allBtn.className = 'cat-tab' + (currentPeriod === "Все" ? ' active' : ''); allBtn.textContent = 'Сводка';
       allBtn.onclick = () => { currentPeriod = "Все"; updatePeriodTabs(); updateDashboard(); };
       el.appendChild(allBtn);
       Array.from(periods).sort().forEach(p => { const b = document.createElement('div'); b.className = 'cat-tab' + (currentPeriod === p ? ' active' : ''); b.textContent = p; b.onclick = () => { currentPeriod = p; updatePeriodTabs(); updateDashboard(); }; el.appendChild(b); });
+    }
+
+    // Инициализация periodSelect для страницы Rating
+    function initRatingPeriodSelect() {
+      const pSelect = document.getElementById('periodSelect');
+      if (!pSelect) return;
+      
+      const periods = new Set();
+      periods.add('Все периоды');
+      
+      Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => {
+        if (name.includes('Промежуточный')) return;
+        const m = emp.months?.[currentMonth];
+        if (m && m.periods) {
+          m.periods.forEach(p => periods.add(p.period));
+        }
+      });
+      
+      const sortedPeriods = Array.from(periods).sort((a, b) => {
+        if (a === 'Все периоды') return -1;
+        if (b === 'Все периоды') return 1;
+        return a.localeCompare(b);
+      });
+      
+      if (!currentRatingPeriod || currentRatingPeriod === 'Все') {
+        currentRatingPeriod = 'Все периоды';
+      }
+      
+      pSelect.innerHTML = '';
+      sortedPeriods.forEach(p => {
+        const o = document.createElement('option');
+        o.value = p;
+        o.textContent = p;
+        if (p === currentRatingPeriod) o.selected = true;
+        pSelect.appendChild(o);
+      });
+      
+      pSelect.onchange = (e) => {
+        currentRatingPeriod = e.target.value;
+        buildLeaderboard();
+        renderTopBottomCharts();
+      };
     }
 
     // ── Вспомогательные функции агрегации ────────────────────────────────────
@@ -389,8 +459,18 @@ function toggleTheme() {
       if (currentPeriod === "Все") {
         const allPs = empMonthObj.periods || [];
         if (!allPs.length) return empMonthObj.summary || null;
+        
+        // Взвешенный расчет TQS по количеству звонков (activity_count)
         const tqsPs = allPs.filter(p => p?.tqs > 0);
-        const avgTqs = tqsPs.length ? Math.round(tqsPs.reduce((a, p) => a + (p.tqs || 0), 0) / tqsPs.length * 10) / 10 : 0;
+        const weightedTqsData = tqsPs.reduce((acc, p) => {
+          const cnt = Number(p.activity_count || 1);
+          acc.totalTqs += (p.tqs || 0) * cnt;
+          acc.totalCalls += cnt;
+          return acc;
+        }, { totalTqs: 0, totalCalls: 0 });
+        const avgTqs = weightedTqsData.totalCalls ? Math.round(weightedTqsData.totalTqs / weightedTqsData.totalCalls * 100) / 100 : 0;
+        
+        // Взвешенный расчет AHT по количеству звонков
         const ahtPs = allPs.filter(p => p?.aht && p.aht !== 'N/A');
         const weightedAht = ahtPs.reduce((acc, p) => {
           const cnt = Number(p.activity_count || 1);
@@ -399,17 +479,25 @@ function toggleTheme() {
           return acc;
         }, { totalSecs: 0, totalCalls: 0 });
         const avgSecs = weightedAht.totalCalls ? Math.floor(weightedAht.totalSecs / weightedAht.totalCalls) : 0;
-        
+
+        // Взвешенный расчет SVP по количеству звонков
         const avgSvp = {};
         SVP_KEYS.forEach(k => {
           let validSvpPeriods = allPs.filter(p => p?.svp && p.svp[k] !== undefined);
           if (validSvpPeriods.length > 0) {
-            avgSvp[k] = Math.round(validSvpPeriods.reduce((a, p) => a + p.svp[k], 0) / validSvpPeriods.length * 100) / 100;
+            // Взвешенное среднее для каждого критерия SVP
+            const weightedSvp = validSvpPeriods.reduce((acc, p) => {
+              const cnt = Number(p.activity_count || 1);
+              acc.total += p.svp[k] * cnt;
+              acc.calls += cnt;
+              return acc;
+            }, { total: 0, calls: 0 });
+            avgSvp[k] = weightedSvp.calls ? Math.round(weightedSvp.total / weightedSvp.calls * 100) / 100 : 1.0;
           } else {
             avgSvp[k] = 1.0;
           }
         });
-        
+
         const allTend = allPs.map(p => p?.tendencies).filter(t => t && String(t).trim() !== '').join('<br><br>');
         const allRec = allPs.map(p => p?.rec).filter(r => r && String(r).trim() !== '').join('<br><br>');
         return {
@@ -428,12 +516,24 @@ function toggleTheme() {
     function updateDashboard() {
       try {
       let tqs = 0, tCount = 0, secs = 0, aCount = 0, riskEmps = new Set();
+      // Для взвешенного расчета TQS команды
+      let weightedTqsSum = 0, weightedTqsCalls = 0;
+      
       Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => {
         if (name.includes('Промежуточный')) return;
         const m = emp.months[currentMonth]; if (!m) return;
         const d = _getEffectiveData(m);
         if (!d) return;
-        if (d.tqs > 0) { tqs += d.tqs; tCount++; }
+        if (d.tqs > 0) {
+          tqs += d.tqs;
+          tCount++;
+          // Взвешенный TQS для команды
+          const calls = Number(d.activity_count || 0);
+          if (calls > 0) {
+            weightedTqsSum += d.tqs * calls;
+            weightedTqsCalls += calls;
+          }
+        }
         if (d.aht && d.aht !== 'N/A' && d.aht !== '00:00') {
           const callCount = Number(d.activity_count || 1);
           secs += _ahtToSecs(d.aht) * callCount;
@@ -444,7 +544,9 @@ function toggleTheme() {
           if (hasZeroSvp && name) riskEmps.add(name);
         }
       });
-      if(document.getElementById('kpi-tqs')) document.getElementById('kpi-tqs').textContent = tCount ? ((tqs / tCount) * 100).toFixed(1) + '%' : '-';
+      // Командный TQS рассчитывается как взвешенное среднее по звонкам
+      const teamTqs = weightedTqsCalls ? weightedTqsSum / weightedTqsCalls : (tCount ? tqs / tCount : 0);
+      if(document.getElementById('kpi-tqs')) document.getElementById('kpi-tqs').textContent = tCount ? (teamTqs * 100).toFixed(1) + '%' : '-';
       const avgTqs = tCount ? tqs / tCount : 0;
       if(document.getElementById('badge-tqs')) document.getElementById('badge-tqs').innerHTML = avgTqs >= 0.75 ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> Цель достигнута' : '⚠ Ниже цели';
       if(document.getElementById('kpi-aht')) document.getElementById('kpi-aht').textContent = aCount ? _secsToAht(Math.round(secs / aCount)) : '-';
@@ -470,7 +572,16 @@ function toggleTheme() {
 
     function runForecastUpdate() {
       const timeline = [];
-      const monthOrder = ['Февраль 2026', 'Март 2026', 'Апрель 2026'];
+      const MONTH_SORT = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+      const monthSet = new Set();
+      Object.values(DASHBOARD_DATA).forEach(emp => {
+        if (emp.months) Object.keys(emp.months).forEach(m => monthSet.add(m));
+      });
+      const monthOrder = [...monthSet].sort((a, b) => {
+        const ai = MONTH_SORT.findIndex(x => a.includes(x));
+        const bi = MONTH_SORT.findIndex(x => b.includes(x));
+        return ai - bi;
+      });
       
       monthOrder.forEach(mName => {
         const pNamesSet = new Set();
@@ -1061,23 +1172,119 @@ function toggleTheme() {
     function buildLeaderboard() {
       const tbody = document.getElementById('leaderboardBody');
       if (!tbody) return;
-      
+
       const empDataList = [];
+      const monthKeys = Object.keys(DASHBOARD_DATA).map(name => DASHBOARD_DATA[name]?.months ? Object.keys(DASHBOARD_DATA[name].months) : []).flat();
+      const uniqueMonths = [...new Set(monthKeys)].sort((a, b) => {
+        const MONTH_ORDER = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+        const aMonth = a.split(' ')[0];
+        const bMonth = b.split(' ')[0];
+        const aIdx = MONTH_ORDER.indexOf(aMonth);
+        const bIdx = MONTH_ORDER.indexOf(bMonth);
+        if (aIdx !== bIdx) return aIdx - bIdx;
+        const aYear = parseInt(a.split(' ')[1]) || 0;
+        const bYear = parseInt(b.split(' ')[1]) || 0;
+        return aYear - bYear;
+      });
+      
+      const currentMonthIdx = uniqueMonths.indexOf(currentMonth);
+      const prevMonth = currentMonthIdx > 0 ? uniqueMonths[currentMonthIdx - 1] : null;
+
       Object.keys(DASHBOARD_DATA).forEach(name => {
         if(name.includes('Промежуточный')) return;
-        const m = DASHBOARD_DATA[name]?.months?.[currentMonth]; if (!m) return;
-        const d = _getEffectiveData(m);
-        if (!d || d.tqs === undefined) return;
+        const m = DASHBOARD_DATA[name]?.months?.[currentMonth]; 
+        if (!m) return;
         
-        let trend = 0; // 0 = stable, >0 = up, <0 = down
-        if (m.periods && m.periods.length >= 2) {
-           const last = m.periods[m.periods.length - 1];
-           const prev = m.periods[m.periods.length - 2];
-           if (last && prev) {
-               trend = last.tqs - prev.tqs;
-           }
+        // Определяем данные для текущего периода
+        let currentData = null;
+        if (currentRatingPeriod === 'Все периоды') {
+          currentData = _getEffectiveData(m);
+        } else {
+          currentData = m.periods?.find(p => p.period === currentRatingPeriod);
         }
-        empDataList.push({ name, tqs: d.tqs * 100, trend: trend * 100 });
+        
+        if (!currentData || currentData.tqs === undefined) return;
+
+        // Расчет Δ TQS (динамика vs предыдущий период)
+        let trend = 0;
+        if (currentRatingPeriod === 'Все периоды') {
+          // Сравнение с предыдущим месяцем (последний период текущего vs последний период предыдущего)
+          if (prevMonth) {
+            const prevM = DASHBOARD_DATA[name]?.months?.[prevMonth];
+            if (prevM && prevM.periods && prevM.periods.length > 0) {
+              const lastPrev = prevM.periods[prevM.periods.length - 1];
+              const lastCurrent = m.periods && m.periods.length > 0 ? m.periods[m.periods.length - 1] : null;
+              if (lastCurrent && lastPrev) {
+                trend = lastCurrent.tqs - lastPrev.tqs;
+              }
+            }
+          }
+        } else {
+          // Сравнение с предыдущим периодом внутри месяца
+          if (m.periods && m.periods.length >= 2) {
+            const currentIdx = m.periods.findIndex(p => p.period === currentRatingPeriod);
+            if (currentIdx > 0) {
+              const prev = m.periods[currentIdx - 1];
+              trend = currentData.tqs - prev.tqs;
+            }
+          }
+        }
+
+        // Расчет TQS период (значение за текущий период)
+        const periodTqs = currentData.tqs * 100;
+
+        // Расчет Динамика периода (то же что и trend, но для отдельного столбца)
+        const periodTrend = trend * 100;
+
+        // Расчет Средний TQS за последние 3 периода
+        let avgTqs3 = 0;
+        if (currentRatingPeriod === 'Все периоды') {
+          // Средний по месяцам (текущий + 2 предыдущих)
+          const monthsToAvg = [currentMonth];
+          if (currentMonthIdx > 0) monthsToAvg.push(uniqueMonths[currentMonthIdx - 1]);
+          if (currentMonthIdx > 1) monthsToAvg.push(uniqueMonths[currentMonthIdx - 2]);
+          
+          let totalTqs = 0, count = 0;
+          monthsToAvg.forEach(monthName => {
+            const monthData = DASHBOARD_DATA[name]?.months?.[monthName];
+            if (monthData) {
+              const d = _getEffectiveData(monthData);
+              if (d && d.tqs > 0) {
+                totalTqs += d.tqs;
+                count++;
+              }
+            }
+          });
+          avgTqs3 = count > 0 ? (totalTqs / count) * 100 : 0;
+        } else {
+          // Средний по периодам внутри месяца (текущий + 2 предыдущих)
+          const periodsToAvg = [];
+          if (m.periods) {
+            const currentIdx = m.periods.findIndex(p => p.period === currentRatingPeriod);
+            if (currentIdx >= 0) {
+              periodsToAvg.push(m.periods[currentIdx]);
+              if (currentIdx > 0) periodsToAvg.push(m.periods[currentIdx - 1]);
+              if (currentIdx > 1) periodsToAvg.push(m.periods[currentIdx - 2]);
+            }
+          }
+          let totalTqs = 0, count = 0;
+          periodsToAvg.forEach(p => {
+            if (p && p.tqs > 0) {
+              totalTqs += p.tqs;
+              count++;
+            }
+          });
+          avgTqs3 = count > 0 ? (totalTqs / count) * 100 : 0;
+        }
+
+        empDataList.push({ 
+          name, 
+          tqs: currentData.tqs * 100, 
+          trend: trend * 100,
+          periodTqs: periodTqs,
+          periodTrend: periodTrend,
+          avgTqs3: avgTqs3
+        });
       });
 
       empDataList.sort((a, b) => b.tqs - a.tqs);
@@ -1087,17 +1294,24 @@ function toggleTheme() {
         let trendHtml = '<span style="color:#94a3b8">▬ 0.0%</span>';
         if (ep.trend > 0.5) trendHtml = `<span style="color:#22c55e">▲ +${ep.trend.toFixed(1)}%</span>`;
         if (ep.trend < -0.5) trendHtml = `<span style="color:#ef4444">▼ ${ep.trend.toFixed(1)}%</span>`;
-        
+
+        let periodTrendHtml = '<span style="color:#94a3b8">▬ 0.0%</span>';
+        if (ep.periodTrend > 0.5) periodTrendHtml = `<span style="color:#22c55e">▲ +${ep.periodTrend.toFixed(1)}%</span>`;
+        if (ep.periodTrend < -0.5) periodTrendHtml = `<span style="color:#ef4444">▼ ${ep.periodTrend.toFixed(1)}%</span>`;
+
         let rankColor = idx === 0 ? '#fbbf24' : (idx === 1 ? '#94a3b8' : (idx === 2 ? '#b45309' : '#4a5568'));
-        
+
         html += `<tr style="cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);" onclick="showEmployee('${ep.name.replace(/'/g, "\\'")}')">
           <td style="font-weight:800;color:${rankColor};font-size:14px;">${idx + 1}</td>
           <td style="font-weight:600;">${ep.name}</td>
           <td style="font-weight:800;color:#e2e8f0;">${ep.tqs.toFixed(1)}%</td>
           <td style="font-size:12px;">${trendHtml}</td>
+          <td style="font-weight:600;color:#93c5fd;">${ep.periodTqs.toFixed(1)}%</td>
+          <td style="font-size:12px;">${periodTrendHtml}</td>
+          <td style="font-weight:600;color:#fbbf24;">${ep.avgTqs3.toFixed(1)}%</td>
         </tr>`;
       });
-      tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center;color:#64748b;padding:20px;">Нет данных для рейтинга</td></tr>';
+      tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;color:#64748b;padding:20px;">Нет данных для рейтинга</td></tr>';
     }
 
     // ========== 5. REGLAMENT RENDERING ==========
@@ -1172,13 +1386,21 @@ function toggleTheme() {
       Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => {
         if(name.includes('Промежуточный')) return;
         const m = emp.months[currentMonth]; if (!m) return;
-        const d = _getEffectiveData(m);
+        
+        // Используем выбранный период для рейтинга
+        let d;
+        if (currentRatingPeriod === 'Все периоды') {
+          d = _getEffectiveData(m);
+        } else {
+          d = m.periods?.find(p => p.period === currentRatingPeriod);
+        }
+        
         if (!d || d.tqs === undefined || isNaN(d.tqs)) return;
         empDataList.push({ name: name.split(' ')[0], tqs: parseFloat((d.tqs * 100).toFixed(1)) });
       });
 
       empDataList.sort((a, b) => b.tqs - a.tqs);
-      
+
       const top5 = empDataList.slice(0, 5);
       const bot3 = empDataList.slice(-3).reverse();
 
@@ -1206,8 +1428,14 @@ function toggleTheme() {
     document.addEventListener('DOMContentLoaded', () => {
       initFilters();
       initHeatmapModeTabs();
-      updateDashboard();
       
+      // Инициализация для страницы Rating
+      if (document.getElementById('leaderboardBody')) {
+        buildLeaderboard();
+        buildTopBottomCharts();
+      } else {
+        updateDashboard();
+      }
     });
     window.showSection = showSection; window.toggleTheme = toggleTheme; window.showEmployee = showEmployee;
     window.openLawModal = openLawModal; window.closeLawModal = closeLawModal; window.copyScript = copyScript;

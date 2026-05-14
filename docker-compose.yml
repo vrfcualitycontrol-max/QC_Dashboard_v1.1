@@ -9,6 +9,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-qc_dashboard}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     networks:
       - qc_network
     healthcheck:
@@ -41,6 +43,11 @@ services:
       - "8000:8000"
     networks:
       - qc_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   nginx:
     build:
