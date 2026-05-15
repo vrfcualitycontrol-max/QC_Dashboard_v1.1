@@ -874,7 +874,7 @@
     /* LIGHT MODE - ANTIGRAVITY AESTHETIC */
     body.light-mode {
       background: #fdfaf6; /* soft warm gray/orange tint, not #FFF */
-      color: #3f3f46; /* dark gray, not black */
+      color: #27272a; /* elevated contrast for readability */
     }
 
     body.light-mode #sidebar {
@@ -906,13 +906,24 @@
     body.light-mode .card,
     body.light-mode .crit-card,
     body.light-mode .svp-stage,
-    body.light-mode .search-box,
     body.light-mode .law-modal-box {
-      color: #3f3f46;
-      background: #ffffff;
-      border: 1px solid rgba(249, 115, 22, 0.1);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02); /* very soft shadow */
+      color: #27272a;
+      /* Warm-tinted surface derived from base bg — not pure white */
+      background: #fef8f2;
+      border: 1px solid rgba(249, 115, 22, 0.12);
+      box-shadow: 0 2px 8px rgba(249, 115, 22, 0.04), 0 1px 3px rgba(0, 0, 0, 0.03);
       transition: all 0.2s ease;
+    }
+    /* Search box: white background for optimal low-contrast readability */
+    body.light-mode .search-box {
+      color: #27272a;
+      background: #ffffff;
+      border: 1px solid #e2e5ea;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    body.light-mode .search-box:focus {
+      border-color: #f97316;
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.08);
     }
 
     body.light-mode .card:hover,
@@ -974,17 +985,17 @@
     }
 
     body.light-mode th {
-      color: #71717a;
+      color: #52525b;
       border-bottom: 1px solid #e4e4e7;
     }
 
     body.light-mode td {
-      color: #52525b;
-      border-bottom: 1px solid #f4f4f5;
+      color: #27272a;
+      border-bottom: 1px solid #ede9e3;
     }
 
     body.light-mode tr:hover td {
-      background: rgba(249, 115, 22, 0.02);
+      background: rgba(249, 115, 22, 0.03);
     }
 
     body.light-mode .filter-btn,
@@ -1011,26 +1022,31 @@
     }
 
     body.light-mode .acc-item {
-      border: 1px solid #e4e4e7;
-      background: #ffffff;
+      border: 1px solid rgba(249, 115, 22, 0.12);
+      background: #fef8f2;
     }
 
     body.light-mode .acc-header {
-      background: #ffffff;
+      background: #fef8f2;
+    }
+
+    body.light-mode .acc-header:hover {
+      background: #fdf3ea;
     }
 
     body.light-mode .acc-body {
-      background: #ffffff;
+      /* Slightly lighter than header — creates subtle depth without jarring white */
+      background: #fef8f2;
     }
 
     body.light-mode .acc-q {
-      color: #3f3f46;
+      color: #27272a;
     }
 
     body.light-mode .script-box {
-      background: #fdfaf6;
-      border: 1px solid #e4e4e7;
-      color: #52525b;
+      background: #fdf3ea;
+      border: 1px solid rgba(249, 115, 22, 0.15);
+      color: #27272a;
     }
 
     body.light-mode #theme-toggle {
@@ -1056,8 +1072,8 @@
     body.light-mode #kpi-aht { color: #10b981 !important; }
     body.light-mode #kpi-risk { color: #f43f5e !important; }
 
-    body.light-mode .obj-group-title { color: #71717a; border-bottom-color: #e4e4e7; }
-    body.light-mode .obj-count { color: #a1a1aa; }
+    body.light-mode .obj-group-title { color: #52525b; border-bottom-color: #ede9e3; }
+    body.light-mode .obj-count { color: #71717a; }
 
     body.light-mode .law-chip {
       background: rgba(249, 115, 22, 0.08);
@@ -1071,7 +1087,7 @@
     }
 
     body.light-mode .acc-item.open .acc-header {
-      background: rgba(249, 115, 22, 0.04);
+      background: #fdf3ea;
     }
 
     body.light-mode .acc-num { color: #ea580c; }
@@ -1082,14 +1098,14 @@
     }
     body.light-mode .copy-btn:hover { background: #c2410c; }
 
-    body.light-mode .crit-desc { color: #71717a; }
+    body.light-mode .crit-desc { color: #52525b; }
     body.light-mode .crit-num { color: rgba(0, 0, 0, 0.02); }
     body.light-mode .svp-num { color: #ea580c; }
-    body.light-mode .svp-desc { color: #71717a; }
-    body.light-mode .svp-detail { color: #52525b; }
+    body.light-mode .svp-desc { color: #52525b; }
+    body.light-mode .svp-detail { color: #3f3f46; }
     body.light-mode .law-art { color: #ea580c; }
     body.light-mode .law-name { color: #c2410c; }
-    body.light-mode .law-text { color: #52525b; }
+    body.light-mode .law-text { color: #3f3f46; }
     body.light-mode .law-modal-box .law-modal-close { color: #a1a1aa; }
     body.light-mode .law-modal-box .law-modal-close:hover { color: #f43f5e; }
 
@@ -1138,16 +1154,29 @@
     body.light-mode .acc-chevron { color: #a1a1aa; }
     body.light-mode .acc-item.open .acc-chevron { color: #ea580c; }
 
-    body.light-mode #main > div[style*="rgba(249, 115, 22, 0.15)"] {
-      background: #ffffff !important;
-      border-bottom: 1px solid #e4e4e7 !important;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
+    /* ===== BANNER STRIP (sampling section): Soft elevation, not aggressive ===== */
+    body.light-mode #main > div[style*="rgba(249, 115, 22, 0.15)"],
+    body.light-mode #main > div[style*="rgba(20, 184, 166, 0.15)"],
+    body.light-mode #main > div[style*="rgba(168, 85, 247, 0.15)"],
+    body.light-mode #main > div[style*="rgba(139, 92, 246, 0.15)"],
+    body.light-mode #main > div[style*="rgba(96, 165, 250, 0.15)"] {
+      /* Subtle warm tint — elevation via shadow, not strong color block */
+      background: #fef3e8 !important;
+      border-bottom: 1px solid rgba(249, 115, 22, 0.15) !important;
+      box-shadow: 0 1px 4px rgba(249, 115, 22, 0.06) !important;
     }
-    body.light-mode #main > div[style*="rgba(249, 115, 22, 0.15)"] span {
-      background: #ea580c !important;
+    body.light-mode #main > div[style*="rgba(249, 115, 22, 0.15)"] span,
+    body.light-mode #main > div[style*="rgba(20, 184, 166, 0.15)"] span,
+    body.light-mode #main > div[style*="rgba(168, 85, 247, 0.15)"] span,
+    body.light-mode #main > div[style*="rgba(139, 92, 246, 0.15)"] span,
+    body.light-mode #main > div[style*="rgba(96, 165, 250, 0.15)"] span {
       box-shadow: none !important;
     }
-    body.light-mode #main > div[style*="rgba(249, 115, 22, 0.15)"] div[style*="color: #f1f5f9;"] {
+    body.light-mode #main > div[style*="rgba(249, 115, 22, 0.15)"] div[style*="color: #f1f5f9;"],
+    body.light-mode #main > div[style*="rgba(20, 184, 166, 0.15)"] div[style*="color: #f1f5f9;"],
+    body.light-mode #main > div[style*="rgba(168, 85, 247, 0.15)"] div[style*="color: #f1f5f9;"],
+    body.light-mode #main > div[style*="rgba(139, 92, 246, 0.15)"] div[style*="color: #f1f5f9;"],
+    body.light-mode #main > div[style*="rgba(96, 165, 250, 0.15)"] div[style*="color: #f1f5f9;"] {
       color: #3f3f46 !important;
     }
 
@@ -1157,10 +1186,12 @@
   border: 1px solid #334155;
   color: #f8fafc;
 }
+/* Search inputs in tactical pages: white bg for low-glare contrast */
 body.light-mode .tactical-input {
-  background: #fdfaf6;
-  border: 1px solid #e4e4e7;
-  color: #3f3f46;
+  background: #ffffff;
+  border: 1px solid #e2e5ea;
+  color: #27272a;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .tactical-stage {
@@ -1247,16 +1278,21 @@ body.light-mode .tactical-topic-label.active { color: #ea580c; }
   border: 1px solid #334155;
 }
 body.light-mode .law-details {
-  border: 1px solid rgba(249,115,22,0.15);
+  border: 1px solid rgba(249,115,22,0.14);
 }
 
 .law-summary {
   background: rgba(30,41,59,.6);
   color: #fb923c;
 }
+/* Нормативная аргументация — источник: тёплый тон, не серый */
 body.light-mode .law-summary {
-  background: #fdfaf6;
-  color: #ea580c;
+  /* Warm cream — harmonious with base palette, replaces jarring grey */
+  background: #fdf0e0;
+  color: #c2410c;
+  /* Sharp text rendering on light bg */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 /* Markdown Elements Dynamic Theme Classes */
@@ -1402,8 +1438,8 @@ body.light-mode .manual-content-area {
   background: rgba(15, 23, 42, 0.45);
 }
 body.light-mode .pro-heatmap-legend {
-  border: 1px solid #e4e4e7;
-  background: #ffffff;
+  border: 1px solid rgba(249, 115, 22, 0.12);
+  background: #fef8f2;
 }
 
 .pro-heatmap-legend-title {
@@ -1427,8 +1463,8 @@ body.light-mode .pro-heatmap-legend-title {
   transition: all 0.15s ease;
 }
 body.light-mode .pro-heatmap-row {
-  border: 1px solid #e4e4e7;
-  background: #ffffff;
+  border: 1px solid rgba(249, 115, 22, 0.1);
+  background: #fef8f2;
 }
 
 .pro-heatmap-row.selected {
@@ -1485,9 +1521,134 @@ body.light-mode .instrument-card:hover { border-color: rgba(249, 115, 22, 0.3); 
 .manual-tile { text-align: left; cursor: pointer; border-radius: 12px; padding: 14px 16px; border: 1px solid #334155; background: rgba(15, 23, 42, 0.55); transition: all 0.2s ease; min-height: 70px; color: #c3ceda; }
 .manual-tile:hover { border-color: #475569; background: rgba(15, 23, 42, 0.66); color: #d0d9e3; }
 .manual-tile.active { border-color: #f97316; background: rgba(249, 115, 22, 0.1); color: #d9e3ec; }
-body.light-mode .manual-tile { border: 1px solid rgba(249, 115, 22, 0.15); background: #fdfaf6; }
-body.light-mode .manual-tile:hover { border-color: rgba(249, 115, 22, 0.24); background: #f8f3ec; }
-body.light-mode .manual-tile.active { border-color: #ea580c; background: rgba(249, 115, 22, 0.05); }
+body.light-mode .manual-tile { border: 1px solid rgba(249, 115, 22, 0.14); background: #fef8f2; }
+body.light-mode .manual-tile:hover { border-color: rgba(249, 115, 22, 0.28); background: #fdf0e0; }
+body.light-mode .manual-tile.active { border-color: #ea580c; background: rgba(249, 115, 22, 0.07); }
+
+/* ===== MANUAL SECTION TILES — Premium hover state ===== */
+.manual-section-tile {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
+}
+.manual-section-tile:hover {
+  transform: translateY(-2px);
+}
+.manual-section-tile:focus { outline: none; }
+
+/* Light mode: manual section tiles — warm cream surfaces */
+body.light-mode .manual-section-tile {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+/* Active tile in light mode: keep brand color gradient but lighter */
+body.light-mode .manual-section-tile.active,
+body.light-mode .manual-section-tile[data-active="true"] {
+  box-shadow: 0 4px 16px rgba(249,115,22,0.2), 0 1px 3px rgba(0,0,0,0.05) !important;
+}
+/* Inactive tiles in light mode: warm surface with subtle border */
+body.light-mode .manual-section-tile:not(.active) {
+  background: #fef8f2 !important; /* Fallback */
+  background: color-mix(in srgb, var(--sec-color) 6%, #fef8f2) !important;
+  border-color: rgba(249, 115, 22, 0.2) !important; /* Fallback */
+  border-color: color-mix(in srgb, var(--sec-color) 20%, transparent) !important;
+  border-top-color: var(--sec-color) !important; /* Restore colored top line! */
+  color: #27272a !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04) !important;
+}
+body.light-mode .manual-section-tile:not(.active):hover {
+  background: #fdf0e0 !important;
+  background: color-mix(in srgb, var(--sec-color) 12%, #fdf0e0) !important;
+  border-color: rgba(249,115,22,0.38) !important;
+  border-color: color-mix(in srgb, var(--sec-color) 40%, transparent) !important;
+  border-top-color: var(--sec-color) !important;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08) !important;
+}
+/* Fix the badge text/background on light inactive tiles */
+body.light-mode .manual-section-tile:not(.active) .manual-tile-badge {
+  background: rgba(0,0,0,0.05) !important;
+  border-color: rgba(0,0,0,0.1) !important;
+  color: #52525b !important;
+}
+
+/* ===== MANUAL SIDEBAR — Light mode ===== */
+body.light-mode #manual-sidebar ~ div,
+body.light-mode .manual-sidebar-section {
+  transition: background 0.2s;
+}
+body.light-mode .card[style*="rgba(20,26,42"] {
+  background: #fef8f2 !important;
+  border-color: rgba(249,115,22,0.12) !important;
+}
+body.light-mode .manual-sidebar-section {
+  color: #27272a;
+}
+body.light-mode .manual-sidebar-section:not([style*="linear-gradient"]):hover {
+  background: rgba(249, 115, 22, 0.05) !important;
+  background: color-mix(in srgb, var(--sec-color) 10%, #fef8f2) !important;
+}
 
 .manual-content-area { border: 1px solid #334155; border-radius: 12px; padding: 20px 24px; background: rgba(15, 23, 42, 0.3); min-height: 200px; }
-body.light-mode .manual-content-area { border: 1px solid rgba(249, 115, 22, 0.12); background: #fdfaf6; }
+body.light-mode .manual-content-area { border: 1px solid rgba(249, 115, 22, 0.12); background: #fef8f2; }
+
+/* ===== LIGHT MODE NORMATIVE SECTION INTERIORS ===== */
+/* Fix: dark-hardcoded background in normative source body — override to light palette */
+body.light-mode .law-details > div[style*="background:rgba(15,23,42"],
+body.light-mode details.law-details > div[style*="background:rgba(15,23,42"] {
+  background: #fef8f2 !important;
+}
+/* Fix text color inside normative expanded sections */
+body.light-mode .law-details > div[style*="background:rgba(15,23,42"] div[style*="color:#e2e8f0"],
+body.light-mode details.law-details > div[style*="background:rgba(15,23,42"] [style*="color:#e2e8f0"],
+body.light-mode details.law-details > div[style*="background:rgba(15,23,42"] [style*="color:#f1f5f9"] {
+  color: #27272a !important;
+}
+body.light-mode .law-details > div [style*="color:#fca5a5"] { color: #b91c1c !important; }
+body.light-mode .law-details > div [style*="color:#86efac"] { color: #15803d !important; }
+body.light-mode .law-details > div [style*="color:#fbbf24"] { color: #b45309 !important; }
+/* Tint the sub-blocks inside normative sections */
+body.light-mode .law-details > div[style*="background:rgba(15,23,42"] [style*="background:rgba(59,130,246,0.1)"] {
+  background: rgba(59, 130, 246, 0.06) !important;
+  border-color: rgba(59, 130, 246, 0.18) !important;
+}
+body.light-mode .law-details > div[style*="background:rgba(15,23,42"] [style*="background:rgba(16,185,129,0.1)"] {
+  background: rgba(16, 185, 129, 0.06) !important;
+  border-color: rgba(16, 185, 129, 0.18) !important;
+}
+body.light-mode .law-details > div[style*="background:rgba(15,23,42"] [style*="background:rgba(245,158,11,0.1)"] {
+  background: rgba(245, 158, 11, 0.06) !important;
+  border-color: rgba(245, 158, 11, 0.18) !important;
+}
+body.light-mode .law-details > div[style*="background:rgba(15,23,42"] [style*="background:rgba(239,68,68,0.1)"] {
+  background: rgba(239, 68, 68, 0.06) !important;
+  border-color: rgba(239, 68, 68, 0.18) !important;
+}
+
+/* ===== MANUAL SIDEBAR SUBTITLE ===== */
+body.light-mode .manual-sidebar-subtitle {
+  color: #3f3f46 !important;
+}
+
+/* ===== SVP_MECHANISM & SVP_CRM (Нормативная База) LIGHT MODE FIXES ===== */
+body.light-mode .step-content div[style*="color: #94a3b8"],
+body.light-mode .step-content ul li,
+body.light-mode .card p[style*="color: #94a3b8"],
+body.light-mode .card ul[style*="color: #cbd5e1"] {
+  color: #3f3f46 !important;
+}
+
+/* Table / Box: Примеры вопросов */
+body.light-mode .quote-box,
+body.light-mode .card div[style*="background: rgba(30, 41, 59, 0.5)"] {
+  background: #fdf0e0 !important;
+  border-color: rgba(249, 115, 22, 0.2) !important;
+  color: #27272a !important;
+}
+body.light-mode .quote-box span[style*="color:#a78bfa"] {
+  color: #ea580c !important; /* Orange accent instead of purple */
+}
+body.light-mode .card div[style*="color: #e2e8f0"] {
+  color: #18181b !important;
+}
+body.light-mode .law-details > div[style*="background:rgba(15,23,42"] [style*="background:rgba(239,68,68,0.15)"] {
+  background: rgba(239, 68, 68, 0.08) !important;
+  border-color: rgba(239, 68, 68, 0.2) !important;
+}

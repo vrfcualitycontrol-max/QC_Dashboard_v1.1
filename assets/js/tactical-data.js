@@ -681,7 +681,7 @@ window.TACTICAL_DATA = {
     {
       "id": "intro",
       "title": "I. Вводный блок",
-      "icon": "📘",
+      "icon": "<svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z\"></path><path d=\"M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 0 3-3h7z\"></path></svg>",
       "color": "#3b82f6",
       "topics": [
         {
@@ -714,7 +714,7 @@ window.TACTICAL_DATA = {
     {
       "id": "svp",
       "title": "II. Коммуникация (СВП)",
-      "icon": "🗣️",
+      "icon": "<svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"></path></svg>",
       "color": "#8b5cf6",
       "topics": [
         {
@@ -742,7 +742,7 @@ window.TACTICAL_DATA = {
     {
       "id": "tactics",
       "title": "III. Тактика",
-      "icon": "⚔️",
+      "icon": "<svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z\"></path><path d=\"m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z\"></path><path d=\"M7 21h10\"></path><path d=\"M12 3v18\"></path><path d=\"M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2\"></path></svg>",
       "color": "#ef4444",
       "topics": [
         {
@@ -785,7 +785,7 @@ window.TACTICAL_DATA = {
     {
       "id": "practice",
       "title": "IV. Практика",
-      "icon": "📋",
+      "icon": "<svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 11l3 3L22 4\"></path><path d=\"M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11\"></path></svg>",
       "color": "#f97316",
       "topics": [
         {
@@ -813,7 +813,7 @@ window.TACTICAL_DATA = {
     {
       "id": "appendix",
       "title": "V. Приложения",
-      "icon": "📎",
+      "icon": "<svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48\"></path></svg>",
       "color": "#10b981",
       "topics": [
         {

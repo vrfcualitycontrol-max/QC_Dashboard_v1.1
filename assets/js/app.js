@@ -1163,7 +1163,7 @@ function toggleTheme() {
           <td style="vertical-align:top;padding-top:14px;">${ep.tqs !== undefined && ep.tqs !== null ? (ep.tqs * 100).toFixed(1) + '%' : '—'}</td>
           <td style="vertical-align:top;padding-top:14px;">${ep.critHtml}</td>
           <td style="vertical-align:top;padding-top:14px;">${ep.statHtml}</td>
-          <td style="font-size:11px;color:#94a3b8;line-height:1.5;white-space:pre-wrap;vertical-align:top;padding:14px 12px 14px 0;">${ep.rec}</td>
+          <td style="font-size:11px;color:${thmC('#94a3b8', '#3f3f46')};line-height:1.5;white-space:pre-wrap;vertical-align:top;padding:14px 12px 14px 0;">${ep.rec}</td>
         </tr>`;
       });
       tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:#64748b;padding:20px;">Нет зон роста (все показатели 100%)</td></tr>';
@@ -1304,7 +1304,7 @@ function toggleTheme() {
         html += `<tr style="cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);" onclick="showEmployee('${ep.name.replace(/'/g, "\\'")}')">
           <td style="font-weight:800;color:${rankColor};font-size:14px;">${idx + 1}</td>
           <td style="font-weight:600;">${ep.name}</td>
-          <td style="font-weight:800;color:#e2e8f0;">${ep.tqs.toFixed(1)}%</td>
+          <td style="font-weight:800;color:${thmC('#e2e8f0','#18181b')};">${ep.tqs.toFixed(1)}%</td>
           <td style="font-size:12px;">${trendHtml}</td>
           <td style="font-weight:600;color:#93c5fd;">${ep.periodTqs.toFixed(1)}%</td>
           <td style="font-size:12px;">${periodTrendHtml}</td>

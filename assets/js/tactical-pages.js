@@ -299,9 +299,9 @@ function renderLawJsonFormat(root, data) {
   
   // Поиск и фильтр
   let searchHtml = '<div class="card" style="margin-bottom:16px;">' +
-    '<div class="card-title">🔍 Поиск по нормативной базе</div>' +
+    '<div class="card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> Поиск по нормативной базе</div>' +
     '<input id="law-search" type="text" placeholder="Введите статью, пункт оферты или ключевое слово..." ' +
-    'style="width:100%;border-radius:8px;padding:10px 12px;font-size:13px;border:1px solid #334155;background:#0f172a;color:#f1f5f9;outline:none;" ' +
+    'class="tactical-input" style="width:100%;border-radius:8px;padding:10px 12px;font-size:13px;outline:none;" ' +
     'oninput="filterLawSections()" />' +
     '<div id="law-search-results" style="margin-top:8px;font-size:11px;color:#94a3b8;"></div>' +
     '</div>';
@@ -313,7 +313,7 @@ function renderLawJsonFormat(root, data) {
     tabsHtml += '<button id="law-tab-' + prod.id + '" class="cat-tab ' + isActive + '" ' +
       'onclick="switchLawProduct(\'' + prod.id + '\')" ' +
       'style="background:' + (isActive ? prod.color : '#1e293b') + ';color:#fff;border:1px solid ' + prod.color + ';padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;">' +
-      (idx === 0 ? '📋' : '💰') + ' ' + escapeHtml(prod.name) +
+      (idx === 0 ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>' : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>') + ' ' + escapeHtml(prod.name) +
       '</button>';
   });
   tabsHtml += '</div>';
@@ -537,9 +537,9 @@ function renderInstrumentsJsonFormat(root, data) {
   
   // Поиск по всем инструментам
   let searchHtml = '<div class="card" style="margin-bottom:16px;">' +
-    '<div class="card-title">🔍 Поиск по инструментам</div>' +
+    '<div class="card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> Поиск по инструментам</div>' +
     '<input id="instruments-search" type="text" placeholder="Введите тактику, эффект или ключевое слово..." ' +
-    'style="width:100%;border-radius:8px;padding:10px 12px;font-size:13px;border:1px solid #334155;background:#0f172a;color:#f1f5f9;outline:none;" ' +
+    'class="tactical-input" style="width:100%;border-radius:8px;padding:10px 12px;font-size:13px;outline:none;" ' +
     'oninput="filterInstruments()" />' +
     '<div id="instruments-search-results" style="margin-top:8px;font-size:11px;color:#94a3b8;"></div>' +
     '</div>';
@@ -635,14 +635,14 @@ function renderInstrumentsJsonFormat(root, data) {
 }
 
 function getInstrumentIcon(key) {
-  const icons = {
-    manipulation: '🎭',
-    legending: '🎪',
-    argumentation: '⚖️',
-    'demand-setting': '📢',
-    'closing-summary': '✅'
+  const svgs = {
+    manipulation: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M12 2a10 10 0 1 0 10 10"></path><path d="M12 2a10 10 0 0 1 10 10"></path><path d="M12 12l4-4"></path><circle cx="12" cy="12" r="3"></circle></svg>',
+    legending: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>',
+    argumentation: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg>',
+    'demand-setting': '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>',
+    'closing-summary': '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>'
   };
-  return icons[key] || '📋';
+  return svgs[key] || '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>';
 }
 
 function renderInstrumentTactic(tactic, instrumentColor) {
@@ -746,29 +746,45 @@ function renderManualJsonFormat(root, data) {
   
   // Поиск
   let searchHtml = '<div class="card" style="margin-bottom:16px;">' +
-    '<div class="card-title">🔍 Поиск по мануалу</div>' +
+    '<div class="card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> Поиск по мануалу</div>' +
     '<input id="manual-search" type="text" placeholder="Введите термин, название темы или фрагмент текста..." ' +
-    'style="width:100%;border-radius:8px;padding:10px 12px;font-size:13px;border:1px solid #334155;background:#0f172a;color:#f1f5f9;outline:none;" ' +
+    'class="tactical-input" style="width:100%;border-radius:8px;padding:10px 12px;font-size:13px;outline:none;" ' +
     'oninput="filterManual()" />' +
     '<div id="manual-search-results" style="margin-top:8px;font-size:11px;color:#94a3b8;"></div>' +
     '</div>';
   
   // Хлебные крошки
   let breadcrumbHtml = '<div id="manual-breadcrumb" style="font-size:11px;color:#94a3b8;margin-bottom:12px;padding:8px 12px;background:rgba(30,41,59,0.5);border-radius:6px;">' +
-    '<span>📖 Мануал</span>' +
+    '<span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 0 3-3h7z"></path></svg> Мануал</span>' +
     '</div>';
   
-  // Плитки разделов
-  let tilesHtml = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px;">';
+  // Плитки разделов — стиль «Аналитика»
+  let tilesHtml = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:14px;margin-bottom:24px;">';
   sections.forEach(function(sec, idx) {
     const isActive = idx === 0 ? 'active' : '';
+    // Active tile: solid color accent + glow; inactive: glassmorphism dark
+    const activeBg  = 'linear-gradient(135deg,' + sec.color + 'cc 0%,' + sec.color + '88 100%)';
+    const inactiveBg = 'rgba(30,36,53,0.75)';
+    const bg         = idx === 0 ? activeBg : inactiveBg;
+    const boxShadow  = idx === 0 ? '0 4px 20px ' + sec.color + '44, inset 0 1px 0 rgba(255,255,255,0.12)' : 'inset 0 1px 0 rgba(255,255,255,0.05), 0 2px 8px rgba(0,0,0,0.18)';
+    const borderColor = sec.color + (idx === 0 ? 'cc' : '55');
     tilesHtml += '<button class="manual-section-tile ' + isActive + '" onclick="selectManualSection(\'' + sec.id + '\')" ' +
-      'style="background:' + (idx === 0 ? sec.color : '#1e293b') + ';color:#fff;border:2px solid ' + sec.color + ';' +
-      'padding:16px;border-radius:12px;cursor:pointer;transition:all 0.2s;text-align:left;">' +
-      '<div style="font-size:24px;margin-bottom:8px;">' + sec.icon + '</div>' +
-      '<div style="font-size:11px;font-weight:600;opacity:0.9;">' + sec.title.split(' ')[0] + '</div>' +
-      '<div style="font-size:13px;font-weight:700;margin-top:4px;">' + sec.title.substring(sec.title.indexOf('.') + 2) + '</div>' +
-      '<div style="font-size:10px;opacity:0.8;margin-top:8px;">' + sec.topics.length + ' тем</div>' +
+      'data-sec-id="' + sec.id + '" data-sec-color="' + sec.color + '" ' +
+      'style="--sec-color:' + sec.color + ';background:' + bg + ';color:#fff;border:1px solid ' + borderColor + ';' +
+      'box-shadow:' + boxShadow + ';' +
+      'backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);' +
+      'padding:18px 16px;border-radius:14px;cursor:pointer;transition:all 0.25s;text-align:left;' +
+      'border-top:3px solid ' + sec.color + ';outline:none;position:relative;overflow:hidden;">' +
+      // Subtle shine overlay
+      '<div style="position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(180deg,rgba(255,255,255,0.06) 0%,transparent 100%);border-radius:14px 14px 0 0;pointer-events:none;"></div>' +
+      '<div style="position:relative;">' +
+      '<div style="margin-bottom:10px;opacity:0.95;line-height:1;">' + sec.icon + '</div>' +
+      '<div style="font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;opacity:0.75;margin-bottom:4px;">' + sec.title.split(' ')[0] + '</div>' +
+      '<div style="font-size:13px;font-weight:800;line-height:1.3;letter-spacing:-0.01em;">' + sec.title.substring(sec.title.indexOf('.') + 2) + '</div>' +
+      '<div style="margin-top:10px;display:flex;align-items:center;gap:4px;">' +
+        '<span class="manual-tile-badge" style="font-size:10px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);border-radius:999px;padding:2px 8px;font-weight:600;">' + sec.topics.length + ' тем</span>' +
+      '</div>' +
+      '</div>' +
       '</button>';
   });
   tilesHtml += '</div>';
@@ -776,18 +792,27 @@ function renderManualJsonFormat(root, data) {
   // Основной контейнер с боковой панелью
   let mainHtml = '<div style="display:grid;grid-template-columns:280px 1fr;gap:16px;">';
   
-  // Боковая панель
-  let sidebarHtml = '<div class="card" style="height:fit-content;position:sticky;top:20px;">' +
-    '<div class="card-title" style="font-size:13px;">📑 Разделы</div>' +
+  // Боковая панель — стиль «Аналитика»
+  let sidebarHtml = '<div class="card" style="height:fit-content;position:sticky;top:20px;padding:16px;border:1px solid rgba(255,255,255,0.07);background:rgba(20,26,42,0.6);backdrop-filter:blur(12px);">' +
+    '<div class="card-title" style="font-size:10px;letter-spacing:1.2px;">' +
+    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;"><path d="M4 6h16M4 12h8M4 18h12"></path></svg> Разделы</div>' +
     '<div id="manual-sidebar" style="max-height:500px;overflow-y:auto;">';
   sections.forEach(function(sec, idx) {
     const isActive = idx === 0 ? 'active' : '';
+    const activeBg = 'linear-gradient(90deg,rgba(' + hexToRgb(sec.color) + ',0.18) 0%,rgba(' + hexToRgb(sec.color) + ',0.06) 100%)';
+    const bg = idx === 0 ? activeBg : 'transparent';
     sidebarHtml += '<div class="manual-sidebar-section ' + isActive + '" onclick="selectManualSection(\'' + sec.id + '\')" ' +
-      'style="padding:10px 12px;margin-bottom:6px;border-radius:8px;cursor:pointer;border-left:3px solid ' + sec.color + ';' +
-      'background:' + (idx === 0 ? 'rgba(' + hexToRgb(sec.color) + ',0.2)' : 'transparent') + '">' +
-      '<div style="font-size:11px;font-weight:700;color:' + sec.color + ';">' + sec.icon + ' ' + sec.title.split(' ')[0] + '</div>' +
-      '<div style="font-size:12px;font-weight:600;color:#f1f5f9;">' + sec.title.substring(sec.title.indexOf('.') + 2) + '</div>' +
-      '<div style="font-size:10px;color:#94a3b8;margin-top:4px;">' + sec.topics.length + ' тем</div>' +
+      'data-sec-id="' + sec.id + '" data-sec-color="' + sec.color + '" ' +
+      'style="--sec-color:' + sec.color + ';padding:10px 12px;margin-bottom:5px;border-radius:9px;cursor:pointer;' +
+      'border-left:3px solid ' + sec.color + ';border-right:1px solid transparent;' +
+      'background:' + bg + ';transition:all 0.2s;">' +
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">' +
+        '<span style="font-size:10px;font-weight:800;color:' + sec.color + ';letter-spacing:0.5px;text-transform:uppercase;">' + sec.title.split(' ')[0] + '</span>' +
+      '</div>' +
+      '<div style="font-size:12px;font-weight:700;color:#f1f5f9;line-height:1.3;">' + sec.title.substring(sec.title.indexOf('.') + 2) + '</div>' +
+      '<div style="margin-top:5px;">' +
+        '<span style="font-size:9px;color:#64748b;background:rgba(100,116,139,0.12);border:1px solid rgba(100,116,139,0.2);border-radius:999px;padding:1px 6px;font-weight:600;">' + sec.topics.length + ' тем</span>' +
+      '</div>' +
       '</div>';
   });
   sidebarHtml += '</div></div>';
@@ -842,20 +867,43 @@ function renderManualJsonFormat(root, data) {
     const section = sections.find(function(s) { return s.id === sectionId; });
     if (section) {
       document.getElementById('manual-breadcrumb').innerHTML = 
-        '<span>📖 Мануал</span> <span style="color:#64748b;">/</span> ' +
+        '<span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 0 3-3h7z"></path></svg> Мануал</span> <span style="color:#64748b;">/</span> ' +
         '<span style="color:' + section.color + ';">' + escapeHtml(section.title) + '</span>';
     }
     
-    // Обновить плитки
-    document.querySelectorAll('.manual-section-tile').forEach(function(tile, idx) {
-      const sec = sections[idx];
-      tile.style.background = sec.id === sectionId ? sec.color : '#1e293b';
+    // Обновить плитки — восстанавливаем премиальный стиль
+    document.querySelectorAll('.manual-section-tile').forEach(function(tile) {
+      const tileSec = sections.find(function(s) { return s.id === tile.dataset.secId; });
+      if (!tileSec) return;
+      const isSelected = tileSec.id === sectionId;
+      if (isSelected) {
+        tile.classList.add('active');
+      } else {
+        tile.classList.remove('active');
+      }
+      tile.style.background = isSelected
+        ? 'linear-gradient(135deg,' + tileSec.color + 'cc 0%,' + tileSec.color + '88 100%)'
+        : 'rgba(30,36,53,0.75)';
+      tile.style.borderColor = tileSec.color + (isSelected ? 'cc' : '55');
+      tile.style.borderTopColor = tileSec.color; // ensure top border remains solid color
+      tile.style.boxShadow = isSelected
+        ? '0 4px 20px ' + tileSec.color + '44, inset 0 1px 0 rgba(255,255,255,0.12)'
+        : 'inset 0 1px 0 rgba(255,255,255,0.05), 0 2px 8px rgba(0,0,0,0.18)';
     });
     
-    // Обновить боковую панель
-    document.querySelectorAll('.manual-sidebar-section').forEach(function(el, idx) {
-      const sec = sections[idx];
-      el.style.background = sec.id === sectionId ? 'rgba(' + hexToRgb(sec.color) + ',0.2)' : 'transparent';
+    // Обновить боковую панель — восстанавливаем premium стиль
+    document.querySelectorAll('.manual-sidebar-section').forEach(function(el) {
+      const elSec = sections.find(function(s) { return s.id === el.dataset.secId; });
+      if (!elSec) return;
+      const isSelected = elSec.id === sectionId;
+      if (isSelected) {
+        el.classList.add('active');
+      } else {
+        el.classList.remove('active');
+      }
+      el.style.background = isSelected
+        ? 'linear-gradient(90deg,rgba(' + hexToRgb(elSec.color) + ',0.18) 0%,rgba(' + hexToRgb(elSec.color) + ',0.06) 100%)'
+        : 'transparent';
     });
   };
   

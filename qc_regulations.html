@@ -5,6 +5,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QC Dashboard - Регламент QC v2.0</title>
   <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    /* Light mode: preamble info-boxes */
+    body.light-mode .qc-info-box {
+      background: #fef8f2;
+      border-color: inherit;
+    }
+    body.light-mode .qc-info-box strong {
+      color: #27272a;
+    }
+    body.light-mode .qc-info-box {
+      color: #3f3f46;
+    }
+    /* Light mode: accordion body text */
+    body.light-mode .acc-body.qc-body {
+      color: #27272a;
+    }
+    body.light-mode .acc-body.qc-body strong { color: #18181b; }
+    body.light-mode .acc-body.qc-body em { color: #ea580c; }
+    body.light-mode .acc-body.qc-body li { color: #27272a; }
+    /* Light mode: sampling categories block */
+    body.light-mode .qc-strata-box {
+      background: #fef8f2;
+      border: 1px solid rgba(249, 115, 22, 0.12);
+      border-radius: 6px;
+    }
+  </style>
 </head>
 <body>
   <button id="theme-toggle" onclick="toggleTheme()" title="Тема">
@@ -37,16 +63,16 @@
           Регламент определяет тактические и операционные инструменты для оценки качества телефонных переговоров, включая использование СВП.
         </p>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
-          <div style="background: rgba(30, 41, 59, 0.5); padding: 12px; border-radius: 6px; border-left: 3px solid #3b82f6;">
+          <div class="qc-info-box" style="background: rgba(30, 41, 59, 0.5); padding: 12px; border-radius: 6px; border-left: 3px solid #3b82f6;">
             <strong>Правомерность:</strong> обеспечение законности действий.
           </div>
-          <div style="background: rgba(30, 41, 59, 0.5); padding: 12px; border-radius: 6px; border-left: 3px solid #f97316;">
+          <div class="qc-info-box" style="background: rgba(30, 41, 59, 0.5); padding: 12px; border-radius: 6px; border-left: 3px solid #f97316;">
             <strong>Стандартизация:</strong> унификация алгоритмов на основе СВП.
           </div>
-          <div style="background: rgba(30, 41, 59, 0.5); padding: 12px; border-radius: 6px; border-left: 3px solid #ef4444;">
+          <div class="qc-info-box" style="background: rgba(30, 41, 59, 0.5); padding: 12px; border-radius: 6px; border-left: 3px solid #ef4444;">
             <strong>Дисциплина и этика:</strong> поддержание репутации.
           </div>
-          <div style="background: rgba(30, 41, 59, 0.5); padding: 12px; border-radius: 6px; border-left: 3px solid #10b981;">
+          <div class="qc-info-box" style="background: rgba(30, 41, 59, 0.5); padding: 12px; border-radius: 6px; border-left: 3px solid #10b981;">
             <strong>Эффективность:</strong> повышение возврата задолженности.
           </div>
         </div>
@@ -60,7 +86,7 @@
             <span class="acc-q">Общие положения и Принципы работы</span>
             <div class="acc-meta"><span class="acc-chevron">▼</span></div>
           </div>
-          <div class="acc-body" style="font-size:13px;line-height:1.8;color:#cbd5e1;">
+          <div class="acc-body qc-body" style="font-size:13px;line-height:1.8;color:#cbd5e1;">
             <p><strong>Основные задачи отдела:</strong></p>
             <ul style="padding-left:20px; list-style:circle; margin-bottom: 12px;">
               <li>Унифицированный охват мониторинга: непрерывный контроль качества.</li>
@@ -83,9 +109,9 @@
             <span class="acc-q">Концепция и Методология Оценивания</span>
             <div class="acc-meta"><span class="acc-chevron">▼</span></div>
           </div>
-          <div class="acc-body" style="font-size:13px;line-height:1.8;color:#cbd5e1;">
+          <div class="acc-body qc-body" style="font-size:13px;line-height:1.8;color:#cbd5e1;">
             <p>С 2026 года концепция "Волн" заменяется системой стратифицированной рандомной выборки.</p>
-            <div style="background:rgba(0,0,0,0.2); padding:10px; border-radius:6px; margin: 10px 0;">
+            <div class="qc-strata-box" style="background:rgba(0,0,0,0.2); padding:10px; border-radius:6px; margin: 10px 0;">
               <strong>Категории (страты) по времени:</strong>
               <ul style="margin:4px 0 4px 20px;">
                 <li>Категория A: 0.4 - 1.0 мин</li>
@@ -106,7 +132,7 @@
             <span class="acc-q">Ответственность сторон</span>
             <div class="acc-meta"><span class="acc-chevron">▼</span></div>
           </div>
-          <div class="acc-body" style="font-size:13px;line-height:1.8;color:#cbd5e1;">
+          <div class="acc-body qc-body" style="font-size:13px;line-height:1.8;color:#cbd5e1;">
             <p><strong>Специалист Quality Control (Контролер):</strong></p>
             <ul style="padding-left:20px; list-style:circle; margin-bottom: 12px;">
               <li>Обязан соблюдать методику отбора. Преднамеренная оценка без возражений — нарушение.</li>

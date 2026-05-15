@@ -4,7 +4,7 @@
 
 ## Текущий статус
 
-**Релиз:** `v1.3.3` (Interactive Tactical Pages)  
+**Релиз:** `v1.3.4` (UI Accessibility & Contrast Enhancements)  
 **Режим данных:** Static Mode (Переходный период)
 
 Фронтенд читает данные из `assets/js/data.js`. При этом бэкенд и база данных работают в теневом режиме, накапливая историю (при `ENABLE_BACKEND_SYNC=1`). Переход на полный API Mode планируется в будущем.
