@@ -61,6 +61,10 @@ services:
       - "80:80"
     networks:
       - qc_network
+    volumes:
+      - ./assets:/usr/share/nginx/html/assets
+      - ./logo:/usr/share/nginx/html/logo
+      - ./:/usr/share/nginx/html/
 
 volumes:
   postgres_data:

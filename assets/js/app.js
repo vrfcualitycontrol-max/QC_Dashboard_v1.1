@@ -206,6 +206,21 @@ window.addEventListener('unhandledrejection', function(e) {
     function isLight() { return document.body.classList.contains('light-mode'); }
     function thmC(dark, light) { return isLight() ? light : dark; }
 
+    const SVG_ICONS = {
+      money: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`,
+      activity: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`,
+      target: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>`,
+      warning: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:4px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
+      info: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`,
+      success: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+      danger: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`,
+      brain: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>`,
+      trend: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>`,
+      help: `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:3px;"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
+      refresh: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>`
+    };
+
+    let currentViewMode = localStorage.getItem('view-mode') || 'team';
     let currentMonth = null; // будет установлен динамически из данных
     let currentPeriod = "Все";
     // Для страницы Rating
@@ -213,6 +228,29 @@ window.addEventListener('unhandledrejection', function(e) {
     let selectedEmployee = null;
     let trendChart = null;
     let currentHeatmapMode = localStorage.getItem('heatmap-mode') || 'heatmap';
+
+    window.setViewMode = function(mode) {
+      currentViewMode = mode;
+      localStorage.setItem('view-mode', mode);
+      
+      const tabTeam = document.getElementById('tab-view-team');
+      const tabPersonal = document.getElementById('tab-view-personal');
+      const select = document.getElementById('employeeSelect');
+      
+      if (tabTeam && tabPersonal) {
+        if (mode === 'team') {
+          tabTeam.classList.add('active');
+          tabPersonal.classList.remove('active');
+          if (select) select.style.display = 'none';
+        } else {
+          tabTeam.classList.remove('active');
+          tabPersonal.classList.add('active');
+          if (select) select.style.display = 'block';
+        }
+      }
+      
+      updateDashboard();
+    };
 
     function showSection(id) {
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -365,13 +403,68 @@ function toggleTheme() {
     }
 
     function getProDiagnosticByPercent(percent) {
-      if (percent <= 24) return { text: 'Несоответствие СВП', color: '#ef4444', rank: 6 };
-      if (percent <= 49) return { text: 'Критическая просадка', color: '#f97316', rank: 5 };
-      if (percent <= 64) return { text: 'Систематическая недоработка', color: '#eab308', rank: 4 };
-      if (percent <= 74) return { text: 'Недоработка критерия', color: '#facc15', rank: 3 };
-      if (percent <= 84) return { text: 'Нестабильная отработка', color: '#60a5fa', rank: 2 };
-      if (percent <= 99) return { text: 'Критерий требует внимания', color: '#22c55e', rank: 1 };
-      return { text: 'Полное соответствие', color: '#16a34a', rank: 0 };
+      const isL = isLight();
+      if (percent <= 24) {
+        return {
+          text: 'Несоответствие СВП',
+          rank: 6,
+          bg: 'rgba(239, 68, 68, 0.22)',
+          color: isL ? '#b91c1c' : '#f87171',
+          border: 'rgba(239, 68, 68, 0.35)'
+        };
+      }
+      if (percent <= 49) {
+        return {
+          text: 'Критическая просадка',
+          rank: 5,
+          bg: 'rgba(239, 68, 68, 0.14)',
+          color: isL ? '#dc2626' : '#fca5a5',
+          border: 'rgba(239, 68, 68, 0.22)'
+        };
+      }
+      if (percent <= 64) {
+        return {
+          text: 'Систематическая недоработка',
+          rank: 4,
+          bg: 'rgba(234, 179, 8, 0.20)',
+          color: isL ? '#a16207' : '#facc15',
+          border: 'rgba(234, 179, 8, 0.35)'
+        };
+      }
+      if (percent <= 74) {
+        return {
+          text: 'Недоработка критерия',
+          rank: 3,
+          bg: 'rgba(234, 179, 8, 0.13)',
+          color: isL ? '#ca8a04' : '#fef08a',
+          border: 'rgba(234, 179, 8, 0.22)'
+        };
+      }
+      if (percent <= 84) {
+        return {
+          text: 'Нестабильная отработка',
+          rank: 2,
+          bg: 'rgba(234, 179, 8, 0.08)',
+          color: isL ? '#d97706' : '#fef08a',
+          border: 'rgba(234, 179, 8, 0.15)'
+        };
+      }
+      if (percent <= 99) {
+        return {
+          text: 'Критерий требует внимания',
+          rank: 1,
+          bg: 'rgba(34, 197, 94, 0.15)',
+          color: isL ? '#166534' : '#86efac',
+          border: 'rgba(34, 197, 94, 0.25)'
+        };
+      }
+      return {
+        text: 'Полное соответствие',
+        rank: 0,
+        bg: 'rgba(34, 197, 94, 0.22)',
+        color: isL ? '#14532d' : '#4ade80',
+        border: 'rgba(34, 197, 94, 0.35)'
+      };
     }
 
     function renderHeatmapByMode() {
@@ -388,7 +481,7 @@ function toggleTheme() {
       const periods = new Set();
       Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => {
           if(name.includes('Промежуточный')) return;
-          const m = emp.months[currentMonth];
+          const m = emp.months?.[currentMonth];
           if (m && m.periods) m.periods.forEach(p => periods.add(p.period));
       });
       el.innerHTML = '';
@@ -513,56 +606,500 @@ function toggleTheme() {
       return empMonthObj.periods?.find(p => p?.period === currentPeriod) || null;
     }
 
-    function updateDashboard() {
-      try {
-      let tqs = 0, tCount = 0, secs = 0, aCount = 0, riskEmps = new Set();
-      // Для взвешенного расчета TQS команды
-      let weightedTqsSum = 0, weightedTqsCalls = 0;
+    function getLocalMetrics(month, period) {
+      const metricsList = [];
       
       Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => {
         if (name.includes('Промежуточный')) return;
-        const m = emp.months[currentMonth]; if (!m) return;
-        const d = _getEffectiveData(m);
-        if (!d) return;
-        if (d.tqs > 0) {
-          tqs += d.tqs;
-          tCount++;
-          // Взвешенный TQS для команды
-          const calls = Number(d.activity_count || 0);
-          if (calls > 0) {
-            weightedTqsSum += d.tqs * calls;
-            weightedTqsCalls += calls;
+        const m = emp.months?.[month];
+        if (!m) return;
+        
+        let periodsToAggregate = [];
+        if (period === 'Все' || period === 'Все периоды' || !period) {
+          periodsToAggregate = m.periods || [];
+        } else {
+          const p = m.periods?.find(x => x.period === period);
+          if (p) periodsToAggregate = [p];
+        }
+        
+        if (periodsToAggregate.length === 0) return;
+        
+        let totalTqs = 0;
+        let totalAhtSec = 0;
+        let ahtCount = 0;
+        let activityCount = 0;
+        let collectedAmount = 0;
+        let collectedCount = 0;
+        let totalPlanFulfillment = 0;
+        let totalCollectionRate = 0;
+        
+        const crmActions = {};
+        let crmActionsSummary = "";
+        let crmBehaviorPattern = "balanced";
+        let recommendations = "";
+        let svpScores = null;
+        
+        periodsToAggregate.forEach(p => {
+          if (p.tqs > 0) {
+            totalTqs += p.tqs;
+          }
+          activityCount += p.activity_count || 0;
+          
+          const ahtStr = p.aht;
+          if (ahtStr && ahtStr !== 'N/A') {
+            const parts = ahtStr.split(':');
+            if (parts.length === 2) {
+              totalAhtSec += parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+              ahtCount++;
+            }
+          }
+          
+          collectedAmount += p.collected_amount || 0;
+          collectedCount += p.collected_count || 0;
+          totalPlanFulfillment += p.plan_fulfillment || 0;
+          totalCollectionRate += p.collection_rate || 0;
+          
+          if (p.crm_actions) {
+            Object.entries(p.crm_actions).forEach(([k, v]) => {
+              crmActions[k] = (crmActions[k] || 0) + parseInt(v || 0, 10);
+            });
+          }
+          if (p.crm_actions_summary) crmActionsSummary = p.crm_actions_summary;
+          if (p.crm_behavior_pattern) crmBehaviorPattern = p.crm_behavior_pattern;
+          if (p.rec) recommendations = p.rec;
+          if (p.svp) svpScores = p.svp;
+        });
+        
+        const n = periodsToAggregate.length;
+        const avgTqs = n > 0 ? totalTqs / n : 0;
+        const avgAhtSec = ahtCount > 0 ? totalAhtSec / ahtCount : 0;
+        let avgAht = "N/A";
+        if (avgAhtSec > 0) {
+          const mins = Math.floor(avgAhtSec / 60);
+          const secs = Math.round(avgAhtSec % 60);
+          avgAht = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        const avgPlan = n > 0 ? totalPlanFulfillment / n : 0;
+        const avgRate = n > 0 ? totalCollectionRate / n : 0;
+        
+        const tqsNorm = Math.min(avgTqs, 1.0);
+        const rateNorm = Math.min(avgRate / 100.0, 1.0);
+        const activityFactor = Math.min(activityCount / 100.0, 1.5);
+        const effRatio = Math.round(tqsNorm * rateNorm * activityFactor * 100.0 * 100) / 100;
+        
+        const created = crmActions.tasks_created || 0;
+        const completed = crmActions.tasks_completed || 0;
+        const crmConsistency = created === 0 ? (completed > 0 ? 1.0 : 0.0) : Math.round((completed / created) * 100) / 100;
+        
+        metricsList.push({
+          "employee_name": name,
+          "tqs": Math.round(avgTqs * 100) / 100,
+          "aht": avgAht,
+          "activity_count": activityCount,
+          "svp_scores": svpScores || {},
+          "recommendations": recommendations,
+          
+          "collected_amount": Math.round(collectedAmount * 100) / 100,
+          "collected_count": collectedCount,
+          "collection_rate": Math.round(avgRate * 100) / 100,
+          "plan_fulfillment": Math.round(avgPlan * 100) / 100,
+          
+          "crm_actions": crmActions,
+          "crm_actions_summary": crmActionsSummary || "Сбалансированная рабочая логика",
+          "crm_behavior_pattern": crmBehaviorPattern || "balanced",
+          
+          "efficiency_ratio": effRatio,
+          "crm_consistency_score": crmConsistency
+        });
+      });
+      
+      let teamTqs = 0;
+      let totalAhtSec = 0;
+      let ahtCount = 0;
+      let totalCollected = 0;
+      let totalRate = 0;
+      let totalCrmRate = 0;
+      
+      metricsList.forEach(m => {
+        teamTqs += m.tqs;
+        totalCollected += m.collected_amount;
+        totalRate += m.collection_rate;
+        totalCrmRate += m.crm_consistency_score;
+        
+        const ahtStr = m.aht;
+        if (ahtStr && ahtStr !== 'N/A') {
+          const parts = ahtStr.split(':');
+          if (parts.length === 2) {
+            totalAhtSec += parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+            ahtCount++;
           }
         }
-        if (d.aht && d.aht !== 'N/A' && d.aht !== '00:00') {
-          const callCount = Number(d.activity_count || 1);
-          secs += _ahtToSecs(d.aht) * callCount;
-          aCount += callCount;
-        }
-        if (d.svp) {
-          let hasZeroSvp = Object.values(d.svp).some(v => v === 0);
-          if (hasZeroSvp && name) riskEmps.add(name);
-        }
       });
-      // Командный TQS рассчитывается как взвешенное среднее по звонкам
-      const teamTqs = weightedTqsCalls ? weightedTqsSum / weightedTqsCalls : (tCount ? tqs / tCount : 0);
-      if(document.getElementById('kpi-tqs')) document.getElementById('kpi-tqs').textContent = tCount ? (teamTqs * 100).toFixed(1) + '%' : '-';
-      const avgTqs = tCount ? tqs / tCount : 0;
-      if(document.getElementById('badge-tqs')) document.getElementById('badge-tqs').innerHTML = avgTqs >= 0.75 ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> Цель достигнута' : '⚠ Ниже цели';
-      if(document.getElementById('kpi-aht')) document.getElementById('kpi-aht').textContent = aCount ? _secsToAht(Math.round(secs / aCount)) : '-';
-      if(document.getElementById('kpi-risk')) document.getElementById('kpi-risk').textContent = riskEmps.size;
-      renderHeatmapByMode();
-      buildLineChart();
-      buildCharts();
-      buildGrowthTable();
-      buildLeaderboard();
-      buildTopBottomCharts();
       
-      if (selectedEmployee) showEmployee(selectedEmployee);
-      
-      if (document.getElementById('forecast-tqs') || document.getElementById('lineChart')) {
-          runForecastUpdate();
+      const avgTeamTqs = metricsList.length > 0 ? teamTqs / metricsList.length : 0;
+      const avgTeamAhtSec = ahtCount > 0 ? totalAhtSec / ahtCount : 0;
+      let avgTeamAht = "N/A";
+      if (avgTeamAhtSec > 0) {
+        const mins = Math.floor(avgTeamAhtSec / 60);
+        const secs = Math.round(avgTeamAhtSec % 60);
+        avgTeamAht = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
       }
+      const avgTeamRate = metricsList.length > 0 ? totalRate / metricsList.length : 0;
+      const avgTeamCrmRate = metricsList.length > 0 ? totalCrmRate / metricsList.length : 0;
+      
+      const teamAverages = {
+        "tqs": Math.round(avgTeamTqs * 100) / 100,
+        "aht": avgTeamAht,
+        "collected_amount": Math.round(totalCollected * 100) / 100,
+        "collection_rate": Math.round(avgTeamRate * 100) / 100,
+        "crm_completion_rate": Math.round(avgTeamCrmRate * 100) / 100
+      };
+      
+      function calculateJSCorrelation(list, pathX, pathY) {
+        function getNested(obj, path) {
+          const parts = path.split('.');
+          let current = obj;
+          for (let part of parts) {
+            if (current === null || current === undefined) return 0;
+            current = current[part];
+          }
+          return current || 0;
+        }
+        
+        const xs = list.map(item => getNested(item, pathX));
+        const ys = list.map(item => getNested(item, pathY));
+        
+        const pairs = [];
+        for (let i = 0; i < xs.length; i++) {
+          if (xs[i] !== 0 || ys[i] !== 0) {
+            pairs.push([xs[i], ys[i]]);
+          }
+        }
+        
+        if (pairs.length < 3) return 0.0;
+        
+        const filteredXs = pairs.map(p => p[0]);
+        const filteredYs = pairs.map(p => p[1]);
+        
+        const meanX = filteredXs.reduce((a, b) => a + b, 0) / filteredXs.length;
+        const meanY = filteredYs.reduce((a, b) => a + b, 0) / filteredYs.length;
+        
+        let cov = 0;
+        let varX = 0;
+        let varY = 0;
+        
+        for (let i = 0; i < pairs.length; i++) {
+          const dx = filteredXs[i] - meanX;
+          const dy = filteredYs[i] - meanY;
+          cov += dx * dy;
+          varX += dx * dx;
+          varY += dy * dy;
+        }
+        
+        if (varX === 0 || varY === 0) return 0.0;
+        return Math.round((cov / Math.sqrt(varX * varY)) * 100) / 100;
+      }
+      
+      const corrMetricsList = metricsList.map(m => {
+        let ahtSec = 0;
+        if (m.aht && m.aht !== 'N/A') {
+          const parts = m.aht.split(':');
+          if (parts.length === 2) {
+            ahtSec = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+          }
+        }
+        return { ...m, aht_numeric: ahtSec };
+      });
+      
+      const correlations = {
+        "tqs_vs_collections": calculateJSCorrelation(metricsList, "tqs", "collected_amount"),
+        "crm_promised_vs_collections": calculateJSCorrelation(metricsList, "crm_actions.promised_to_pay", "collected_amount"),
+        "aht_vs_collection_rate": calculateJSCorrelation(corrMetricsList, "aht_numeric", "collection_rate")
+      };
+      
+      return {
+        "period": period === "Все" ? month : `${month} - ${period}`,
+        "team_averages": teamAverages,
+        "correlations": correlations,
+        "data": metricsList
+      };
+    }
+
+    function renderKPIs(data) {
+      const averages = data.team_averages || {};
+      
+      const titleTqs = document.getElementById('title-tqs');
+      const titleAht = document.getElementById('title-aht');
+      const titleRisk = document.getElementById('title-risk');
+      const titleCollected = document.getElementById('title-collected');
+      const titleCrm = document.getElementById('title-crm');
+      const titleMainChart = document.getElementById('title-main-chart');
+      
+      let tqsValText = '-';
+      let tqsBadgeHtml = '-';
+      let ahtValText = '-';
+      let riskValText = '-';
+      let collectedValText = '-';
+      let collectionRateHtml = '-';
+      let crmCountValText = '-';
+      let dominantActionText = '-';
+      
+      if (currentViewMode === 'team' || !selectedEmployee) {
+        // TEAM MODE
+        if (titleTqs) titleTqs.textContent = 'Командный TQS';
+        if (titleAht) titleAht.textContent = 'Средний AHT';
+        if (titleRisk) titleRisk.textContent = 'Приоритет «0»';
+        if (titleCollected) titleCollected.innerHTML = `${SVG_ICONS.money}<span>Сборы команды</span>`;
+        if (titleCrm) titleCrm.innerHTML = `${SVG_ICONS.activity}<span>CRM-активность команды</span>`;
+        if (titleMainChart) titleMainChart.textContent = 'Progress Wave — Сравнение качества (TQS) и Сборов команды';
+        
+        tqsValText = averages.tqs ? (averages.tqs * 100).toFixed(1) + '%' : '-';
+        tqsBadgeHtml = averages.tqs >= 0.75 ? 
+          `${SVG_ICONS.target} Цель достигнута` : `${SVG_ICONS.warning} Ниже цели`;
+        
+        ahtValText = averages.aht || '-';
+        
+        let riskCount = 0;
+        if (data.data) {
+          data.data.forEach(op => {
+            if (op.svp_scores) {
+              const hasZeroSvp = Object.values(op.svp_scores).some(v => v === 0);
+              if (hasZeroSvp) riskCount++;
+            }
+          });
+        }
+        riskValText = riskCount;
+        
+        const colVal = averages.collected_amount || 0;
+        collectedValText = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'UZS', maximumFractionDigits: 0 }).format(colVal);
+        
+        const rate = averages.collection_rate || 0;
+        collectionRateHtml = `${rate.toFixed(1)}%`;
+        
+        let totalActions = 0;
+        if (data.data) {
+          data.data.forEach(op => {
+            if (op.crm_actions) {
+              Object.entries(op.crm_actions).forEach(([k, v]) => {
+                if (k !== 'tasks_created' && k !== 'tasks_completed' && k !== 'tasks_rolled_back' && k !== 'other') {
+                  totalActions += v;
+                }
+              });
+            }
+          });
+        }
+        crmCountValText = totalActions;
+        
+        const patterns = {};
+        if (data.data) {
+          data.data.forEach(op => {
+            const p = op.crm_behavior_pattern || 'balanced';
+            patterns[p] = (patterns[p] || 0) + 1;
+          });
+        }
+        let dominant = 'balanced';
+        let maxCount = 0;
+        Object.entries(patterns).forEach(([p, count]) => {
+          if (count > maxCount) {
+            maxCount = count;
+            dominant = p;
+          }
+        });
+        const patternLabels = {
+          'negotiator': 'Лидер',
+          'passive': 'Пассивный',
+          'avoidant': 'Избегающий',
+          'balanced': 'Норма'
+        };
+        dominantActionText = patternLabels[dominant] || 'Норма';
+      } else {
+        // PERSONAL MODE
+        const op = data.data ? data.data.find(x => x.employee_name === selectedEmployee) : null;
+        const shortName = shortN(selectedEmployee);
+        
+        if (titleTqs) titleTqs.textContent = `${shortName} - TQS`;
+        if (titleAht) titleAht.textContent = `${shortName} - AHT`;
+        if (titleRisk) titleRisk.textContent = `${shortName} - SVP`;
+        if (titleCollected) titleCollected.innerHTML = `${SVG_ICONS.money}<span>Сборы: ${shortName}</span>`;
+        if (titleCrm) titleCrm.innerHTML = `${SVG_ICONS.activity}<span>CRM: ${shortName}</span>`;
+        if (titleMainChart) titleMainChart.textContent = `Progress Wave — Сравнение TQS и Сборов: ${shortName}`;
+        
+        if (op) {
+          tqsValText = (op.tqs * 100).toFixed(1) + '%';
+          tqsBadgeHtml = op.tqs >= 0.75 ? 
+            `${SVG_ICONS.target} Цель достигнута` : `${SVG_ICONS.warning} Ниже цели`;
+          
+          ahtValText = op.aht || 'N/A';
+          
+          let criticalErrorsCount = 0;
+          if (op.svp_scores) {
+            criticalErrorsCount = Object.values(op.svp_scores).filter(v => v === 0).length;
+          }
+          riskValText = criticalErrorsCount === 0 ? 'В норме' : `${criticalErrorsCount} кр. ош.`;
+          
+          const colVal = op.collected_amount || 0;
+          collectedValText = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'UZS', maximumFractionDigits: 0 }).format(colVal);
+          
+          collectionRateHtml = `${Math.round(op.plan_fulfillment || 0)}%`;
+          
+          let opActions = 0;
+          if (op.crm_actions) {
+            Object.entries(op.crm_actions).forEach(([k, v]) => {
+              if (k !== 'tasks_created' && k !== 'tasks_completed' && k !== 'tasks_rolled_back' && k !== 'other') {
+                opActions += v;
+              }
+            });
+          }
+          crmCountValText = opActions;
+          
+          const patternLabels = {
+            'negotiator': 'Лидер',
+            'passive': 'Пассивный',
+            'avoidant': 'Избегающий',
+            'balanced': 'Норма'
+          };
+          dominantActionText = patternLabels[op.crm_behavior_pattern] || 'Норма';
+        }
+      }
+      
+      const kpiTqs = document.getElementById('kpi-tqs');
+      if (kpiTqs) kpiTqs.textContent = tqsValText;
+      const badgeTqs = document.getElementById('badge-tqs');
+      if (badgeTqs) {
+        badgeTqs.innerHTML = tqsBadgeHtml;
+        if (tqsBadgeHtml.includes('Цель достигнута')) {
+          badgeTqs.style.background = 'rgba(34,197,94,0.15)';
+          badgeTqs.style.color = '#4ade80';
+        } else if (tqsBadgeHtml !== '-') {
+          badgeTqs.style.background = 'rgba(239,68,68,0.15)';
+          badgeTqs.style.color = '#f87171';
+        } else {
+          badgeTqs.style.background = 'none';
+          badgeTqs.style.color = '#94a3b8';
+        }
+      }
+      
+      const kpiAht = document.getElementById('kpi-aht');
+      if (kpiAht) kpiAht.textContent = ahtValText;
+      
+      const kpiRisk = document.getElementById('kpi-risk');
+      if (kpiRisk) {
+        kpiRisk.textContent = riskValText;
+        if (riskValText === 'В норме' || riskValText === 0) {
+          kpiRisk.style.color = '#4ade80';
+        } else if (riskValText !== '-') {
+          kpiRisk.style.color = '#f87171';
+        }
+      }
+      
+      const totalCollectedEl = document.getElementById('total-collected');
+      if (totalCollectedEl) totalCollectedEl.textContent = collectedValText;
+      
+      const collectionRateEl = document.getElementById('collection-rate');
+      if (collectionRateEl) {
+        collectionRateEl.textContent = collectionRateHtml;
+        const rateVal = parseFloat(collectionRateHtml);
+        if (isNaN(rateVal)) {
+          collectionRateEl.style.background = 'rgba(255,255,255,0.05)';
+          collectionRateEl.style.color = '#94a3b8';
+        } else if (rateVal >= 80) {
+          collectionRateEl.style.background = 'rgba(34,197,94,0.15)';
+          collectionRateEl.style.color = '#4ade80';
+        } else if (rateVal >= 50) {
+          collectionRateEl.style.background = 'rgba(234,179,8,0.15)';
+          collectionRateEl.style.color = '#facc15';
+        } else {
+          collectionRateEl.style.background = 'rgba(239,68,68,0.15)';
+          collectionRateEl.style.color = '#f87171';
+        }
+      }
+      
+      const crmCountEl = document.getElementById('crm-actions-count');
+      if (crmCountEl) crmCountEl.textContent = crmCountValText;
+      
+      const dominantActionEl = document.getElementById('dominant-action');
+      if (dominantActionEl) dominantActionEl.textContent = dominantActionText;
+    }
+
+    function updateEmployeeSelect(dataPayload) {
+      const select = document.getElementById('employeeSelect');
+      if (!select) return;
+      
+      const prevVal = select.value || selectedEmployee;
+      select.innerHTML = '';
+      
+      const list = (dataPayload.data || []).filter(op => !op.employee_name.includes('Промежуточный'));
+      list.forEach(op => {
+        const opt = document.createElement('option');
+        opt.value = op.employee_name;
+        opt.textContent = op.employee_name;
+        select.appendChild(opt);
+      });
+      
+      if (list.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'Нет сотрудников';
+        select.appendChild(opt);
+      }
+      
+      if (prevVal && list.some(x => x.employee_name === prevVal)) {
+        select.value = prevVal;
+        selectedEmployee = prevVal;
+      } else if (list.length > 0) {
+        select.value = list[0].employee_name;
+        selectedEmployee = list[0].employee_name;
+      }
+      
+      select.onchange = (e) => {
+        selectedEmployee = e.target.value;
+        if (currentViewMode === 'personal') {
+          updateDashboard();
+        }
+      };
+    }
+
+    async function updateDashboard() {
+      try {
+        let dataPayload = null;
+        try {
+          const response = await fetch(`/api/metrics?month=${encodeURIComponent(currentMonth)}&period=${encodeURIComponent(currentPeriod)}`);
+          if (response.ok) {
+            dataPayload = await response.json();
+            console.log('[QC Dashboard] Loaded data via API');
+          }
+        } catch (e) {
+          console.warn('[QC Dashboard] API fetch failed, falling back to local computation:', e);
+        }
+        
+        if (!dataPayload) {
+          dataPayload = getLocalMetrics(currentMonth, currentPeriod);
+          console.log('[QC Dashboard] Loaded data via local fallback');
+        }
+        
+        window.CURRENT_METRICS_DATA = dataPayload;
+        
+        updateEmployeeSelect(dataPayload);
+        renderKPIs(dataPayload);
+        renderHeatmapByMode();
+        buildLineChart();
+        buildCharts();
+        buildCorrelationCharts();
+        buildGrowthTable();
+        
+        if (currentViewMode === 'personal' && selectedEmployee) {
+          showEmployee(selectedEmployee);
+        } else {
+          const el = document.getElementById('drilldownContent');
+          if (el) {
+            el.innerHTML = `<div style="color:#64748b;text-align:center;padding:40px 0;">Выберите оператора в таблице или на тепловой карте для детализации</div>`;
+          }
+        }
+        
+        if (document.getElementById('forecast-tqs') || document.getElementById('lineChart')) {
+          runForecastUpdate();
+        }
       } catch (e) {
         console.error('[updateDashboard failed]', e);
       }
@@ -764,7 +1301,7 @@ function toggleTheme() {
     function getSmartTooltip(periods) {
       if (!periods || !periods.length) return { text: "Нет данных", rank: -1, bg: '#64748b' };
       let worstRank = -1;
-      let worstText = "В норме ✅";
+      let worstText = "В норме";
       let worstBg = '#22c55e';
       SVP_KEYS.forEach(k => {
         let diag = getDiagnosticForCriterion(periods, k);
@@ -795,7 +1332,7 @@ function toggleTheme() {
         const periodsToAnalyze = currentPeriod === "Все" ? (m.periods || []) : [d];
 
         let border = name === selectedEmployee ? 'border:1px solid #a78bfa;background:rgba(167,139,250,0.1);' : '';
-        html += `<div style="display:flex;gap:2px;margin-bottom:2px;cursor:pointer;padding:2px;border-radius:4px;${border}" onclick="showEmployee('${name.replace(/'/g, "\\'")}')">`;
+        html += `<div style="display:flex;gap:2px;margin-bottom:2px;cursor:pointer;padding:2px;border-radius:4px;${border}" onclick="selectEmployee('${name.replace(/'/g, "\\'")}')">`;
         html += `<div style="width:160px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>`;
         SVP_KEYS.forEach(st => {
           const v = (d.svp[st] !== undefined) ? d.svp[st] : 1;
@@ -835,21 +1372,22 @@ function toggleTheme() {
       const colGap = isVeryNarrow ? 3 : 4;
       const minTableWidth = operatorWidth + scoreWidth + (SVP_KEYS.length * cellMinWidth) + (SVP_KEYS.length + 2) * colGap + 60;
 
-      const legendItems = [
-        { range: '0-24%', color: '#b91c1c', bg: 'rgba(185,28,28,0.22)', label: 'Несоответствие' },
-        { range: '25-49%', color: '#c2410c', bg: 'rgba(194,65,12,0.20)', label: 'Критическая просадка' },
-        { range: '50-64%', color: '#a16207', bg: 'rgba(161,98,7,0.20)', label: 'Систематическая недоработка' },
-        { range: '65-74%', color: '#a16207', bg: 'rgba(161,98,7,0.14)', label: 'Недоработка' },
-        { range: '75-84%', color: '#1d4ed8', bg: 'rgba(29,78,216,0.18)', label: 'Нестабильная отработка' },
-        { range: '85-99%', color: '#166534', bg: 'rgba(22,101,52,0.18)', label: 'Требует внимания' },
-        { range: '100%', color: '#14532d', bg: 'rgba(20,83,45,0.22)', label: 'Полное соответствие' }
+      const legendCategories = [
+        { range: '0-24%', val: 10, label: 'Несоответствие' },
+        { range: '25-49%', val: 35, label: 'Критическая просадка' },
+        { range: '50-64%', val: 55, label: 'Систематическая недоработка' },
+        { range: '65-74%', val: 70, label: 'Недоработка' },
+        { range: '75-84%', val: 80, label: 'Нестабильная отработка' },
+        { range: '85-99%', val: 90, label: 'Требует внимания' },
+        { range: '100%', val: 100, label: 'Полное соответствие' }
       ];
 
       let html = '<div class="pro-heatmap-legend">';
       html += '<div class="pro-heatmap-legend-title">Pro-диагноз по процентной шкале (7 уровней)</div>';
       html += '<div style="display:flex;flex-wrap:wrap;gap:7px;">';
-      legendItems.forEach(item => {
-        html += `<span style="font-size:10px;border-radius:7px;padding:5px 8px;background:${item.bg};color:${item.color};border:1px solid ${item.color}55;">${item.range}: ${item.label}</span>`;
+      legendCategories.forEach(item => {
+        const diag = getProDiagnosticByPercent(item.val);
+        html += `<span style="font-size:10px;border-radius:7px;padding:5px 8px;background:${diag.bg};color:${diag.color};border:1px solid ${diag.border};">${item.range}: ${item.label}</span>`;
       });
       html += '</div></div>';
 
@@ -857,6 +1395,8 @@ function toggleTheme() {
       html += `<div style="display:flex;gap:${colGap}px;margin-bottom:10px;font-size:${headerFont}px;font-weight:700;color:#94a3b8;letter-spacing:0.3px;"><div style="width:${operatorWidth}px">ОПЕРАТОР</div>`;
       SVP_KEYS.forEach(s => html += `<div style="flex:1;min-width:${cellMinWidth}px;text-align:center">${s.substring(0, 3)}</div>`);
       html += `<div style="width:${scoreWidth}px;text-align:center">Pro-score</div></div>`;
+
+      const isL = isLight();
 
       Object.keys(DASHBOARD_DATA).sort().forEach(name => {
         if (name.includes('Промежуточный')) return;
@@ -869,7 +1409,7 @@ function toggleTheme() {
         let criteriaCount = 0;
         const rowClass = 'pro-heatmap-row' + (name === selectedEmployee ? ' selected' : '');
 
-        html += `<div class="${rowClass}" style="gap:${colGap}px;padding:${rowPadding}px;border-radius:8px;transition:all .15s ease;" onclick="showEmployee('${name.replace(/'/g, "\\'")}')">`;
+        html += `<div class="${rowClass}" style="gap:${colGap}px;padding:${rowPadding}px;border-radius:8px;transition:all .15s ease;" onclick="selectEmployee('${name.replace(/'/g, "\\'")}')">`;
         html += `<div class="pro-heatmap-name" style="width:${operatorWidth}px;font-size:${nameFont}px;line-height:${cellHeight}px;">${name}</div>`;
 
         SVP_KEYS.forEach(st => {
@@ -878,13 +1418,29 @@ function toggleTheme() {
           const diag = getProDiagnosticByPercent(percent);
           rankSum += diag.rank;
           criteriaCount++;
-          html += `<div class="hm-tooltip" style="flex:1;min-width:${cellMinWidth}px;"><div style="background:${diag.color};height:${cellHeight}px;opacity:0.88;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#ffffff;font-size:${percentFont}px;font-weight:700;line-height:1;">${percent}%</div><div class="tt" style="white-space:pre-wrap;text-align:center;">${st}: ${percent}%\n${diag.text}</div></div>`;
+          html += `<div class="hm-tooltip" style="flex:1;min-width:${cellMinWidth}px;"><div class="pro-heatmap-cell" style="background:${diag.bg};border:1px solid ${diag.border};color:${diag.color};font-size:${percentFont}px;height:${cellHeight}px;">${percent}%</div><div class="tt" style="white-space:pre-wrap;text-align:center;">${st}: ${percent}%\n${diag.text}</div></div>`;
         });
 
         const proScore = criteriaCount ? ((rankSum / (criteriaCount * 6)) * 100) : 0;
-        const scoreColor = proScore >= 65 ? '#dc2626' : (proScore >= 40 ? '#c2410c' : (proScore >= 20 ? '#a16207' : '#166534'));
-        const scoreBg = proScore >= 65 ? 'rgba(220,38,38,0.16)' : (proScore >= 40 ? 'rgba(194,65,12,0.16)' : (proScore >= 20 ? 'rgba(161,98,7,0.16)' : 'rgba(22,101,52,0.16)'));
-        html += `<div style="width:${scoreWidth}px;display:flex;align-items:center;justify-content:center;"><span style="font-size:${scoreFont}px;font-weight:700;color:${scoreColor};background:${scoreBg};border:1px solid ${scoreColor}55;border-radius:8px;padding:${isVeryNarrow ? 5 : 6}px ${isVeryNarrow ? 8 : 10}px;min-width:${isVeryNarrow ? 74 : 82}px;text-align:center;">${proScore.toFixed(1)}%</span></div>`;
+        let scoreColor, scoreBg, scoreBorder;
+        if (proScore >= 65) {
+          scoreColor = isL ? '#dc2626' : '#f87171';
+          scoreBg = isL ? 'rgba(220,38,38,0.12)' : 'rgba(239,68,68,0.20)';
+          scoreBorder = isL ? 'rgba(220,38,38,0.22)' : 'rgba(239,68,68,0.35)';
+        } else if (proScore >= 40) {
+          scoreColor = isL ? '#c2410c' : '#fb923c';
+          scoreBg = isL ? 'rgba(194,65,12,0.12)' : 'rgba(249,115,22,0.16)';
+          scoreBorder = isL ? 'rgba(194,65,12,0.22)' : 'rgba(249,115,22,0.30)';
+        } else if (proScore >= 20) {
+          scoreColor = isL ? '#b45309' : '#facc15';
+          scoreBg = isL ? 'rgba(234,179,8,0.12)' : 'rgba(234,179,8,0.16)';
+          scoreBorder = isL ? 'rgba(234,179,8,0.22)' : 'rgba(234,179,8,0.30)';
+        } else {
+          scoreColor = isL ? '#14532d' : '#4ade80';
+          scoreBg = isL ? 'rgba(34, 197, 94, 0.12)' : 'rgba(34, 197, 94, 0.20)';
+          scoreBorder = isL ? 'rgba(34, 197, 94, 0.22)' : 'rgba(34, 197, 94, 0.35)';
+        }
+        html += `<div style="width:${scoreWidth}px;display:flex;align-items:center;justify-content:center;"><span style="font-size:${scoreFont}px;font-weight:700;color:${scoreColor};background:${scoreBg};border:1px solid ${scoreBorder};border-radius:8px;padding:${isVeryNarrow ? 5 : 6}px ${isVeryNarrow ? 8 : 10}px;min-width:${isVeryNarrow ? 74 : 82}px;text-align:center;box-sizing:border-box;">${proScore.toFixed(1)}%</span></div>`;
         html += '</div>';
       });
 
@@ -897,100 +1453,381 @@ function toggleTheme() {
 
     let drillPieChart = null;
     let drillTrendChart = null;
+    let drillCRMDoughnutChart = null;
+
+    function generateOperatorInsights(op) {
+      const insights = [];
+      const tqs = (op.tqs || 0) * 100;
+      const plan = op.plan_fulfillment || 0;
+      
+      if (tqs >= 85 && plan < 60) {
+        insights.push({
+          type: 'warning',
+          text: '<strong>Качество vs Деньги:</strong> Высокое качество разговора (TQS ' + tqs.toFixed(0) + '%) не дает сборов (план ' + plan.toFixed(0) + '%). Возможен формальный проход по скрипту. Требуется нажим на этапе Требования.'
+        });
+      } else if (tqs < 70 && plan >= 90) {
+        insights.push({
+          type: 'success',
+          text: '<strong>Качество vs Деньги:</strong> Отличные сборы (' + plan.toFixed(0) + '%) при низком TQS (' + tqs.toFixed(0) + '%). Оцените риски жалоб. Подтяните речевые стандарты.'
+        });
+      } else if (tqs >= 85 && plan >= 90) {
+        insights.push({
+          type: 'success',
+          text: '<strong>Идеальный баланс:</strong> Оператор отлично сочетает следование регламентам СВП и финансовую результативность.'
+        });
+      } else if (tqs < 70 && plan < 60) {
+        insights.push({
+          type: 'danger',
+          text: '<strong>Критическая зона:</strong> Провал по качеству переговоров и сборам. Назначьте индивидуальное прослушивание.'
+        });
+      }
+      
+      const created = op.crm_actions?.tasks_created || 0;
+      const completed = op.crm_actions?.tasks_completed || 0;
+      const completionRate = created > 0 ? completed / created : 0;
+      
+      if (created > 0 && completionRate < 0.6) {
+        insights.push({
+          type: 'danger',
+          text: '<strong>Дисциплина CRM:</strong> Низкая результативность контактов (' + (completionRate * 100).toFixed(0) + '%). Много тишины/сбросов.'
+        });
+      }
+      
+      if (op.crm_behavior_pattern === 'avoidant') {
+        insights.push({
+          type: 'info',
+          text: '<strong>CRM-паттерн "Избегающий":</strong> Высокая доля сбросов или молчания. Отработайте работу со сложными отказами.'
+        });
+      } else if (op.crm_behavior_pattern === 'passive') {
+        insights.push({
+          type: 'info',
+          text: '<strong>CRM-паттерн "Пассивный":</strong> Согласие с аргументами должника. Отработайте ст. 333 ГК РУз при финансовых возражениях.'
+        });
+      } else if (op.crm_behavior_pattern === 'negotiator') {
+        insights.push({
+          type: 'success',
+          text: '<strong>CRM-паттерн "Переговорщик":</strong> Стабильно берет обещания (PTP). Контролируйте их фактическую оплату.'
+        });
+      }
+      
+      return insights.length ? insights : [{ type: 'info', text: 'Показатели в пределах нормы. Продолжайте мониторинг.' }];
+    }
+
+    function selectEmployee(name) {
+      selectedEmployee = name;
+      const select = document.getElementById('employeeSelect');
+      if (select) select.value = name;
+      
+      if (currentViewMode !== 'personal') {
+        currentViewMode = 'personal';
+        localStorage.setItem('view-mode', 'personal');
+        const tabTeam = document.getElementById('tab-view-team');
+        const tabPersonal = document.getElementById('tab-view-personal');
+        if (tabTeam && tabPersonal) {
+          tabTeam.classList.remove('active');
+          tabPersonal.classList.add('active');
+        }
+        if (select) select.style.display = 'block';
+      }
+      updateDashboard();
+    }
 
     function showEmployee(name) {
       try {
-      selectedEmployee = name;
-      const empData = DASHBOARD_DATA[name];
-      if (!empData) return;
-      const m = empData.months[currentMonth];
-      const el = document.getElementById('drilldownContent');
-      if (!el) return;
-      if (!m) {
-        el.innerHTML = `<h4 style="color:#a78bfa;margin-bottom:12px">${name}</h4><p style="color:#64748b">Нет данных за ${currentMonth}</p>`;
-        return;
-      }
-      const d = _getEffectiveData(m);
-      if (!d) {
-        el.innerHTML = `<h4 style="color:#a78bfa;margin-bottom:12px">${name}</h4><p style="color:#64748b">Нет данных за период ${currentPeriod}</p>`;
-        return;
-      }
-      // Зоны роста из SVP данных текущего периода
-      let growthHtml = '';
-      if (d.svp) {
-        const problems = Object.entries(d.svp).filter(([k, v]) => v < 1);
-        if (problems.length) {
-          growthHtml = '<p style="margin-top:8px"><strong>Зоны роста:</strong><br>';
-          growthHtml += problems.map(([k, v]) => {
-            const cls = v === 0 ? 'badge-red' : 'badge-yellow';
-            return `<span class="kpi-badge ${cls}" style="margin:2px 2px 0 0">${k}: ${Math.round(v * 100)}%</span>`;
-          }).join('');
-          growthHtml += '</p>';
+        selectedEmployee = name;
+        
+        const select = document.getElementById('employeeSelect');
+        if (select) select.value = name;
+
+        const list = window.CURRENT_METRICS_DATA ? window.CURRENT_METRICS_DATA.data : [];
+        const op = list.find(x => x.employee_name === name);
+        const el = document.getElementById('drilldownContent');
+        if (!el) return;
+        if (!op) {
+          el.innerHTML = `<h4 style="color:#a78bfa;margin-bottom:12px">${name}</h4><p style="color:#64748b">Нет данных за выбранный период</p>`;
+          return;
         }
-      }
-      el.innerHTML = `<h4 style="color:#f97316;margin-bottom:12px;font-weight:800;">${name}</h4>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-    <div class="card" style="padding:10px"><small>TQS</small><br><strong>${d.tqs !== undefined ? (d.tqs * 100).toFixed(1) + '%' : 'N/A'}</strong></div>
-    <div class="card" style="padding:10px"><small>AHT</small><br><strong>${d.aht || 'N/A'}</strong></div>
-  </div>
-  <div style="text-align:left;font-size:11px">
-    <p style="margin-bottom:8px"><strong>Тенденции:</strong><br>${d.tendencies || 'Нет данных'}</p>
-    <p><strong>Рекомендации:</strong><br>${d.rec || 'Нет данных'}</p>
-    ${growthHtml}
-  </div>
-  <div style="display:grid;grid-template-columns:1fr;gap:16px;margin-top:20px;">
-    <div>
-        <div style="font-size:11px;color:#94a3b8;margin-bottom:8px;font-weight:600;text-align:left;">Распределение ошибок СВП:</div>
-        <div style="height:150px;position:relative;width:100%"><canvas id="drillPie"></canvas></div>
-    </div>
-    <div>
-        <div style="font-size:11px;color:#94a3b8;margin-bottom:8px;font-weight:600;text-align:left;">Динамика TQS (периоды месяца):</div>
-        <div style="height:120px;position:relative;width:100%"><canvas id="drillTrend"></canvas></div>
-    </div>
-  </div>
-  `;
-      
-      // Render Charts for Drilldown
-      if (drillPieChart) drillPieChart.destroy();
-      if (drillTrendChart) drillTrendChart.destroy();
 
-      if (d.svp) {
-         let pieLabels = [];
-         let pieData = [];
-         let pieColors = [];
-         SVP_KEYS.forEach(k => {
-            if(d.svp[k] !== undefined && d.svp[k] < 1) {
-                pieLabels.push(k.substring(0,25));
-                pieData.push(1 - d.svp[k]); // amount of error
-                pieColors.push(d.svp[k] <= 0.25 ? '#ef4444' : '#eab308');
+        // Зоны роста из SVP данных текущего периода
+        let growthHtml = '';
+        if (op.svp_scores) {
+          const problems = Object.entries(op.svp_scores).filter(([k, v]) => v < 1);
+          if (problems.length) {
+            growthHtml = '<p style="margin-top:10px;font-size:11px;"><strong>Зоны роста:</strong><br>';
+            growthHtml += problems.map(([k, v]) => {
+              const cls = v <= 0.25 ? 'badge-red' : 'badge-yellow';
+              return `<span class="kpi-badge ${cls}" style="margin:2px 2px 0 0">${k}: ${Math.round(v * 100)}%</span>`;
+            }).join('');
+            growthHtml += '</p>';
+          }
+        }
+
+        const insights = generateOperatorInsights(op);
+        const insightsHtml = insights.map(ins => {
+          let color = '#38bdf8';
+          let bg = 'rgba(56,189,248,0.08)';
+          let icon = SVG_ICONS.info;
+          if (ins.type === 'success') {
+            color = '#4ade80';
+            bg = 'rgba(34,197,94,0.08)';
+            icon = SVG_ICONS.success;
+          } else if (ins.type === 'warning') {
+            color = '#facc15';
+            bg = 'rgba(234,179,8,0.08)';
+            icon = SVG_ICONS.warning;
+          } else if (ins.type === 'danger') {
+            color = '#f87171';
+            bg = 'rgba(239,68,68,0.08)';
+            icon = SVG_ICONS.danger;
+          }
+          return `<li style="list-style:none;padding:8px 10px;margin-bottom:6px;border-radius:6px;background:${bg};border-left:3px solid ${color};color:#cbd5e1;display:flex;gap:8px;align-items:start;"><span style="display:inline-flex;color:${color};line-height:1;margin-top:2px;">${icon}</span><span style="font-size:10.5px;">${ins.text}</span></li>`;
+        }).join('');
+
+        // Calculate behavior spikes relative to team averages
+        const keysToAnalyze = ['promised_to_pay', 'refused_payment', 'thinking', 'declared_payment', 'hung_up', 'refused_conversation', 'silence'];
+        const keyLabels = {
+          promised_to_pay: 'Обещание платежа',
+          refused_payment: 'Отказ от оплаты',
+          thinking: 'Думает',
+          declared_payment: 'Заявленный платеж',
+          hung_up: 'Бросил трубку',
+          refused_conversation: 'Отказ от разговора',
+          silence: 'Тишина'
+        };
+        const psychologicalInterpretations = {
+          promised_to_pay: 'высокая убедительность, стабильное закрытие звонков на фиксацию обещания.',
+          refused_payment: 'агрессивные интонации, провоцирующие клиента на жесткий отказ, или слабая отработка возражений.',
+          thinking: 'неуверенность при закрытии сделки, зависание в аргументации, нерешительность.',
+          declared_payment: 'высокая результативность побуждения к действию, сильное дожимание.',
+          hung_up: 'избегание конфликтов, психологическая перегрузка или преждевременный сброс звонка.',
+          refused_conversation: 'неумение преодолевать первичный барьер, слабый/неубедительный вход в контакт.',
+          silence: 'растерянность, отсутствие инициативы, длительные неловкие паузы в диалоге.'
+        };
+
+        const teamKeyCounts = {
+          promised_to_pay: 0, refused_payment: 0, thinking: 0, declared_payment: 0, hung_up: 0, refused_conversation: 0, silence: 0
+        };
+        let teamTotal = 0;
+        list.forEach(item => {
+          if (item.crm_actions) {
+            keysToAnalyze.forEach(k => {
+              const v = item.crm_actions[k] || 0;
+              teamKeyCounts[k] += v;
+              teamTotal += v;
+            });
+          }
+        });
+
+        const teamShares = {};
+        keysToAnalyze.forEach(k => {
+          teamShares[k] = teamTotal > 0 ? (teamKeyCounts[k] / teamTotal) : 0;
+        });
+
+        const opCrm = op.crm_actions || {};
+        let opTotal = 0;
+        keysToAnalyze.forEach(k => {
+          opTotal += opCrm[k] || 0;
+        });
+
+        const opShares = {};
+        keysToAnalyze.forEach(k => {
+          opShares[k] = opTotal > 0 ? ((opCrm[k] || 0) / opTotal) : 0;
+        });
+
+        const spikes = [];
+        keysToAnalyze.forEach(k => {
+          const opShare = opShares[k];
+          const teamShare = teamShares[k];
+          if (teamShare > 0 && opShare >= 0.05) {
+            const ratio = opShare / teamShare;
+            if (ratio >= 1.5) {
+              spikes.push({
+                key: k,
+                label: keyLabels[k],
+                ratio: ratio,
+                opPct: opShare * 100,
+                teamPct: teamShare * 100
+              });
             }
-         });
-         
-         if(pieData.length > 0) {
-             const ctxPie = document.getElementById('drillPie').getContext('2d');
-             drillPieChart = new Chart(ctxPie, {
-                 type: 'doughnut',
-                 data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: pieColors, borderWidth: 1, borderColor: '#1e2435' }] },
-                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: thmC('#1e2435', '#ffffff'), titleColor: thmC('#f1f5f9', '#27272a'), bodyColor: thmC('#94a3b8', '#52525b') } }, cutout: '70%'}
-             });
-         } else {
-             document.getElementById('drillPie').parentElement.innerHTML = '<div style="color:#22c55e;font-size:12px;padding:20px;text-align:center;">Ошибок СВП нет ✅</div>';
-         }
-      }
+          }
+        });
 
-      const mAll = DASHBOARD_DATA[name].months[currentMonth];
-      if (mAll && mAll.periods) {
-          const trendLabels = mAll.periods.map(p => p.period);
-          const trendData = mAll.periods.map(p => p.tqs * 100);
-          const ctxTrend = document.getElementById('drillTrend').getContext('2d');
-          drillTrendChart = new Chart(ctxTrend, {
+        let spikesHtml = '';
+        if (spikes.length > 0) {
+          spikesHtml = '<div style="margin-top:12px;border-top:1px solid rgba(251,146,60,0.15);padding-top:10px;">';
+          spikesHtml += '<div style="font-size:10px;color:#fb923c;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:4px;">' + SVG_ICONS.warning + ' Выявленные всплески поведения:</div>';
+          spikesHtml += '<ul style="margin:0;padding:0;list-style:none;">';
+          spikes.forEach(s => {
+            const interpretation = psychologicalInterpretations[s.key] || '';
+            spikesHtml += `
+              <li style="font-size:10.5px;color:#cbd5e1;margin-bottom:6px;background:rgba(234,179,8,0.06);border-left:2px solid #eab308;padding:4px 8px;border-radius:0 4px 4px 0;">
+                <strong>${s.label}</strong> в <strong>${s.ratio.toFixed(1)}x</strong> чаще нормы по команде (${s.opPct.toFixed(0)}% vs ср. ${s.teamPct.toFixed(0)}%).<br>
+                <span style="color:#94a3b8;font-style:italic;">Интерпретация: ${interpretation}</span>
+              </li>`;
+          });
+          spikesHtml += '</ul></div>';
+        } else {
+          spikesHtml = '<div style="margin-top:12px;border-top:1px solid rgba(251,146,60,0.15);padding-top:10px;font-size:10.5px;color:#94a3b8;font-style:italic;text-align:center;">' +
+                       'Всплески и аномалии поведения не обнаружены (в пределах нормы по команде).</div>';
+        }
+
+        const patternLabelsWithSVGs = {
+          'negotiator': `<span style="display:inline-flex;align-items:center;gap:4px;color:#4ade80;">${SVG_ICONS.target} Лидер</span>`,
+          'passive': `<span style="display:inline-flex;align-items:center;gap:4px;color:#cbd5e1;">${SVG_ICONS.info} Пассивный</span>`,
+          'avoidant': `<span style="display:inline-flex;align-items:center;gap:4px;color:#f87171;">${SVG_ICONS.warning} Избегающий</span>`,
+          'balanced': `<span style="display:inline-flex;align-items:center;gap:4px;color:#4ade80;">${SVG_ICONS.success} Норма</span>`
+        };
+
+        el.innerHTML = `
+          <h4 style="color:#f97316;margin-bottom:12px;font-weight:800;text-align:center;">${name}</h4>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+            <div class="card" style="padding:10px;text-align:center;"><small style="color:#94a3b8;">TQS</small><br><strong style="font-size:16px;color:#a78bfa;">${(op.tqs * 100).toFixed(1)}%</strong></div>
+            <div class="card" style="padding:10px;text-align:center;"><small style="color:#94a3b8;">AHT</small><br><strong style="font-size:16px;color:#4ade80;">${op.aht || 'N/A'}</strong></div>
+          </div>
+          
+          <div class="card" style="padding:12px;margin-bottom:12px;text-align:left;border:1px solid rgba(56,189,248,0.2);background:rgba(56,189,248,0.02);box-shadow:none;">
+            <h5 style="color:#38bdf8;margin:0 0 8px 0;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;">${SVG_ICONS.money} Финансовая эффективность</h5>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;margin-bottom:6px;">
+              <span style="color:#94a3b8;">Собрано:</span>
+              <strong style="color:#e2e8f0;margin-left:auto;">${new Intl.NumberFormat('ru-RU', {style: 'currency', currency: 'UZS', maximumFractionDigits: 0}).format(op.collected_amount || 0)}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;margin-bottom:6px;">
+              <span style="color:#94a3b8;">Выполнение плана:</span>
+              <span style="color:#e2e8f0;margin-left:auto;font-weight:700;">${Math.round(op.plan_fulfillment || 0)}%</span>
+            </div>
+            <div style="margin-bottom:8px;background:rgba(255,255,255,0.05);height:6px;border-radius:3px;overflow:hidden;">
+              <div style="background:#38bdf8;width:${Math.min(100, Math.max(0, op.plan_fulfillment || 0))}%;height:100%;border-radius:3px;transition:width 0.3s ease;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;">
+              <span style="color:#94a3b8;">Средний чек:</span>
+              <strong style="color:#e2e8f0;margin-left:auto;">${new Intl.NumberFormat('ru-RU', {style: 'currency', currency: 'UZS', maximumFractionDigits: 0}).format((op.collected_amount && op.collected_count) ? Math.round(op.collected_amount / op.collected_count) : 0)}</strong>
+            </div>
+          </div>
+          
+          <div class="card" style="padding:12px;margin-bottom:12px;text-align:left;border:1px solid rgba(251,146,60,0.2);background:rgba(251,146,60,0.02);box-shadow:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:6px;">
+              <h5 style="color:#fb923c;margin:0;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;">${SVG_ICONS.activity} CRM-поведение</h5>
+              <span class="kpi-badge" style="margin:0;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:800;text-transform:uppercase;background:rgba(251,146,60,0.15);color:#fb923c;border:1px solid rgba(251,146,60,0.3);display:inline-flex;align-items:center;height:18px;">
+                ${patternLabelsWithSVGs[op.crm_behavior_pattern] || '❓ Не определено'}
+              </span>
+            </div>
+            <p style="font-size:11px;color:#cbd5e1;line-height:1.4;margin:0 0 10px 0;font-style:italic;">${op.crm_actions_summary || 'Нет данных'}</p>
+            <div style="font-size:10px;color:#94a3b8;margin-bottom:4px;font-weight:600;">Типы CRM действий:</div>
+            <div style="height:120px;position:relative;width:100%;margin-bottom:8px;"><canvas id="drillCRMDoughnut"></canvas></div>
+            ${spikesHtml}
+          </div>
+          
+          <div class="card" style="padding:12px;margin-bottom:12px;text-align:left;border:1px solid rgba(167,139,250,0.2);background:rgba(167,139,250,0.02);box-shadow:none;">
+            <h5 style="color:#a78bfa;margin:0 0 8px 0;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;">${SVG_ICONS.brain} Стратегический коучинг</h5>
+            <ul style="margin:0;padding:0;" id="op-strategy-insights">
+              ${insightsHtml}
+            </ul>
+          </div>
+          
+          <div class="card" style="padding:12px;text-align:left;box-shadow:none;">
+            <h5 style="color:#e2e8f0;margin:0 0 8px 0;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;">${SVG_ICONS.trend} Анализ качества переговоров</h5>
+            <p style="font-size:11px;margin:0 0 6px 0;"><strong>Тенденции:</strong><br><span style="color:#cbd5e1;">${op.tendencies || 'Нет данных'}</span></p>
+            <p style="font-size:11px;margin:0 0 10px 0;"><strong>Рекомендации QC:</strong><br><span style="color:#cbd5e1;">${op.recommendations || 'Нет данных'}</span></p>
+            ${growthHtml}
+            
+            <div style="font-size:10px;color:#94a3b8;margin-top:14px;margin-bottom:4px;font-weight:600;">Просадки по критериям:</div>
+            <div style="height:120px;position:relative;width:100%;margin-bottom:12px;"><canvas id="drillPie"></canvas></div>
+            
+            <div style="font-size:10px;color:#94a3b8;margin-bottom:4px;font-weight:600;">Динамика TQS за месяц:</div>
+            <div style="height:100px;position:relative;width:100%;"><canvas id="drillTrend"></canvas></div>
+          </div>
+        `;
+        
+        // Render Charts for Drilldown
+        if (drillPieChart) drillPieChart.destroy();
+        if (drillTrendChart) drillTrendChart.destroy();
+        if (drillCRMDoughnutChart) drillCRMDoughnutChart.destroy();
+
+        // 1. SVP Error Chart
+        if (op.svp_scores) {
+          let pieLabels = [];
+          let pieData = [];
+          let pieColors = [];
+          SVP_KEYS.forEach(k => {
+            if(op.svp_scores[k] !== undefined && op.svp_scores[k] < 1) {
+              pieLabels.push(k.substring(0,25));
+              pieData.push(1 - op.svp_scores[k]);
+              pieColors.push(op.svp_scores[k] <= 0.25 ? '#ef4444' : '#eab308');
+            }
+          });
+          
+          if(pieData.length > 0) {
+            const ctxPie = document.getElementById('drillPie').getContext('2d');
+            drillPieChart = new Chart(ctxPie, {
+              type: 'doughnut',
+              data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: pieColors, borderWidth: 1, borderColor: '#1e2435' }] },
+              options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: thmC('#1e2435', '#ffffff'), titleColor: thmC('#f1f5f9', '#27272a'), bodyColor: thmC('#94a3b8', '#52525b') } }, cutout: '70%'}
+            });
+          } else {
+            document.getElementById('drillPie').parentElement.innerHTML = `<div style="color:#22c55e;font-size:12px;padding:20px;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;">Ошибок СВП нет <span style="display:inline-flex;color:#22c55e;line-height:1;">${SVG_ICONS.success}</span></div>`;
+          }
+        }
+
+        // 2. CRM Actions Chart
+        const crm = op.crm_actions || {};
+        const crmKeys = ['promised_to_pay', 'refused_payment', 'thinking', 'declared_payment', 'hung_up', 'refused_conversation', 'silence'];
+        const crmLabels = ['Обещание платежа', 'Отказ от оплаты', 'Думает', 'Заявленный платеж', 'Бросил трубку', 'Отказ от разговора', 'Тишина'];
+        const crmColors = ['#22c55e', '#ef4444', '#facc15', '#06b6d4', '#ea580c', '#ec4899', '#94a3b8'];
+        const crmData = crmKeys.map(k => crm[k] || 0);
+        
+        const totalCRM = crmData.reduce((a, b) => a + b, 0);
+        if (totalCRM > 0) {
+          const ctxCRM = document.getElementById('drillCRMDoughnut').getContext('2d');
+          drillCRMDoughnutChart = new Chart(ctxCRM, {
+            type: 'doughnut',
+            data: {
+              labels: crmLabels,
+              datasets: [{
+                data: crmData,
+                backgroundColor: crmColors,
+                borderWidth: 1,
+                borderColor: '#1e2435'
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: thmC('#1e2435', '#ffffff'),
+                  titleColor: thmC('#f1f5f9', '#27272a'),
+                  bodyColor: thmC('#94a3b8', '#52525b'),
+                  callbacks: {
+                    label: c => c.label + ': ' + c.parsed + ' (' + ((c.parsed / totalCRM) * 100).toFixed(0) + '%)'
+                  }
+                }
+              },
+              cutout: '70%'
+            }
+          });
+        } else {
+          document.getElementById('drillCRMDoughnut').parentElement.innerHTML = '<div style="color:#64748b;font-size:12px;padding:20px;text-align:center;">Нет данных CRM за этот период</div>';
+        }
+
+        // 3. Operator TQS Monthly Dynamics Chart
+        const empData = DASHBOARD_DATA[name];
+        if (empData && empData.months && empData.months[currentMonth]) {
+          const mAll = empData.months[currentMonth];
+          if (mAll && mAll.periods) {
+            const trendLabels = mAll.periods.map(p => p.period);
+            const trendData = mAll.periods.map(p => p.tqs * 100);
+            const ctxTrend = document.getElementById('drillTrend').getContext('2d');
+            drillTrendChart = new Chart(ctxTrend, {
               type: 'line',
               data: { labels: trendLabels, datasets: [{ label: 'TQS %', data: trendData, borderColor: '#f97316', backgroundColor: '#f9731622', fill: true, tension: 0.4, pointRadius: 3 }] },
               options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { min: 30, max: 100, ticks: { color: thmC('#64748b', '#71717a'), font: {size: 9} } } } }
-          });
-      }
-
-      renderHeatmapByMode();
+            });
+          }
+        }
+        
+        renderHeatmapByMode();
       } catch (e) {
         console.error('[showEmployee failed]', e);
         const el = document.getElementById('drilldownContent');
@@ -1000,6 +1837,8 @@ function toggleTheme() {
 
 
     let lineChartInstance = null;
+    let scatterChartInstance = null;
+    let crmBarChartInstance = null;
     const LINE_COLORS = ['#a78bfa', '#4ade80', '#f87171', '#facc15', '#60a5fa', '#fb923c', '#34d399', '#e879f9', '#94a3b8', '#ffba08', '#818cf8', '#f472b6', '#2dd4bf', '#fbbf24', '#c084fc', '#22d3ee', '#fb7185', '#a3e635', '#e2e8f0', '#f97316'];
 
     function shortN(name) {
@@ -1010,61 +1849,149 @@ function toggleTheme() {
     function buildLineChart() {
       const canvas = document.getElementById('lineChart');
       if (!canvas) return;
-      // Skip if this is the forecast page (it has its own area chart)
       if (window.location.pathname.includes('forecast') || document.title.includes('Прогнозирование')) return;
       
       const ctx = canvas.getContext('2d');
       if (lineChartInstance) lineChartInstance.destroy();
-
-      const monthData = {};
-      Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => {
-        if (name.includes('Промежуточный')) return;
-        const m = emp.months[currentMonth];
-        if (!m || !m.periods || !m.periods.length) return;
-        monthData[name] = m.periods.map(p => ({ period: p.period, tqs: p.tqs * 100 })); // Convert to 0-100
-      });
-
-      if (!Object.keys(monthData).length) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        return;
-      }
-
-      const periodLabels = [...new Set(Object.values(monthData).flatMap(ps => ps.map(p => p.period)))].sort();
-      const datasets = Object.entries(monthData).map(([name, ps], i) => {
-        // Map TQS strictly by matching periods. Push null if completely missing or tqs essentially 0 unrecorded
-        const dataArr = periodLabels.map(lbl => {
-          const e = ps.find(p => p.period === lbl);
-          return (e && e.tqs > 0) ? e.tqs : null;
+      
+      let periods = [];
+      const avgTqs = [];
+      const totalCollections = [];
+      
+      if (currentViewMode === 'team' || !selectedEmployee) {
+        // TEAM MODE
+        const periodsSet = new Set();
+        Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => {
+          if (name.includes('Промежуточный')) return;
+          const m = emp.months?.[currentMonth];
+          if (m && m.periods) {
+            m.periods.forEach(p => periodsSet.add(p.period));
+          }
         });
-
-        return {
-          label: shortN(name),
-          data: dataArr,
-          borderColor: LINE_COLORS[i % LINE_COLORS.length],
-          backgroundColor: LINE_COLORS[i % LINE_COLORS.length] + '22',
-          borderWidth: 2,
-          pointRadius: 4,
-          pointHoverRadius: 7,
-          tension: 0.4,
-          spanGaps: true // Ensure lines connect!
-        };
-      });
-
+        
+        periods = Array.from(periodsSet).sort();
+        if (!periods.length) return;
+        
+        periods.forEach(p => {
+          let tqsSum = 0;
+          let tqsCalls = 0;
+          let tqsCount = 0;
+          let collectionsSum = 0;
+          
+          Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => {
+            if (name.includes('Промежуточный')) return;
+            const m = emp.months?.[currentMonth];
+            if (!m || !m.periods) return;
+            const entry = m.periods.find(x => x.period === p);
+            if (!entry) return;
+            
+            if (entry.tqs > 0) {
+              const calls = Number(entry.activity_count || 1);
+              tqsSum += entry.tqs * calls;
+              tqsCalls += calls;
+              tqsCount++;
+            }
+            collectionsSum += entry.collected_amount || 0;
+          });
+          
+          const avgTqsVal = tqsCalls ? tqsSum / tqsCalls : (tqsCount ? tqsSum / tqsCount : 0);
+          avgTqs.push(Math.round(avgTqsVal * 100 * 10) / 10);
+          totalCollections.push(collectionsSum);
+        });
+      } else {
+        // PERSONAL MODE
+        const emp = DASHBOARD_DATA[selectedEmployee];
+        if (!emp || !emp.months) return;
+        const m = emp.months[currentMonth];
+        if (!m || !m.periods) return;
+        
+        const sortedPeriods = m.periods.slice().sort((a, b) => a.period.localeCompare(b.period));
+        periods = sortedPeriods.map(p => p.period);
+        sortedPeriods.forEach(p => {
+          avgTqs.push(Math.round((p.tqs || 0) * 100 * 10) / 10);
+          totalCollections.push(p.collected_amount || 0);
+        });
+      }
+      
+      if (!periods.length) return;
+      
       lineChartInstance = new Chart(ctx, {
         type: 'line',
-        data: { labels: periodLabels, datasets },
+        data: {
+          labels: periods,
+          datasets: [
+            {
+              label: currentViewMode === 'team' ? 'Командный TQS (%)' : 'Личный TQS (%)',
+              data: avgTqs,
+              borderColor: '#a78bfa',
+              backgroundColor: 'rgba(167, 139, 250, 0.15)',
+              borderWidth: 3,
+              pointRadius: 5,
+              tension: 0.4,
+              yAxisID: 'y'
+            },
+            {
+              label: currentViewMode === 'team' ? 'Сборы команды (UZS)' : 'Личные сборы (UZS)',
+              data: totalCollections,
+              borderColor: '#38bdf8',
+              backgroundColor: 'rgba(56, 189, 248, 0.15)',
+              borderWidth: 3,
+              pointRadius: 5,
+              tension: 0.4,
+              yAxisID: 'y1'
+            }
+          ]
+        },
         options: {
-          responsive: true, maintainAspectRatio: false,
+          responsive: true,
+          maintainAspectRatio: false,
           plugins: {
-            legend: { labels: { color: thmC('#94a3b8', '#71717a'), font: { size: 10 } } },
+            legend: { labels: { color: thmC('#94a3b8', '#71717a'), font: { size: 11 } } },
             tooltip: {
-              backgroundColor: thmC('#1e2435', '#ffffff'), borderColor: thmC('#2d3748', '#e4e4e7'), borderWidth: 1, titleColor: thmC('#f1f5f9', '#27272a'), bodyColor: thmC('#94a3b8', '#52525b'),
-              callbacks: { label: c => c.dataset.label + ': ' + (c.parsed.y !== null ? c.parsed.y.toFixed(1) + '%' : '—') }
+              backgroundColor: thmC('#1e2435', '#ffffff'),
+              borderColor: thmC('#2d3748', '#e4e4e7'),
+              borderWidth: 1,
+              titleColor: thmC('#f1f5f9', '#27272a'),
+              bodyColor: thmC('#94a3b8', '#52525b'),
+              callbacks: {
+                label: c => {
+                  if (c.datasetIndex === 0) {
+                    return c.dataset.label + ': ' + c.parsed.y.toFixed(1) + '%';
+                  }
+                  return c.dataset.label + ': ' + new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'UZS', maximumFractionDigits: 0 }).format(c.parsed.y);
+                }
+              }
             }
           },
           scales: {
-            x: { grid: { color: thmC('#1e2435', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) }, ticks: { color: thmC('#64748b', '#71717a'), font: { size: 10 } } },
-            y: { min: 30, max: 100, grid: { color: thmC('#232b3e', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) }, ticks: { color: thmC('#64748b', '#71717a'), font: { size: 10 }, callback: v => v + '%' } }
+            x: {
+              grid: { color: thmC('#1e2435', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) },
+              ticks: { color: thmC('#64748b', '#71717a'), font: { size: 10 } }
+            },
+            y: {
+              type: 'linear',
+              position: 'left',
+              min: 30,
+              max: 100,
+              grid: { color: thmC('#232b3e', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) },
+              ticks: {
+                color: thmC('#64748b', '#71717a'),
+                font: { size: 10 },
+                callback: v => v + '%'
+              },
+              title: { display: true, text: 'Качество (TQS)', color: thmC('#94a3b8', '#71717a') }
+            },
+            y1: {
+              type: 'linear',
+              position: 'right',
+              grid: { drawOnChartArea: false },
+              ticks: {
+                color: thmC('#64748b', '#71717a'),
+                font: { size: 10 },
+                callback: v => new Intl.NumberFormat('ru-RU', { notation: 'compact', compactDisplay: 'short' }).format(v)
+              },
+              title: { display: true, text: 'Сборы (UZS)', color: thmC('#94a3b8', '#71717a') }
+            }
           }
         }
       });
@@ -1077,7 +2004,7 @@ function toggleTheme() {
       let labels = [], data = [], colors = [];
       Object.keys(DASHBOARD_DATA).sort().forEach(name => {
         if(name.includes('Промежуточный')) return;
-        const m = DASHBOARD_DATA[name].months[currentMonth]; if (!m) return;
+        const m = DASHBOARD_DATA[name]?.months?.[currentMonth]; if (!m) return;
         const d = _getEffectiveData(m);
         if (!d || !d.svp) return; // показываем всех, у кого есть данные
         const t = (d.tqs || 0) * 100; // Convert 0-1 to 0-100
@@ -1103,6 +2030,205 @@ function toggleTheme() {
           }
         }
       });
+    }
+
+    function buildCorrelationCharts() {
+      const scatterEl = document.getElementById('tqs-collections-scatter');
+      const barEl = document.getElementById('crm-conversion-bar');
+      
+      const metrics = window.CURRENT_METRICS_DATA || { data: [], correlations: {} };
+      const list = metrics.data || [];
+      
+      // 1. Scatter Chart
+      if (scatterEl) {
+        const ctx = scatterEl.getContext('2d');
+        if (scatterChartInstance) scatterChartInstance.destroy();
+        
+        const patternColors = {
+          'negotiator': 'rgba(34, 197, 94, 0.85)',
+          'passive': 'rgba(239, 68, 68, 0.85)',
+          'avoidant': 'rgba(234, 179, 8, 0.85)',
+          'balanced': 'rgba(59, 130, 246, 0.85)'
+        };
+        const patternBorders = {
+          'negotiator': '#22c55e',
+          'passive': '#ef4444',
+          'avoidant': '#eab308',
+          'balanced': '#3b82f6'
+        };
+        
+        const scatterData = list.map(op => ({
+          x: Math.round((op.tqs || 0) * 100 * 10) / 10,
+          y: op.collected_amount || 0,
+          name: op.employee_name,
+          pattern: op.crm_behavior_pattern || 'balanced'
+        }));
+        
+        scatterChartInstance = new Chart(ctx, {
+          type: 'scatter',
+          data: {
+            datasets: [{
+              label: 'Операторы',
+              data: scatterData,
+              backgroundColor: ctx => {
+                const item = ctx.raw;
+                return item ? patternColors[item.pattern] : 'rgba(59, 130, 246, 0.85)';
+              },
+              borderColor: ctx => {
+                const item = ctx.raw;
+                return item ? patternBorders[item.pattern] : '#3b82f6';
+              },
+              borderWidth: 1.5,
+              pointRadius: 6,
+              pointHoverRadius: 8
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: thmC('#1e2435', '#ffffff'),
+                borderColor: thmC('#2d3748', '#e4e4e7'),
+                borderWidth: 1,
+                titleColor: thmC('#f1f5f9', '#27272a'),
+                bodyColor: thmC('#94a3b8', '#52525b'),
+                callbacks: {
+                  label: c => {
+                    const item = c.raw;
+                    const patterns = { negotiator: 'Переговорщик', passive: 'Пассивный', avoidant: 'Избегающий', balanced: 'Сбалансированный' };
+                    return [
+                      `Сотрудник: ${item.name}`,
+                      `TQS: ${item.x}%`,
+                      `Сборы: ${new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'UZS', maximumFractionDigits: 0 }).format(item.y)}`,
+                      `Паттерн: ${patterns[item.pattern]}`
+                    ];
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                min: 30,
+                max: 100,
+                grid: { color: thmC('#232b3e', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) },
+                ticks: { color: thmC('#64748b', '#71717a'), font: { size: 10 }, callback: v => v + '%' },
+                title: { display: true, text: 'Качество разговора (TQS)', color: thmC('#94a3b8', '#71717a') }
+              },
+              y: {
+                grid: { color: thmC('#232b3e', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) },
+                ticks: {
+                  color: thmC('#64748b', '#71717a'),
+                  font: { size: 10 },
+                  callback: v => new Intl.NumberFormat('ru-RU', { notation: 'compact', compactDisplay: 'short' }).format(v)
+                },
+                title: { display: true, text: 'Сумма сбора (UZS)', color: thmC('#94a3b8', '#71717a') }
+              }
+            }
+          }
+        });
+        
+        const insightEl = document.getElementById('tqs-collections-insight');
+        if (insightEl) {
+          const r = metrics.correlations?.tqs_vs_collections || 0;
+          let strength = 'слабая';
+          let dir = 'отсутствует';
+          if (Math.abs(r) > 0.6) strength = 'сильная';
+          else if (Math.abs(r) > 0.3) strength = 'умеренная';
+          
+          if (r > 0.1) dir = 'положительная (чем выше TQS, тем выше сборы)';
+          else if (r < -0.1) dir = 'отрицательная (рост TQS снижает сборы)';
+          else dir = 'отсутствует (TQS не влияет на сборы)';
+          
+          insightEl.innerHTML = `<strong>Коэффициент корреляции Пирсона r = ${r.toFixed(2)}</strong> (${strength} ${dir})`;
+        }
+      }
+      
+      // 2. CRM conversion bar chart
+      if (barEl) {
+        const ctx = barEl.getContext('2d');
+        if (crmBarChartInstance) crmBarChartInstance.destroy();
+        
+        const totals = {
+          promised_to_pay: 0,
+          refused_payment: 0,
+          thinking: 0,
+          declared_payment: 0,
+          hung_up: 0,
+          refused_conversation: 0,
+          silence: 0
+        };
+        
+        let targetName = "";
+        if (currentViewMode === 'personal' && selectedEmployee) {
+          const op = list.find(x => x.employee_name === selectedEmployee);
+          if (op && op.crm_actions) {
+            Object.keys(totals).forEach(k => {
+              totals[k] = op.crm_actions[k] || 0;
+            });
+            targetName = selectedEmployee;
+          }
+        } else {
+          list.forEach(op => {
+            if (op.crm_actions) {
+              Object.keys(totals).forEach(k => {
+                totals[k] += op.crm_actions[k] || 0;
+              });
+            }
+          });
+        }
+        
+        const titleEl = document.getElementById('title-crm-chart');
+        if (titleEl) {
+          if (currentViewMode === 'personal' && targetName) {
+            titleEl.textContent = `Распределение CRM-действий сотрудника: ${shortN(targetName)}`;
+          } else {
+            titleEl.textContent = 'Распределение CRM-действий по всей команде';
+          }
+        }
+        
+        const labels = ['Обещание платежа', 'Отказ от оплаты', 'Думает', 'Заявленный платеж', 'Бросил трубку', 'Отказ от разговора', 'Тишина'];
+        const values = [totals.promised_to_pay, totals.refused_payment, totals.thinking, totals.declared_payment, totals.hung_up, totals.refused_conversation, totals.silence];
+        const colors = ['#22c55e', '#ef4444', '#facc15', '#06b6d4', '#ea580c', '#ec4899', '#94a3b8'];
+        
+        crmBarChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Кол-во действий',
+              data: values,
+              backgroundColor: colors,
+              borderRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: thmC('#1e2435', '#ffffff'),
+                borderColor: thmC('#2d3748', '#e4e4e7'),
+                borderWidth: 1,
+                titleColor: thmC('#f1f5f9', '#27272a'),
+                bodyColor: thmC('#94a3b8', '#52525b')
+              }
+            },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: thmC('#64748b', '#71717a'), font: { size: 9 }, maxRotation: 45 }
+              },
+              y: {
+                grid: { color: thmC('#232b3e', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) },
+                ticks: { color: thmC('#64748b', '#71717a'), font: { size: 10 } }
+              }
+            }
+          }
+        });
+      }
     }
 
     function buildGrowthTable() {
@@ -1158,7 +2284,7 @@ function toggleTheme() {
 
       let html = '';
       empProblems.forEach(ep => {
-        html += `<tr style="cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);" onclick="showEmployee('${ep.name.replace(/'/g, "\\'")}')">
+        html += `<tr style="cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);" onclick="selectEmployee('${ep.name.replace(/'/g, "\\'")}')">
           <td style="font-weight:600;vertical-align:top;padding-top:14px;">${ep.name}</td>
           <td style="vertical-align:top;padding-top:14px;">${ep.tqs !== undefined && ep.tqs !== null ? (ep.tqs * 100).toFixed(1) + '%' : '—'}</td>
           <td style="vertical-align:top;padding-top:14px;">${ep.critHtml}</td>
@@ -1301,7 +2427,7 @@ function toggleTheme() {
 
         let rankColor = idx === 0 ? '#fbbf24' : (idx === 1 ? '#94a3b8' : (idx === 2 ? '#b45309' : '#4a5568'));
 
-        html += `<tr style="cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);" onclick="showEmployee('${ep.name.replace(/'/g, "\\'")}')">
+        html += `<tr style="cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);" onclick="selectEmployee('${ep.name.replace(/'/g, "\\'")}')">
           <td style="font-weight:800;color:${rankColor};font-size:14px;">${idx + 1}</td>
           <td style="font-weight:600;">${ep.name}</td>
           <td style="font-weight:800;color:${thmC('#e2e8f0','#18181b')};">${ep.tqs.toFixed(1)}%</td>
@@ -1385,7 +2511,7 @@ function toggleTheme() {
       const empDataList = [];
       Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => {
         if(name.includes('Промежуточный')) return;
-        const m = emp.months[currentMonth]; if (!m) return;
+        const m = emp.months?.[currentMonth]; if (!m) return;
         
         // Используем выбранный период для рейтинга
         let d;
@@ -1434,10 +2560,10 @@ function toggleTheme() {
         buildLeaderboard();
         buildTopBottomCharts();
       } else {
-        updateDashboard();
+        setViewMode(currentViewMode);
       }
     });
-    window.showSection = showSection; window.toggleTheme = toggleTheme; window.showEmployee = showEmployee;
+    window.showSection = showSection; window.toggleTheme = toggleTheme; window.showEmployee = showEmployee; window.selectEmployee = selectEmployee;
     window.openLawModal = openLawModal; window.closeLawModal = closeLawModal; window.copyScript = copyScript;
     window.filterObj = filterObj; window.toggleAcc = toggleAcc; window.openLawByName = openLawByName;
     window.toggleSidebar = toggleSidebar;

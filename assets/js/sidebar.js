@@ -7,7 +7,7 @@ function initSidebar(activeId) {
       <div class="hamburger" onclick="toggleSidebar()" style="cursor: pointer; font-size: 20px; color: #f97316;">\u2630</div>
     </div>
 
-    <div style="padding:10px 0; overflow-y: auto; height:calc(100vh - 140px); overflow-x:hidden;">
+    <div style="padding:10px 0; overflow-y: auto; flex: 1; overflow-x:hidden;">
       <div class="nav-section-title">\u041e\u041f\u0415\u0420\u0410\u0426\u0418\u041e\u041d\u041d\u042b\u0415 \u041f\u041e\u041a\u0410\u0417\u0410\u0422\u0415\u041b\u0418</div>
       <a href="analytics.html" class="nav-item ${activeId === 'analytics' ? 'active' : ''}">
         <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></span>
@@ -72,7 +72,7 @@ function initSidebar(activeId) {
 
     <div style="margin-top:auto;padding:12px 16px;border-top:1px solid #2d3748;" class="bottom-info">
       <div style="display:flex;align-items:center;gap:10px;">
-        <img src="logo/New logo1.1.jpg" alt="Логотип организации" class="sidebar-org-logo">
+        <img src="logo/New_logo1.1.jpg" alt="Логотип организации" class="sidebar-org-logo">
         <div class="bottom-text">
           <div style="font-size:10px;color:#94a3b8;font-weight:600;">\u0424\u0435\u0432\u0440\u0430\u043b\u044c\u2013\u0410\u043f\u0440\u0435\u043b\u044c 2026</div>
           <div style="font-size:9px;color:#4a5568;margin-top:1px;">Soft Collection Unit</div>

@@ -23,7 +23,7 @@
 
     #sidebar {
       width: 240px;
-      min-height: 100vh;
+      height: 100vh;
       background: linear-gradient(180deg, #1a1f2e 0%, #151820 100%);
       border-right: 1px solid #2d3748;
       position: fixed;
@@ -1484,6 +1484,29 @@ body.light-mode .pro-heatmap-row {
 }
 body.light-mode .pro-heatmap-name {
   color: #27272a;
+}
+
+.pro-heatmap-cell {
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  line-height: 1;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+}
+
+.pro-heatmap-cell:hover {
+  transform: scale(1.05);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  filter: brightness(1.08) saturate(1.05);
+}
+
+body.light-mode .pro-heatmap-cell:hover {
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+  filter: brightness(1.03) saturate(1.02);
 }
 
 /* ===== TACTICAL CONTENT TYPOGRAPHY IMPROVEMENTS ===== */

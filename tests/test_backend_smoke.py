@@ -61,6 +61,11 @@ def test_metrics_endpoint_shape():
     assert response.status_code == 200
     payload = response.json()
     assert isinstance(payload, dict)
+    if payload:
+        assert "period" in payload
+        assert "team_averages" in payload
+        assert "correlations" in payload
+        assert "data" in payload
 
 
 def test_data_mode_endpoint():

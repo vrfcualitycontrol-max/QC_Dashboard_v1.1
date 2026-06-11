@@ -10,6 +10,7 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Copy frontend files (multi-page)
 COPY *.html /usr/share/nginx/html/
 COPY assets/ /usr/share/nginx/html/assets/
+COPY logo/ /usr/share/nginx/html/logo/
 
 # Optional: Create directories for reports and docs if they are mounted later
 RUN mkdir -p /usr/share/nginx/html/reports /usr/share/nginx/html/docs

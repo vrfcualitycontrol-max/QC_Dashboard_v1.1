@@ -47,6 +47,15 @@ employee_scores = Table(
     Column("raw_scores", JSON, default=dict),
     Column("tendencies", String, default=""),
     Column("recommendations", String, default=""),
+    # === НОВЫЕ ПОЛЯ: Финансы ===
+    Column("collected_amount", Float, default=0.0),
+    Column("collected_count", Integer, default=0),
+    Column("collection_rate", Float, default=0.0),
+    Column("plan_fulfillment", Float, default=0.0),
+    # === НОВЫЕ ПОЛЯ: CRM ===
+    Column("crm_actions", JSON, default=dict),
+    Column("crm_actions_summary", String, default=""),
+    Column("crm_behavior_pattern", String, default=""),
     Column("created_at", DateTime, default=datetime.utcnow),
     Column("updated_at", DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
 )
@@ -96,9 +105,21 @@ def check_db() -> tuple[bool, str]:
 
 
 def init_db():
-    """Initialize database tables."""
+    """Initialize database tables and run automatic migrations if needed."""
     if engine:
         metadata.create_all(engine, checkfirst=True)
+        # Автоматические ALTER TABLE для плавного расширения схемы данных
+        try:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE employee_scores ADD COLUMN IF NOT EXISTS collected_amount FLOAT DEFAULT 0.0;"))
+                conn.execute(text("ALTER TABLE employee_scores ADD COLUMN IF NOT EXISTS collected_count INTEGER DEFAULT 0;"))
+                conn.execute(text("ALTER TABLE employee_scores ADD COLUMN IF NOT EXISTS collection_rate FLOAT DEFAULT 0.0;"))
+                conn.execute(text("ALTER TABLE employee_scores ADD COLUMN IF NOT EXISTS plan_fulfillment FLOAT DEFAULT 0.0;"))
+                conn.execute(text("ALTER TABLE employee_scores ADD COLUMN IF NOT EXISTS crm_actions JSON DEFAULT '{}';"))
+                conn.execute(text("ALTER TABLE employee_scores ADD COLUMN IF NOT EXISTS crm_actions_summary VARCHAR DEFAULT '';"))
+                conn.execute(text("ALTER TABLE employee_scores ADD COLUMN IF NOT EXISTS crm_behavior_pattern VARCHAR DEFAULT '';"))
+        except Exception as e:
+            print(f"[WARN] Error running automatic database migrations: {e}")
 
 
 @app.on_event("startup")
@@ -180,16 +201,101 @@ def history(employee_name: str, month: Optional[str] = None):
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 
+def calculate_efficiency_ratio(record: dict) -> float:
+    """
+    Композитный показатель: как качество разговора влияет на сборы
+    Формула: (TQS нормализованный) * (collection_rate нормализованный) * (коэффициент активности) * 100
+    """
+    tqs = record.get("tqs", 0.0)
+    collection_rate = record.get("collection_rate", 0.0)
+    activity_count = record.get("activity_count", 0)
+    
+    tqs_norm = min(tqs / 100.0, 1.0) if tqs else 0.0
+    rate_norm = min(collection_rate / 100.0, 1.0) if collection_rate else 0.0
+    activity_factor = min(activity_count / 100.0, 1.5) if activity_count else 1.0
+    
+    return round(tqs_norm * rate_norm * activity_factor * 100.0, 2)
+
+
+def calculate_crm_consistency(record: dict) -> float:
+    """Вычисление уровня дисциплины CRM: Завершенные задачи / Созданные задачи"""
+    crm = record.get("crm_actions", {})
+    if not crm:
+        return 0.0
+    created = crm.get("tasks_created", 0)
+    completed = crm.get("tasks_completed", 0)
+    if created == 0:
+        return 1.0 if completed > 0 else 0.0
+    return round(completed / created, 2)
+
+
+def calculate_correlation(data: list, field_x: str, field_y: str) -> float:
+    """Расчет коэффициента корреляции Пирсона для вложенных полей на чистом Python"""
+    def get_nested(obj, path: str):
+        for key in path.split('.'):
+            if isinstance(obj, dict):
+                obj = obj.get(key, 0)
+            elif hasattr(obj, key):
+                obj = getattr(obj, key, 0)
+            else:
+                obj = 0
+        return obj
+        
+    x_vals = []
+    y_vals = []
+    for d in data:
+        x_val = get_nested(d, field_x)
+        y_val = get_nested(d, field_y)
+        try:
+            x_vals.append(float(x_val) if x_val is not None else 0.0)
+        except (ValueError, TypeError):
+            x_vals.append(0.0)
+        try:
+            y_vals.append(float(y_val) if y_val is not None else 0.0)
+        except (ValueError, TypeError):
+            y_vals.append(0.0)
+            
+    n = len(x_vals)
+    if n < 3:
+        return 0.0
+        
+    pairs = [(x, y) for x, y in zip(x_vals, y_vals) if (x != 0 or y != 0)]
+    if len(pairs) < 3:
+        return 0.0
+        
+    xs = [p[0] for p in pairs]
+    ys = [p[1] for p in pairs]
+    
+    mean_x = sum(xs) / len(xs)
+    mean_y = sum(ys) / len(ys)
+    
+    cov = sum((xs[i] - mean_x) * (ys[i] - mean_y) for i in range(len(xs)))
+    var_x = sum((xs[i] - mean_x) ** 2 for i in range(len(xs)))
+    var_y = sum((ys[i] - mean_y) ** 2 for i in range(len(xs)))
+    
+    if var_x == 0 or var_y == 0:
+        return 0.0
+        
+    r = cov / (var_x * var_y) ** 0.5
+    return round(r, 2)
+
+
 @app.get("/api/metrics")
-def get_metrics():
-    """Get all dashboard metrics in DASHBOARD_DATA format."""
+def get_metrics(month: Optional[str] = None, period: Optional[str] = None):
+    """Get all dashboard metrics filtered by month and period."""
     if not engine:
         return {}
-    
+        
     try:
         with Session(engine) as session:
-            # Get all data grouped by employee
-            stmt = select(employee_scores).order_by(
+            stmt = select(employee_scores)
+            
+            if month:
+                stmt = stmt.where(employee_scores.c.month == month)
+            if period and period not in ("Все", "Все периоды"):
+                stmt = stmt.where(employee_scores.c.period == period)
+                
+            stmt = stmt.order_by(
                 employee_scores.c.employee_name,
                 employee_scores.c.month.desc(),
                 employee_scores.c.period.desc()
@@ -198,39 +304,176 @@ def get_metrics():
             result = session.execute(stmt)
             rows = result.fetchall()
             
-            # Build DASHBOARD_DATA structure
-            dashboard_data = {}
-            
+            # Группировка по сотруднику
+            operator_groups = {}
             for row in rows:
-                employee = row.employee_name
-                month = row.month
-                period = row.period
+                name = row.employee_name
+                if name not in operator_groups:
+                    operator_groups[name] = []
+                operator_groups[name].append(row)
                 
-                if employee not in dashboard_data:
-                    dashboard_data[employee] = {"months": {}}
+            metrics_list = []
+            for name, records in operator_groups.items():
+                total_tqs = 0.0
+                total_aht_sec = 0
+                aht_count = 0
+                activity_count = 0
+                collected_amount = 0.0
+                collected_count = 0
+                total_plan_fulfillment = 0.0
+                total_collection_rate = 0.0
                 
-                if month not in dashboard_data[employee]["months"]:
-                    dashboard_data[employee]["months"][month] = {"periods": []}
+                crm_actions = {}
+                crm_actions_summary = ""
+                crm_behavior_pattern = "balanced"
+                recommendations = ""
                 
-                period_data = {
-                    "period": period,
-                    "tqs": row.tqs or 0.0,
-                    "aht": row.aht or "N/A",
-                    "svp": row.svp_scores or {},
-                    "raw_scores": row.raw_scores or {},
-                    "tendencies": row.tendencies or "",
-                    "rec": row.recommendations or "",
-                    "activity_count": row.activity_count or 0,
+                for r in records:
+                    total_tqs += r.tqs or 0.0
+                    activity_count += r.activity_count or 0
+                    
+                    aht_str = r.aht
+                    if aht_str and aht_str != "N/A":
+                        parts = aht_str.split(':')
+                        if len(parts) == 2:
+                            try:
+                                total_aht_sec += int(parts[0]) * 60 + int(parts[1])
+                                aht_count += 1
+                            except ValueError:
+                                pass
+                                
+                    collected_amount += r.collected_amount or 0.0
+                    collected_count += r.collected_count or 0
+                    total_plan_fulfillment += r.plan_fulfillment or 0.0
+                    total_collection_rate += r.collection_rate or 0.0
+                    
+                    if r.crm_actions:
+                        for k, v in r.crm_actions.items():
+                            try:
+                                crm_actions[k] = crm_actions.get(k, 0) + int(v)
+                            except (ValueError, TypeError):
+                                pass
+                                
+                    if r.crm_actions_summary:
+                        crm_actions_summary = r.crm_actions_summary
+                    if r.crm_behavior_pattern:
+                        crm_behavior_pattern = r.crm_behavior_pattern
+                    if r.recommendations:
+                        recommendations = r.recommendations
+                
+                n_records = len(records)
+                avg_tqs = total_tqs / n_records if n_records > 0 else 0.0
+                avg_aht_sec = total_aht_sec / aht_count if aht_count > 0 else 0
+                
+                avg_aht = "N/A"
+                if avg_aht_sec > 0:
+                    mins = int(avg_aht_sec // 60)
+                    secs = int(avg_aht_sec % 60)
+                    avg_aht = f"{mins:02d}:{secs:02d}"
+                    
+                avg_plan = total_plan_fulfillment / n_records if n_records > 0 else 0.0
+                avg_rate = total_collection_rate / n_records if n_records > 0 else 0.0
+                
+                eff_record = {
+                    "tqs": avg_tqs,
+                    "collection_rate": avg_rate,
+                    "activity_count": activity_count
+                }
+                eff_ratio = calculate_efficiency_ratio(eff_record)
+                
+                consistency_record = {
+                    "crm_actions": crm_actions
+                }
+                consistency_score = calculate_crm_consistency(consistency_record)
+                
+                metric_item = {
+                    "employee_name": name,
+                    "tqs": round(avg_tqs, 2),
+                    "aht": avg_aht,
+                    "activity_count": activity_count,
+                    "svp_scores": records[0].svp_scores,
+                    "recommendations": recommendations,
+                    
+                    "collected_amount": round(collected_amount, 2),
+                    "collected_count": collected_count,
+                    "collection_rate": round(avg_rate, 2),
+                    "plan_fulfillment": round(avg_plan, 2),
+                    
+                    "crm_actions": crm_actions,
+                    "crm_actions_summary": crm_actions_summary or "Сбалансированная рабочая логика",
+                    "crm_behavior_pattern": crm_behavior_pattern or "balanced",
+                    
+                    "efficiency_ratio": eff_ratio,
+                    "crm_consistency_score": consistency_score
+                }
+                metrics_list.append(metric_item)
+                
+            team_averages = {}
+            if metrics_list:
+                team_tqs = sum(m["tqs"] for m in metrics_list) / len(metrics_list)
+                
+                total_aht_sec = 0
+                aht_count = 0
+                for m in metrics_list:
+                    aht_str = m["aht"]
+                    if aht_str and aht_str != "N/A":
+                        parts = aht_str.split(':')
+                        if len(parts) == 2:
+                            total_aht_sec += int(parts[0]) * 60 + int(parts[1])
+                            aht_count += 1
+                avg_aht_sec = total_aht_sec / aht_count if aht_count > 0 else 0
+                avg_aht = "N/A"
+                if avg_aht_sec > 0:
+                    mins = int(avg_aht_sec // 60)
+                    secs = int(avg_aht_sec % 60)
+                    avg_aht = f"{mins:02d}:{secs:02d}"
+                    
+                total_collected = sum(m["collected_amount"] for m in metrics_list)
+                avg_rate = sum(m["collection_rate"] for m in metrics_list) / len(metrics_list)
+                avg_crm_rate = sum(m["crm_consistency_score"] for m in metrics_list) / len(metrics_list)
+                
+                team_averages = {
+                    "tqs": round(team_tqs, 2),
+                    "aht": avg_aht,
+                    "collected_amount": round(total_collected, 2),
+                    "collection_rate": round(avg_rate, 2),
+                    "crm_completion_rate": round(avg_crm_rate, 2)
                 }
                 
-                dashboard_data[employee]["months"][month]["periods"].append(period_data)
+            correlations = {
+                "tqs_vs_collections": calculate_correlation(metrics_list, "tqs", "collected_amount"),
+                "crm_promised_vs_collections": calculate_correlation(metrics_list, "crm_actions.promised_to_pay", "collected_amount"),
+                "aht_vs_collection_rate": 0.0
+            }
             
-            # Sort periods within each month
-            for employee_data in dashboard_data.values():
-                for month_data in employee_data["months"].values():
-                    month_data["periods"].sort(key=lambda x: x["period"])
+            # Подготовка числового значения AHT в секундах для расчета корреляции
+            aht_sec_list = []
+            for m in metrics_list:
+                aht_str = m["aht"]
+                if aht_str and aht_str != "N/A":
+                    parts = aht_str.split(':')
+                    if len(parts) == 2:
+                        aht_sec_list.append(int(parts[0]) * 60 + int(parts[1]))
+                    else:
+                        aht_sec_list.append(0.0)
+                else:
+                    aht_sec_list.append(0.0)
             
-            return dashboard_data
+            corr_metrics_list = []
+            for idx, m in enumerate(metrics_list):
+                m_copy = m.copy()
+                m_copy["aht_numeric"] = aht_sec_list[idx]
+                corr_metrics_list.append(m_copy)
+                
+            correlations["aht_vs_collection_rate"] = calculate_correlation(corr_metrics_list, "aht_numeric", "collection_rate")
+            
+            return {
+                "period": f"{month} - {period}" if month and period and period != "Все" else (month or "Все периоды"),
+                "team_averages": team_averages,
+                "correlations": correlations,
+                "data": metrics_list
+            }
+            
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
