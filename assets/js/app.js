@@ -9,6 +9,76 @@ window.addEventListener('unhandledrejection', function(e) {
 });
 
     // ========== 1. DASHBOARD DATA ==========
+    let DASHBOARD_DATA = {};
+    let DATA_LOADED = false;
+
+    function isValidEmployeeName(name) {
+      if (!name) return false;
+      const lower = name.toLowerCase().trim();
+      if (lower === 'admin' || lower.includes('названия строк') || lower.includes('количество по полю') || lower.includes('период') || lower.includes('промежуточный')) {
+        return false;
+      }
+      const hasCyrillic = /[а-яёА-ЯЁ]/;
+      if (!hasCyrillic.test(name)) {
+        return false;
+      }
+      return true;
+    }
+    window.isValidEmployeeName = isValidEmployeeName;
+
+    async function loadDashboardDataFromAPI() {
+      try {
+        const response = await fetch('/api/dashboard-data');
+        if (!response.ok) throw new Error('API error: ' + response.status);
+        const rawData = await response.json();
+        DASHBOARD_DATA = {};
+        Object.entries(rawData).forEach(([name, data]) => {
+          if (isValidEmployeeName(name)) {
+            DASHBOARD_DATA[name] = data;
+          }
+        });
+        DATA_LOADED = true;
+        console.log('[INFO] Dashboard data loaded from API, employees:', Object.keys(DASHBOARD_DATA).length);
+        window.DASHBOARD_DATA = DASHBOARD_DATA; // make globally accessible
+        return true;
+      } catch (err) {
+        console.error('[ERROR] Failed to load from API, trying fallback:', err);
+        // Fallback to window.DASHBOARD_DATA_FALLBACK if present
+        if (typeof window.DASHBOARD_DATA_FALLBACK !== 'undefined') {
+          const rawData = window.DASHBOARD_DATA_FALLBACK;
+          DASHBOARD_DATA = {};
+          Object.entries(rawData).forEach(([name, data]) => {
+            if (isValidEmployeeName(name)) {
+              DASHBOARD_DATA[name] = data;
+            }
+          });
+          DATA_LOADED = true;
+          window.DASHBOARD_DATA = DASHBOARD_DATA;
+          return true;
+        }
+        return false;
+      }
+    }
+
+    function showLoading(show) {
+      let loader = document.getElementById('dashboard-loader');
+      if (!loader && show) {
+        loader = document.createElement('div');
+        loader.id = 'dashboard-loader';
+        loader.innerHTML = `
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+              height:300px;color:#a78bfa;font-size:14px;font-weight:600;">
+              <div class="spinner" style="width:40px;height:40px;border:3px solid rgba(167,139,250,0.2);
+                  border-top-color:#a78bfa;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px;">
+              </div>
+              Загрузка данных...
+          </div>
+        `;
+        const main = document.getElementById('main');
+        if (main) main.prepend(loader);
+      }
+      if (loader) loader.style.display = show ? 'block' : 'none';
+    }
     
     // ========== 2. STATIC DATA ==========
     const CRITERIA = [
@@ -207,21 +277,25 @@ window.addEventListener('unhandledrejection', function(e) {
     function thmC(dark, light) { return isLight() ? light : dark; }
 
     const SVG_ICONS = {
-      money: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`,
-      activity: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`,
+      money: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`,
+      activity: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`,
       target: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>`,
       warning: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:4px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
       info: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`,
       success: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
       danger: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`,
-      brain: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>`,
-      trend: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>`,
+      brain: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>`,
+      trend: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>`,
       help: `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:3px;"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
-      refresh: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>`
+      refresh: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>`
     };
 
+
     let currentViewMode = localStorage.getItem('view-mode') || 'team';
-    let currentMonth = null; // будет установлен динамически из данных
+    if (currentViewMode === 'upload') {
+      currentViewMode = 'team';
+    }
+    let currentMonth = localStorage.getItem('current-month') || null;
     let currentPeriod = "Все";
     // Для страницы Rating
     let currentRatingPeriod = "Все"; // внутримесячный период для рейтинга
@@ -235,21 +309,35 @@ window.addEventListener('unhandledrejection', function(e) {
       
       const tabTeam = document.getElementById('tab-view-team');
       const tabPersonal = document.getElementById('tab-view-personal');
+      const tabUpload = document.getElementById('tab-view-upload');
       const select = document.getElementById('employeeSelect');
+      const sectionOperations = document.getElementById('section-operations');
+      const sectionUpload = document.getElementById('section-upload');
       
       if (tabTeam && tabPersonal) {
+        tabTeam.classList.remove('active');
+        tabPersonal.classList.remove('active');
+        if (tabUpload) tabUpload.classList.remove('active');
+        
         if (mode === 'team') {
           tabTeam.classList.add('active');
-          tabPersonal.classList.remove('active');
           if (select) select.style.display = 'none';
-        } else {
-          tabTeam.classList.remove('active');
+          if (sectionOperations) sectionOperations.style.display = 'block';
+          if (sectionUpload) sectionUpload.style.display = 'none';
+          updateDashboard();
+        } else if (mode === 'personal') {
           tabPersonal.classList.add('active');
           if (select) select.style.display = 'block';
+          if (sectionOperations) sectionOperations.style.display = 'block';
+          if (sectionUpload) sectionUpload.style.display = 'none';
+          updateDashboard();
+        } else if (mode === 'upload') {
+          if (tabUpload) tabUpload.classList.add('active');
+          if (select) select.style.display = 'none';
+          if (sectionOperations) sectionOperations.style.display = 'none';
+          if (sectionUpload) sectionUpload.style.display = 'block';
         }
       }
-      
-      updateDashboard();
     };
 
     function showSection(id) {
@@ -360,18 +448,26 @@ function toggleTheme() {
         const bYear = parseInt(b.split(' ')[1]) || 0;
         return bYear - aYear;
       }).reverse();
-      if (!currentMonth && sorted.length) currentMonth = sorted[0];
+      if (!currentMonth && sorted.length) {
+        currentMonth = sorted[0];
+      } else if (currentMonth && !sorted.includes(currentMonth) && sorted.length) {
+        currentMonth = sorted[0];
+      }
       if(mSelect) {
           mSelect.innerHTML = '';
           sorted.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; if (m === currentMonth) o.selected = true; mSelect.appendChild(o); });
           mSelect.onchange = (e) => { 
             currentMonth = e.target.value; 
+            localStorage.setItem('current-month', currentMonth);
             currentPeriod = "Все"; 
             currentRatingPeriod = "Все периоды";
             selectedEmployee = null; 
             updatePeriodTabs(); 
             initRatingPeriodSelect();
             updateDashboard(); 
+            if (window.FileUploader && typeof window.FileUploader.refreshChecklist === 'function') {
+              window.FileUploader.refreshChecklist();
+            }
           };
       }
       updatePeriodTabs();
@@ -482,13 +578,39 @@ function toggleTheme() {
       Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => {
           if(name.includes('Промежуточный')) return;
           const m = emp.months?.[currentMonth];
-          if (m && m.periods) m.periods.forEach(p => periods.add(p.period));
+          if (m && m.periods) {
+              m.periods.forEach(p => {
+                  if (p.period !== "Все" && p.period !== "Неизвестно") {
+                      periods.add(p.period);
+                  }
+              });
+          }
       });
       el.innerHTML = '';
       const allBtn = document.createElement('div'); allBtn.className = 'cat-tab' + (currentPeriod === "Все" ? ' active' : ''); allBtn.textContent = 'Сводка';
-      allBtn.onclick = () => { currentPeriod = "Все"; updatePeriodTabs(); updateDashboard(); };
+      allBtn.onclick = () => { 
+        currentPeriod = "Все"; 
+        updatePeriodTabs(); 
+        updateDashboard(); 
+        if (window.FileUploader && typeof window.FileUploader.refreshChecklist === 'function') {
+          window.FileUploader.refreshChecklist();
+        }
+      };
       el.appendChild(allBtn);
-      Array.from(periods).sort().forEach(p => { const b = document.createElement('div'); b.className = 'cat-tab' + (currentPeriod === p ? ' active' : ''); b.textContent = p; b.onclick = () => { currentPeriod = p; updatePeriodTabs(); updateDashboard(); }; el.appendChild(b); });
+      Array.from(periods).sort().forEach(p => { 
+        const b = document.createElement('div'); 
+        b.className = 'cat-tab' + (currentPeriod === p ? ' active' : ''); 
+        b.textContent = p; 
+        b.onclick = () => { 
+          currentPeriod = p; 
+          updatePeriodTabs(); 
+          updateDashboard(); 
+          if (window.FileUploader && typeof window.FileUploader.refreshChecklist === 'function') {
+            window.FileUploader.refreshChecklist();
+          }
+        }; 
+        el.appendChild(b); 
+      });
     }
 
     // Инициализация periodSelect для страницы Rating
@@ -503,7 +625,11 @@ function toggleTheme() {
         if (name.includes('Промежуточный')) return;
         const m = emp.months?.[currentMonth];
         if (m && m.periods) {
-          m.periods.forEach(p => periods.add(p.period));
+          m.periods.forEach(p => {
+            if (p.period !== "Все" && p.period !== "Неизвестно") {
+              periods.add(p.period);
+            }
+          });
         }
       });
       
@@ -529,7 +655,7 @@ function toggleTheme() {
       pSelect.onchange = (e) => {
         currentRatingPeriod = e.target.value;
         buildLeaderboard();
-        renderTopBottomCharts();
+        buildTopBottomCharts();
       };
     }
 
@@ -616,7 +742,12 @@ function toggleTheme() {
         
         let periodsToAggregate = [];
         if (period === 'Все' || period === 'Все периоды' || !period) {
-          periodsToAggregate = m.periods || [];
+          const weekly = m.periods?.filter(x => x.period !== 'Все' && x.period !== 'Неизвестно') || [];
+          if (weekly.length > 0) {
+            periodsToAggregate = weekly;
+          } else {
+            periodsToAggregate = m.periods?.filter(x => x.period === 'Все') || [];
+          }
         } else {
           const p = m.periods?.find(x => x.period === period);
           if (p) periodsToAggregate = [p];
@@ -1052,11 +1183,10 @@ function toggleTheme() {
         selectedEmployee = list[0].employee_name;
       }
       
-      select.onchange = (e) => {
-        selectedEmployee = e.target.value;
-        if (currentViewMode === 'personal') {
-          updateDashboard();
-        }
+      // КРИТИЧЕСКИ ВАЖНО: привязать onchange для обновления всех графиков
+      select.onchange = function() {
+        selectedEmployee = this.value;
+        updateDashboard();
       };
     }
 
@@ -1078,10 +1208,20 @@ function toggleTheme() {
           console.log('[QC Dashboard] Loaded data via local fallback');
         }
         
+        if (dataPayload && dataPayload.data) {
+          dataPayload.data = dataPayload.data.filter(op => isValidEmployeeName(op.employee_name));
+        }
+        
         window.CURRENT_METRICS_DATA = dataPayload;
         
         updateEmployeeSelect(dataPayload);
         renderKPIs(dataPayload);
+        
+        // Обновить подзаголовок с текущим периодом
+        const subtitleEl = document.getElementById('page-subtitle');
+        if (subtitleEl) {
+          subtitleEl.textContent = 'Динамика команды Soft Collection \u00b7 ' + currentMonth + (currentPeriod && currentPeriod !== 'Все' && currentPeriod !== 'Все периоды' ? ' \u00b7 ' + currentPeriod : '');
+        }
         renderHeatmapByMode();
         buildLineChart();
         buildCharts();
@@ -1263,11 +1403,11 @@ function toggleTheme() {
           maintainAspectRatio: false,
           interaction: { mode: 'index', intersect: false },
           plugins: {
-            legend: { position: 'top', labels: { color: thmC('#94a3b8', '#71717a'), font: { weight: '600', size: 12 }, padding: 20 } },
+            legend: { position: 'top', labels: { color: thmC('#94a3b8', '#3f3f46'), font: { weight: '600', size: 12 }, padding: 20 } },
             tooltip: {
               backgroundColor: thmC('rgba(15, 23, 42, 0.95)', '#ffffff'),
               titleColor: thmC('#f1f5f9', '#27272a'),
-              bodyColor: thmC('#cbd5e1', '#52525b'),
+              bodyColor: thmC('#cbd5e1', '#27272a'),
               padding: 12,
               cornerRadius: 8,
               callbacks: {
@@ -1280,8 +1420,8 @@ function toggleTheme() {
             }
           },
           scales: {
-            x: { grid: { display: false }, ticks: { color: thmC('#64748b', '#71717a'), font: { size: 11 } } },
-            y: { min: 40, max: 100, grid: { color: thmC('rgba(255,255,255,0.05)', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) }, ticks: { color: thmC('#64748b', '#71717a'), font: { size: 11 } } }
+            x: { grid: { display: false }, ticks: { color: thmC('#64748b', '#3f3f46'), font: { size: 11 } } },
+            y: { min: Math.max(0, Math.min.apply(null, historyData.filter(function(v) { return v > 0; })) - 10), max: 100, grid: { color: thmC('rgba(255,255,255,0.05)', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) }, ticks: { color: thmC('#64748b', '#3f3f46'), font: { size: 11 } } }
           }
         },
         plugins: [{
@@ -1678,6 +1818,29 @@ function toggleTheme() {
           'balanced': `<span style="display:inline-flex;align-items:center;gap:4px;color:#4ade80;">${SVG_ICONS.success} Норма</span>`
         };
 
+        // Fallback tendencies и recommendations из DASHBOARD_DATA
+        let tendencies = op.tendencies || op.recommendations || '';
+        if (!tendencies && DASHBOARD_DATA[name]) {
+          const empMonthData = DASHBOARD_DATA[name]?.months?.[currentMonth];
+          if (empMonthData) {
+            const pd = _getEffectiveData(empMonthData);
+            if (pd) {
+              tendencies = pd.tendencies || pd.rec || '';
+            }
+          }
+        }
+        
+        let recommendations = op.recommendations || '';
+        if (!recommendations && DASHBOARD_DATA[name]) {
+          const empMonthData = DASHBOARD_DATA[name]?.months?.[currentMonth];
+          if (empMonthData) {
+            const pd = _getEffectiveData(empMonthData);
+            if (pd) {
+              recommendations = pd.recommendations || pd.rec || '';
+            }
+          }
+        }
+
         el.innerHTML = `
           <h4 style="color:#f97316;margin-bottom:12px;font-weight:800;text-align:center;">${name}</h4>
           
@@ -1727,15 +1890,15 @@ function toggleTheme() {
           
           <div class="card" style="padding:12px;text-align:left;box-shadow:none;">
             <h5 style="color:#e2e8f0;margin:0 0 8px 0;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;">${SVG_ICONS.trend} Анализ качества переговоров</h5>
-            <p style="font-size:11px;margin:0 0 6px 0;"><strong>Тенденции:</strong><br><span style="color:#cbd5e1;">${op.tendencies || 'Нет данных'}</span></p>
-            <p style="font-size:11px;margin:0 0 10px 0;"><strong>Рекомендации QC:</strong><br><span style="color:#cbd5e1;">${op.recommendations || 'Нет данных'}</span></p>
+            <p style="font-size:11px;margin:0 0 6px 0;"><strong>Тенденции:</strong><br><span style="color:#cbd5e1;">${tendencies || 'Нет данных'}</span></p>
+            <p style="font-size:11px;margin:0 0 10px 0;"><strong>Рекомендации QC:</strong><br><span style="color:#cbd5e1;">${recommendations || 'Нет данных'}</span></p>
             ${growthHtml}
             
             <div style="font-size:10px;color:#94a3b8;margin-top:14px;margin-bottom:4px;font-weight:600;">Просадки по критериям:</div>
             <div style="height:120px;position:relative;width:100%;margin-bottom:12px;"><canvas id="drillPie"></canvas></div>
             
             <div style="font-size:10px;color:#94a3b8;margin-bottom:4px;font-weight:600;">Динамика TQS за месяц:</div>
-            <div style="height:100px;position:relative;width:100%;"><canvas id="drillTrend"></canvas></div>
+            <div style="height:130px;position:relative;width:100%;"><canvas id="drillTrend"></canvas></div>
           </div>
         `;
         
@@ -1762,7 +1925,7 @@ function toggleTheme() {
             drillPieChart = new Chart(ctxPie, {
               type: 'doughnut',
               data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: pieColors, borderWidth: 1, borderColor: '#1e2435' }] },
-              options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: thmC('#1e2435', '#ffffff'), titleColor: thmC('#f1f5f9', '#27272a'), bodyColor: thmC('#94a3b8', '#52525b') } }, cutout: '70%'}
+              options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: thmC('#1e2435', '#ffffff'), titleColor: thmC('#f1f5f9', '#27272a'), bodyColor: thmC('#94a3b8', '#27272a') } }, cutout: '70%'}
             });
           } else {
             document.getElementById('drillPie').parentElement.innerHTML = `<div style="color:#22c55e;font-size:12px;padding:20px;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;">Ошибок СВП нет <span style="display:inline-flex;color:#22c55e;line-height:1;">${SVG_ICONS.success}</span></div>`;
@@ -1798,7 +1961,7 @@ function toggleTheme() {
                 tooltip: {
                   backgroundColor: thmC('#1e2435', '#ffffff'),
                   titleColor: thmC('#f1f5f9', '#27272a'),
-                  bodyColor: thmC('#94a3b8', '#52525b'),
+                  bodyColor: thmC('#94a3b8', '#27272a'),
                   callbacks: {
                     label: c => c.label + ': ' + c.parsed + ' (' + ((c.parsed / totalCRM) * 100).toFixed(0) + '%)'
                   }
@@ -1822,7 +1985,7 @@ function toggleTheme() {
             drillTrendChart = new Chart(ctxTrend, {
               type: 'line',
               data: { labels: trendLabels, datasets: [{ label: 'TQS %', data: trendData, borderColor: '#f97316', backgroundColor: '#f9731622', fill: true, tension: 0.4, pointRadius: 3 }] },
-              options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { min: 30, max: 100, ticks: { color: thmC('#64748b', '#71717a'), font: {size: 9} } } } }
+              options: { responsive: true, maintainAspectRatio: false, layout: { padding: { left: 8, right: 8, top: 8, bottom: 8 } }, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { min: 30, max: 100, ticks: { color: thmC('#64748b', '#3f3f46'), font: {size: 9} } } } }
             });
           }
         }
@@ -1865,12 +2028,35 @@ function toggleTheme() {
           if (name.includes('Промежуточный')) return;
           const m = emp.months?.[currentMonth];
           if (m && m.periods) {
-            m.periods.forEach(p => periodsSet.add(p.period));
+            m.periods.forEach(p => {
+              if (p.period !== "Все" && p.period !== "Неизвестно") {
+                periodsSet.add(p.period);
+              }
+            });
           }
         });
         
         periods = Array.from(periodsSet).sort();
+        if (!periods.length) {
+          // Fallback if no weekly periods exist
+          Object.entries(DASHBOARD_DATA).forEach(([name, emp]) => {
+            if (name.includes('Промежуточный')) return;
+            const m = emp.months?.[currentMonth];
+            if (m && m.periods) {
+              m.periods.forEach(p => periodsSet.add(p.period));
+            }
+          });
+          periods = Array.from(periodsSet).sort();
+        }
         if (!periods.length) return;
+
+        // Filter periods up to selected period
+        if (currentPeriod !== "Все" && currentPeriod !== "Все периоды" && currentPeriod !== "Неизвестно") {
+          const idx = periods.indexOf(currentPeriod);
+          if (idx !== -1) {
+            periods = periods.slice(0, idx + 1);
+          }
+        }
         
         periods.forEach(p => {
           let tqsSum = 0;
@@ -1905,7 +2091,17 @@ function toggleTheme() {
         const m = emp.months[currentMonth];
         if (!m || !m.periods) return;
         
-        const sortedPeriods = m.periods.slice().sort((a, b) => a.period.localeCompare(b.period));
+        let sortedPeriods = m.periods.slice()
+          .filter(p => p.period !== "Все" && p.period !== "Неизвестно")
+          .sort((a, b) => a.period.localeCompare(b.period));
+        
+        if (currentPeriod !== "Все" && currentPeriod !== "Все периоды" && currentPeriod !== "Неизвестно") {
+          const idx = sortedPeriods.findIndex(p => p.period === currentPeriod);
+          if (idx !== -1) {
+            sortedPeriods = sortedPeriods.slice(0, idx + 1);
+          }
+        }
+        
         periods = sortedPeriods.map(p => p.period);
         sortedPeriods.forEach(p => {
           avgTqs.push(Math.round((p.tqs || 0) * 100 * 10) / 10);
@@ -1926,7 +2122,26 @@ function toggleTheme() {
               borderColor: '#a78bfa',
               backgroundColor: 'rgba(167, 139, 250, 0.15)',
               borderWidth: 3,
-              pointRadius: 5,
+              pointRadius: ctx => {
+                const label = ctx.chart.data.labels[ctx.dataIndex];
+                return label === currentPeriod ? 9 : 5;
+              },
+              pointHoverRadius: ctx => {
+                const label = ctx.chart.data.labels[ctx.dataIndex];
+                return label === currentPeriod ? 11 : 7;
+              },
+              pointBackgroundColor: ctx => {
+                const label = ctx.chart.data.labels[ctx.dataIndex];
+                return label === currentPeriod ? '#ffffff' : '#a78bfa';
+              },
+              pointBorderColor: ctx => {
+                const label = ctx.chart.data.labels[ctx.dataIndex];
+                return label === currentPeriod ? '#a78bfa' : undefined;
+              },
+              pointBorderWidth: ctx => {
+                const label = ctx.chart.data.labels[ctx.dataIndex];
+                return label === currentPeriod ? 3 : 1;
+              },
               tension: 0.4,
               yAxisID: 'y'
             },
@@ -1936,7 +2151,26 @@ function toggleTheme() {
               borderColor: '#38bdf8',
               backgroundColor: 'rgba(56, 189, 248, 0.15)',
               borderWidth: 3,
-              pointRadius: 5,
+              pointRadius: ctx => {
+                const label = ctx.chart.data.labels[ctx.dataIndex];
+                return label === currentPeriod ? 9 : 5;
+              },
+              pointHoverRadius: ctx => {
+                const label = ctx.chart.data.labels[ctx.dataIndex];
+                return label === currentPeriod ? 11 : 7;
+              },
+              pointBackgroundColor: ctx => {
+                const label = ctx.chart.data.labels[ctx.dataIndex];
+                return label === currentPeriod ? '#ffffff' : '#38bdf8';
+              },
+              pointBorderColor: ctx => {
+                const label = ctx.chart.data.labels[ctx.dataIndex];
+                return label === currentPeriod ? '#38bdf8' : undefined;
+              },
+              pointBorderWidth: ctx => {
+                const label = ctx.chart.data.labels[ctx.dataIndex];
+                return label === currentPeriod ? 3 : 1;
+              },
               tension: 0.4,
               yAxisID: 'y1'
             }
@@ -1945,14 +2179,22 @@ function toggleTheme() {
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          layout: {
+            padding: {
+              left: 8,
+              right: 8,
+              top: 8,
+              bottom: 8
+            }
+          },
           plugins: {
-            legend: { labels: { color: thmC('#94a3b8', '#71717a'), font: { size: 11 } } },
+            legend: { labels: { color: thmC('#94a3b8', '#3f3f46'), font: { size: 11 } } },
             tooltip: {
               backgroundColor: thmC('#1e2435', '#ffffff'),
               borderColor: thmC('#2d3748', '#e4e4e7'),
               borderWidth: 1,
               titleColor: thmC('#f1f5f9', '#27272a'),
-              bodyColor: thmC('#94a3b8', '#52525b'),
+              bodyColor: thmC('#94a3b8', '#27272a'),
               callbacks: {
                 label: c => {
                   if (c.datasetIndex === 0) {
@@ -1966,7 +2208,7 @@ function toggleTheme() {
           scales: {
             x: {
               grid: { color: thmC('#1e2435', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) },
-              ticks: { color: thmC('#64748b', '#71717a'), font: { size: 10 } }
+              ticks: { color: thmC('#64748b', '#3f3f46'), font: { size: 10 } }
             },
             y: {
               type: 'linear',
@@ -1975,22 +2217,22 @@ function toggleTheme() {
               max: 100,
               grid: { color: thmC('#232b3e', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) },
               ticks: {
-                color: thmC('#64748b', '#71717a'),
+                color: thmC('#64748b', '#3f3f46'),
                 font: { size: 10 },
                 callback: v => v + '%'
               },
-              title: { display: true, text: 'Качество (TQS)', color: thmC('#94a3b8', '#71717a') }
+              title: { display: true, text: 'Качество (TQS)', color: thmC('#94a3b8', '#3f3f46') }
             },
             y1: {
               type: 'linear',
               position: 'right',
               grid: { drawOnChartArea: false },
               ticks: {
-                color: thmC('#64748b', '#71717a'),
+                color: thmC('#64748b', '#3f3f46'),
                 font: { size: 10 },
                 callback: v => new Intl.NumberFormat('ru-RU', { notation: 'compact', compactDisplay: 'short' }).format(v)
               },
-              title: { display: true, text: 'Сборы (UZS)', color: thmC('#94a3b8', '#71717a') }
+              title: { display: true, text: 'Сборы (UZS)', color: thmC('#94a3b8', '#3f3f46') }
             }
           }
         }
@@ -2001,31 +2243,44 @@ function toggleTheme() {
       if (!trendEl) return;
       const ctx = trendEl.getContext('2d');
       if (trendChart) trendChart.destroy();
-      let labels = [], data = [], colors = [];
+      let labels = [], data = [], colors = [], borderWidths = [];
       Object.keys(DASHBOARD_DATA).sort().forEach(name => {
         if(name.includes('Промежуточный')) return;
         const m = DASHBOARD_DATA[name]?.months?.[currentMonth]; if (!m) return;
         const d = _getEffectiveData(m);
-        if (!d || !d.svp) return; // показываем всех, у кого есть данные
-        const t = (d.tqs || 0) * 100; // Convert 0-1 to 0-100
+        if (!d || !d.svp) return;
+        const t = (d.tqs || 0) * 100;
         labels.push(shortN(name)); data.push(t);
-        colors.push(t >= 75 ? '#22c55e' : (t >= 60 ? '#eab308' : '#f87171'));
+        
+        // Подсветка выбранного оператора в personal mode
+        const isSelected = currentViewMode === 'personal' && selectedEmployee === name;
+        if (isSelected) {
+          colors.push('#a78bfa');
+          borderWidths.push(3);
+        } else {
+          colors.push(t >= 75 ? '#22c55e' : (t >= 60 ? '#eab308' : '#f87171'));
+          borderWidths.push(0);
+        }
       });
       if (!labels.length) return;
       trendChart = new Chart(ctx, {
         type: 'bar',
-        data: { labels, datasets: [{ label: 'TQS %', data, backgroundColor: colors, borderRadius: 4 }] },
+        data: { labels, datasets: [{ label: 'TQS %', data, backgroundColor: colors, borderColor: colors.map(function(c, i) { return borderWidths[i] > 0 ? '#ffffff' : 'transparent'; }), borderWidth: borderWidths, borderRadius: 4 }] },
         options: {
           responsive: true, maintainAspectRatio: false,
           scales: {
-            y: { min: 0, max: 100, grid: { color: thmC('#232b3e', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) }, ticks: { color: thmC('#64748b', '#71717a'), callback: v => v + '%' } },
-            x: { grid: { display: false }, ticks: { color: thmC('#64748b', '#71717a'), font: { size: 10 }, maxRotation: 45 } }
+            y: { min: 0, max: 100, grid: { color: thmC('#232b3e', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) }, ticks: { color: thmC('#64748b', '#3f3f46'), callback: function(v) { return v + '%'; } } },
+            x: { grid: { display: false }, ticks: { color: thmC('#64748b', '#3f3f46'), font: { size: 10 }, maxRotation: 45 } }
           },
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: thmC('#1e2435', '#ffffff'), borderColor: thmC('#2d3748', '#e4e4e7'), borderWidth: 1, titleColor: thmC('#f1f5f9', '#27272a'), bodyColor: thmC('#94a3b8', '#52525b'),
-              callbacks: { label: c => c.parsed.y > 0 ? 'TQS: ' + c.parsed.y + '%' : 'Нет данных TQS' }
+              backgroundColor: thmC('#1e2435', '#ffffff'),
+              borderColor: thmC('#2d3748', '#e4e4e7'),
+              borderWidth: 1,
+              titleColor: thmC('#f1f5f9', '#27272a'),
+              bodyColor: thmC('#94a3b8', '#27272a'),
+              callbacks: { label: function(c) { return c.parsed.y > 0 ? 'TQS: ' + c.parsed.y + '%' : 'Нет данных TQS'; } }
             }
           }
         }
@@ -2061,7 +2316,8 @@ function toggleTheme() {
           x: Math.round((op.tqs || 0) * 100 * 10) / 10,
           y: op.collected_amount || 0,
           name: op.employee_name,
-          pattern: op.crm_behavior_pattern || 'balanced'
+          pattern: op.crm_behavior_pattern || 'balanced',
+          isSelected: currentViewMode === 'personal' && selectedEmployee === op.employee_name
         }));
         
         scatterChartInstance = new Chart(ctx, {
@@ -2078,9 +2334,18 @@ function toggleTheme() {
                 const item = ctx.raw;
                 return item ? patternBorders[item.pattern] : '#3b82f6';
               },
-              borderWidth: 1.5,
-              pointRadius: 6,
-              pointHoverRadius: 8
+              borderWidth: ctx => {
+                const item = ctx.raw;
+                return item && item.isSelected ? 3 : 1.5;
+              },
+              pointRadius: ctx => {
+                const item = ctx.raw;
+                return item && item.isSelected ? 12 : 6;
+              },
+              pointHoverRadius: ctx => {
+                const item = ctx.raw;
+                return item && item.isSelected ? 14 : 8;
+              }
             }]
           },
           options: {
@@ -2093,7 +2358,7 @@ function toggleTheme() {
                 borderColor: thmC('#2d3748', '#e4e4e7'),
                 borderWidth: 1,
                 titleColor: thmC('#f1f5f9', '#27272a'),
-                bodyColor: thmC('#94a3b8', '#52525b'),
+                bodyColor: thmC('#94a3b8', '#27272a'),
                 callbacks: {
                   label: c => {
                     const item = c.raw;
@@ -2113,17 +2378,17 @@ function toggleTheme() {
                 min: 30,
                 max: 100,
                 grid: { color: thmC('#232b3e', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) },
-                ticks: { color: thmC('#64748b', '#71717a'), font: { size: 10 }, callback: v => v + '%' },
-                title: { display: true, text: 'Качество разговора (TQS)', color: thmC('#94a3b8', '#71717a') }
+                ticks: { color: thmC('#64748b', '#3f3f46'), font: { size: 10 }, callback: v => v + '%' },
+                title: { display: true, text: 'Качество разговора (TQS)', color: thmC('#94a3b8', '#3f3f46') }
               },
               y: {
                 grid: { color: thmC('#232b3e', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) },
                 ticks: {
-                  color: thmC('#64748b', '#71717a'),
+                  color: thmC('#64748b', '#3f3f46'),
                   font: { size: 10 },
                   callback: v => new Intl.NumberFormat('ru-RU', { notation: 'compact', compactDisplay: 'short' }).format(v)
                 },
-                title: { display: true, text: 'Сумма сбора (UZS)', color: thmC('#94a3b8', '#71717a') }
+                title: { display: true, text: 'Сумма сбора (UZS)', color: thmC('#94a3b8', '#3f3f46') }
               }
             }
           }
@@ -2145,7 +2410,7 @@ function toggleTheme() {
         }
       }
       
-      // 2. CRM conversion bar chart
+      // 2. CRM conversion doughnut chart
       if (barEl) {
         const ctx = barEl.getContext('2d');
         if (crmBarChartInstance) crmBarChartInstance.destroy();
@@ -2160,20 +2425,44 @@ function toggleTheme() {
           silence: 0
         };
         
+        // Маппинг ключей — на случай если в БД ключи на русском
+        const CRM_KEY_MAP = {
+          'Обещание оплаты': 'promised_to_pay',
+          'Отказ от оплаты': 'refused_payment', 
+          'Обещание/Думает': 'thinking',
+          'Думает': 'thinking',
+          'Заявленный платёж': 'declared_payment',
+          'Заявленный платеж': 'declared_payment',
+          'Бросил трубку': 'hung_up',
+          'Отказ от разговора': 'refused_conversation',
+          'Тишина/Молчание': 'silence',
+          'Тишина': 'silence',
+          'promised_to_pay': 'promised_to_pay',
+          'refused_payment': 'refused_payment',
+          'thinking': 'thinking',
+          'declared_payment': 'declared_payment',
+          'hung_up': 'hung_up',
+          'refused_conversation': 'refused_conversation',
+          'silence': 'silence'
+        };
+        
         let targetName = "";
         if (currentViewMode === 'personal' && selectedEmployee) {
           const op = list.find(x => x.employee_name === selectedEmployee);
           if (op && op.crm_actions) {
-            Object.keys(totals).forEach(k => {
-              totals[k] = op.crm_actions[k] || 0;
+            Object.entries(op.crm_actions).forEach(([k, v]) => {
+              const mapped = CRM_KEY_MAP[k] || k;
+              if (mapped in totals) totals[mapped] += v || 0;
             });
             targetName = selectedEmployee;
           }
         } else {
+          // TEAM MODE — суммируем по всем операторам
           list.forEach(op => {
             if (op.crm_actions) {
-              Object.keys(totals).forEach(k => {
-                totals[k] += op.crm_actions[k] || 0;
+              Object.entries(op.crm_actions).forEach(([k, v]) => {
+                const mapped = CRM_KEY_MAP[k] || k;
+                if (mapped in totals) totals[mapped] += v || 0;
               });
             }
           });
@@ -2182,30 +2471,50 @@ function toggleTheme() {
         const titleEl = document.getElementById('title-crm-chart');
         if (titleEl) {
           if (currentViewMode === 'personal' && targetName) {
-            titleEl.textContent = `Распределение CRM-действий сотрудника: ${shortN(targetName)}`;
+            titleEl.textContent = 'CRM-действия: ' + shortN(targetName);
           } else {
-            titleEl.textContent = 'Распределение CRM-действий по всей команде';
+            titleEl.textContent = 'Распределение CRM-действий команды';
           }
         }
         
         const labels = ['Обещание платежа', 'Отказ от оплаты', 'Думает', 'Заявленный платеж', 'Бросил трубку', 'Отказ от разговора', 'Тишина'];
         const values = [totals.promised_to_pay, totals.refused_payment, totals.thinking, totals.declared_payment, totals.hung_up, totals.refused_conversation, totals.silence];
-        const colors = ['#22c55e', '#ef4444', '#facc15', '#06b6d4', '#ea580c', '#ec4899', '#94a3b8'];
+        const dColors = ['#22c55e', '#ef4444', '#facc15', '#06b6d4', '#ea580c', '#ec4899', '#94a3b8'];
+        
+        // Отфильтровать нулевые значения для чистой диаграммы
+        const filtered = labels.map((l, i) => ({ label: l, value: values[i], color: dColors[i] }))
+          .filter(item => item.value > 0);
+        
+        const total = filtered.reduce((s, item) => s + item.value, 0);
+        
+        if (filtered.length === 0) {
+          const legendContainer = document.getElementById('crm-legend-container');
+          if (legendContainer) legendContainer.innerHTML = '';
+          // Если данных нет — показать пустую диаграмму
+          crmBarChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: { labels: ['Нет данных'], datasets: [{ data: [1], backgroundColor: [thmC('#232b3e', '#e5e7eb')], borderWidth: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '55%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+          });
+          return;
+        }
         
         crmBarChartInstance = new Chart(ctx, {
-          type: 'bar',
+          type: 'doughnut',
           data: {
-            labels: labels,
+            labels: filtered.map(f => f.label),
             datasets: [{
-              label: 'Кол-во действий',
-              data: values,
-              backgroundColor: colors,
-              borderRadius: 4
+              data: filtered.map(f => f.value),
+              backgroundColor: filtered.map(f => f.color),
+              borderColor: thmC('#0f172a', '#ffffff'),
+              borderWidth: 2,
+              hoverOffset: 8
             }]
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: '55%',
             plugins: {
               legend: { display: false },
               tooltip: {
@@ -2213,21 +2522,35 @@ function toggleTheme() {
                 borderColor: thmC('#2d3748', '#e4e4e7'),
                 borderWidth: 1,
                 titleColor: thmC('#f1f5f9', '#27272a'),
-                bodyColor: thmC('#94a3b8', '#52525b')
-              }
-            },
-            scales: {
-              x: {
-                grid: { display: false },
-                ticks: { color: thmC('#64748b', '#71717a'), font: { size: 9 }, maxRotation: 45 }
-              },
-              y: {
-                grid: { color: thmC('#232b3e', 'rgba(0,0,0,0.03)'), lineWidth: thmC(1, 0.5) },
-                ticks: { color: thmC('#64748b', '#71717a'), font: { size: 10 } }
+                bodyColor: thmC('#94a3b8', '#27272a'),
+                callbacks: {
+                  label: function(context) {
+                    var val = context.parsed;
+                    var pct = total > 0 ? ((val / total) * 100).toFixed(1) : '0.0';
+                    return ' ' + context.label + ': ' + val + ' (' + pct + '%)';
+                  }
+                }
               }
             }
           }
         });
+
+        // Отрисовка красивой кастомной легенды
+        const legendContainer = document.getElementById('crm-legend-container');
+        if (legendContainer) {
+          legendContainer.innerHTML = filtered.map(f => {
+            const pct = total > 0 ? ((f.value / total) * 100).toFixed(1) : '0.0';
+            return `
+              <div class="crm-legend-item" style="display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:11px;padding:6px 10px;border-radius:6px;background:${thmC('rgba(30,41,59,0.2)', 'rgba(249,115,22,0.03)')};border:1px solid ${thmC('rgba(255,255,255,0.05)', 'rgba(249,115,22,0.08)')};">
+                <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+                  <span style="width:8px;height:8px;border-radius:50%;background-color:${f.color};flex-shrink:0;display:inline-block;box-shadow:0 0 6px ${f.color}55;"></span>
+                  <span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${thmC('#e2e8f0', '#27272a')}">${f.label}</span>
+                </div>
+                <span style="font-family:monospace;font-weight:700;color:${thmC('#94a3b8', '#3f3f46')}">${f.value} <span style="font-weight:500;font-size:10px;color:${thmC('#64748b', '#71717a')}">(${pct}%)</span></span>
+              </div>
+            `;
+          }).join('');
+        }
       }
     }
 
@@ -2551,19 +2874,266 @@ function toggleTheme() {
     }
 
     // ========== 7. INIT ==========
-    document.addEventListener('DOMContentLoaded', () => {
-      initFilters();
-      initHeatmapModeTabs();
-      
-      // Инициализация для страницы Rating
-      if (document.getElementById('leaderboardBody')) {
-        buildLeaderboard();
-        buildTopBottomCharts();
-      } else {
-        setViewMode(currentViewMode);
+    async function pageInit() {
+      showLoading(true);
+      const ok = await loadDashboardDataFromAPI();
+      if (ok) {
+        initFilters();
+        initHeatmapModeTabs();
+        
+        // Инициализация для страницы Rating
+        if (document.getElementById('leaderboardBody')) {
+          buildLeaderboard();
+          buildTopBottomCharts();
+        } else {
+          setViewMode(currentViewMode);
+          if (window.FileUploader) {
+            window.FileUploader.init();
+          }
+        }
       }
+      showLoading(false);
+    }
+    window.pageInit = pageInit;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      pageInit();
     });
     window.showSection = showSection; window.toggleTheme = toggleTheme; window.showEmployee = showEmployee; window.selectEmployee = selectEmployee;
     window.openLawModal = openLawModal; window.closeLawModal = closeLawModal; window.copyScript = copyScript;
     window.filterObj = filterObj; window.toggleAcc = toggleAcc; window.openLawByName = openLawByName;
     window.toggleSidebar = toggleSidebar;
+
+    // ========== FILE UPLOAD MODULE ==========
+    window.FileUploader = {
+        init() {
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-input');
+            if (!dropZone || !fileInput) return;
+
+            // Click to select
+            dropZone.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => this.handleFiles(e.target.files));
+
+            // Drag & drop
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                this.handleFiles(e.dataTransfer.files);
+            });
+
+            // Загрузить статус данных
+            this.refreshChecklist();
+        },
+
+        async handleFiles(fileList) {
+            if (!fileList || fileList.length === 0) return;
+
+            const logCard = document.getElementById('upload-log-card');
+            const logEl = document.getElementById('upload-log');
+            if (logCard) logCard.style.display = 'block';
+            if (logEl) logEl.innerHTML = '';
+
+            this.log('📤 Начинаю загрузку ' + fileList.length + ' файлов...', 'info');
+
+            const formData = new FormData();
+            for (const file of fileList) {
+                formData.append('files', file);
+                this.log('📎 ' + file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB)', 'info');
+            }
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    this.log('❌ Ошибка сервера: ' + response.status, 'error');
+                    return;
+                }
+
+                const data = await response.json();
+
+                let uploadedMonth = null;
+                for (const result of data.results) {
+                    if (result.status === 'ok') {
+                        uploadedMonth = result.month;
+                        const typeNames = {
+                            quality: '📊 Quality (оценки)',
+                            collections: '💰 Сборы',
+                            crm: '📋 CRM-действия',
+                            report: '📄 Промежуточный отчёт'
+                        };
+                        this.log(
+                            '✅ ' + result.filename + ' → ' +
+                            (typeNames[result.type] || result.type) +
+                            ' | ' + result.month + ' ' + result.period +
+                            ' | ' + result.employees_count + ' сотрудников',
+                            'success'
+                        );
+                    } else {
+                        this.log('❌ ' + result.filename + ': ' + result.message, 'error');
+                    }
+                }
+
+                if (uploadedMonth) {
+                    if (typeof currentMonth !== 'undefined') {
+                        currentMonth = uploadedMonth;
+                        localStorage.setItem('current-month', uploadedMonth);
+                        localStorage.setItem('view-mode', 'team');
+
+                        const mSelect = document.getElementById('monthSelect');
+                        if (mSelect) {
+                            let optionExists = false;
+                            for (let i = 0; i < mSelect.options.length; i++) {
+                                if (mSelect.options[i].value === uploadedMonth) {
+                                    optionExists = true;
+                                    break;
+                                }
+                            }
+                            if (!optionExists) {
+                                const o = document.createElement('option');
+                                o.value = uploadedMonth;
+                                o.textContent = uploadedMonth;
+                                mSelect.appendChild(o);
+                            }
+                            mSelect.value = uploadedMonth;
+                        }
+                        
+                        if (typeof updatePeriodTabs === 'function') {
+                            updatePeriodTabs();
+                        }
+                    }
+                }
+
+                this.log('🔄 Обновляю дашборд...', 'info');
+                await this.refreshChecklist();
+
+                // Перезагрузить данные дашборда
+                if (typeof updateDashboard === 'function') {
+                    await updateDashboard();
+                }
+                
+                // Показать кнопку Обновить
+                const refreshBtn = document.getElementById('upload-refresh-btn');
+                if (refreshBtn) {
+                    refreshBtn.style.display = 'inline-flex';
+                }
+
+                this.log('✅ Дашборд обновлён!', 'success');
+                this.log('ℹ️ Нажмите кнопку "Обновить данные" ниже или "Обновить данные аналитики" выше, чтобы применить изменения.', 'info');
+                
+                // Автоматический переход в оперативное пространство через 2 секунды
+                this.log('🔄 Переключение в аналитику через 2 секунды...', 'info');
+                setTimeout(function() {
+                  setViewMode('team');
+                }, 2000);
+
+            } catch (err) {
+                this.log('❌ Ошибка: ' + err.message, 'error');
+            }
+        },
+
+        async refreshChecklist() {
+            try {
+                const response = await fetch('/api/upload/status');
+                const data = await response.json();
+                this.renderChecklist(data);
+            } catch (e) {
+                console.error('Failed to load upload status:', e);
+            }
+        },
+
+        renderChecklist(data) {
+            const container = document.getElementById('upload-checklist');
+            const progressFill = document.getElementById('upload-progress-fill');
+            const progressText = document.getElementById('upload-progress-text');
+            if (!container) return;
+
+            const periods = data.periods || [];
+            const months = data.months || [];
+
+            // Ищем статус для выбранного месяца
+            let activeMonthStatus = null;
+            if (typeof currentMonth !== 'undefined' && currentMonth) {
+                activeMonthStatus = months.find(m => m.month === currentMonth);
+            }
+
+            // Если не нашли статус месяца в months, собираем из periods
+            if (!activeMonthStatus && typeof currentMonth !== 'undefined' && currentMonth) {
+                const monthPeriods = periods.filter(p => p.month === currentMonth);
+                activeMonthStatus = {
+                    month: currentMonth,
+                    has_quality: monthPeriods.some(p => p.has_quality),
+                    has_collections: monthPeriods.some(p => p.has_collections),
+                    has_crm: monthPeriods.some(p => p.has_crm),
+                    has_report: monthPeriods.some(p => p.has_report),
+                    employees_count: monthPeriods.length > 0 ? monthPeriods[0].employees_count : 0
+                };
+            }
+
+            const latest = activeMonthStatus;
+
+            const items = [
+                { key: 'has_quality', label: 'Quality (оценки звонков)', icon: '📊' },
+                { key: 'has_collections', label: 'Сборы (финансы)', icon: '💰' },
+                { key: 'has_crm', label: 'CRM-действия', icon: '📋' },
+                { key: 'has_report', label: 'Промежуточный отчёт (PDF)', icon: '📄' },
+            ];
+
+            let loaded = 0;
+            container.innerHTML = items.map(item => {
+                const done = latest && latest[item.key];
+                if (done) loaded++;
+                
+                const iconHtml = done 
+                    ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+                    : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="3" y="3" width="18" height="18" rx="4"></rect></svg>`;
+
+                return `
+                    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;
+                        background:${done ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.1)'};
+                        border:1px solid ${done ? 'rgba(16,185,129,0.35)' : 'rgba(239,68,68,0.25)'};
+                        border-radius:8px;
+                        transition: all 0.2s ease;">
+                        <span style="display:flex;align-items:center;">${iconHtml}</span>
+                        <div>
+                            <div style="font-size:12px;font-weight:700;color:${done ? '#10b981' : '#ef4444'};">
+                                ${item.icon} ${item.label}
+                            </div>
+                            <div style="font-size:10px;color:#94a3b8;margin-top:2px;">
+                                ${done ? 'Загружен' : 'Не загружен'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const percent = (loaded / items.length) * 100;
+            if (progressFill) progressFill.style.width = percent + '%';
+            if (progressText) {
+                progressText.textContent = latest
+                    ? `${latest.month} · ${loaded}/4 файла загружено · ${latest.employees_count} сотрудников`
+                    : 'Нет загруженных данных';
+            }
+        },
+
+        log(message, type) {
+            const logEl = document.getElementById('upload-log');
+            if (!logEl) return;
+            const colors = { info: '#94a3b8', success: '#4ade80', error: '#f87171' };
+            const div = document.createElement('div');
+            div.style.color = colors[type] || '#94a3b8';
+            div.textContent = message;
+            logEl.appendChild(div);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+    };

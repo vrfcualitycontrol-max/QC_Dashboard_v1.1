@@ -1,7 +1,12 @@
 import os
 import json
+import sys
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List
+from pathlib import Path
+
+# Add backend directory to path
+sys.path.insert(0, str(Path(__file__).parent))
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,6 +15,11 @@ from pydantic import BaseModel
 from sqlalchemy import text, create_engine, MetaData, Table, Column, Integer, String, Float, DateTime, JSON, select
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+
+from parser import (
+    detect_file_type, parse_quality_bytes, parse_collections_bytes,
+    parse_crm_bytes, parse_report_pdf_bytes, normalize_name, SVP_KEYS
+)
 
 # Configuration
 DATABASE_URL = os.getenv("DATABASE_URL", "")
@@ -304,6 +314,14 @@ def get_metrics(month: Optional[str] = None, period: Optional[str] = None):
             result = session.execute(stmt)
             rows = result.fetchall()
             
+            # Избегаем дублирования при агрегации всего месяца
+            if not period or period in ("Все", "Все периоды"):
+                has_weekly = any(r.period not in ("Все", "Неизвестно") for r in rows)
+                if has_weekly:
+                    rows = [r for r in rows if r.period not in ("Все", "Неизвестно")]
+                else:
+                    rows = [r for r in rows if r.period == "Все"]
+            
             # Группировка по сотруднику
             operator_groups = {}
             for row in rows:
@@ -484,56 +502,499 @@ def forecast():
     return {"period": "current", "forecast": [], "model": "placeholder"}
 
 
-@app.post("/api/upload/xlsx")
-async def upload_xlsx(file: UploadFile = File(...)):
-    """Upload and process XLSX file."""
-    if not file.filename or not file.filename.lower().endswith('.xlsx'):
-        raise HTTPException(status_code=400, detail="Only XLSX files are allowed")
+def sync_db_data(conn, month: str):
+    """
+    Синхронизирует и распределяет месячные данные (период='Все') по еженедельным периодам,
+    или наоборот, подтягивает месячные данные в новые еженедельные периоды.
+    """
+    import re
     
-    if not REPORTS_DIR or not os.path.exists(REPORTS_DIR):
-        raise HTTPException(status_code=500, detail="Reports directory not configured")
+    # 1. Получаем все существующие записи за данный месяц
+    stmt = select(employee_scores).where(employee_scores.c.month == month)
+    rows = conn.execute(stmt).fetchall()
     
-    # Save file to reports directory
-    file_path = os.path.join(REPORTS_DIR, file.filename)
-    
-    try:
-        with open(file_path, "wb") as buffer:
-            content = await file.read()
-            buffer.write(content)
+    # Группируем по сотруднику и периоду
+    by_employee = {}
+    for r in rows:
+        emp = r.employee_name
+        if emp not in by_employee:
+            by_employee[emp] = {}
+        by_employee[emp][r.period] = r
         
-        return {"status": "success", "message": f"File {file.filename} saved", "path": file_path}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
-
-
-@app.post("/api/upload/pdf")
-async def upload_pdf(file: UploadFile = File(...)):
-    """Upload and process PDF file."""
-    if not file.filename or not file.filename.lower().endswith('.pdf'):
-        raise HTTPException(status_code=400, detail="Only PDF files are allowed")
-    
-    if not REPORTS_DIR or not os.path.exists(REPORTS_DIR):
-        raise HTTPException(status_code=500, detail="Reports directory not configured")
-    
-    # Save file to reports directory
-    file_path = os.path.join(REPORTS_DIR, file.filename)
-    
-    try:
-        with open(file_path, "wb") as buffer:
-            content = await file.read()
-            buffer.write(content)
+    for emp, periods in by_employee.items():
+        all_record = periods.get("Все")
+        weekly_periods = [p for p in periods.keys() if p != "Все"]
         
-        return {"status": "success", "message": f"File {file.filename} saved", "path": file_path}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
+        if not all_record or not weekly_periods:
+            continue
+            
+        n_weeks = len(weekly_periods)
+        
+        # --- 1. Распределение CRM ---
+        has_crm = all_record.crm_actions and len(all_record.crm_actions) > 0
+        if has_crm:
+            crm_actions_all = all_record.crm_actions
+            crm_summary = all_record.crm_actions_summary
+            crm_pattern = all_record.crm_behavior_pattern
+            
+            # Делим числовые счетчики на количество недель
+            split_actions = {}
+            for k, v in crm_actions_all.items():
+                if isinstance(v, (int, float)):
+                    split_actions[k] = int(v / n_weeks) if isinstance(v, int) else round(v / n_weeks, 2)
+                else:
+                    split_actions[k] = v
+                    
+            for wp in weekly_periods:
+                w_rec = periods[wp]
+                conn.execute(
+                    employee_scores.update()
+                    .where(employee_scores.c.id == w_rec.id)
+                    .values(
+                        crm_actions=split_actions,
+                        crm_actions_summary=crm_summary,
+                        crm_behavior_pattern=crm_pattern,
+                        updated_at=datetime.now(timezone.utc)
+                    )
+                )
+                
+        # --- 2. Распределение Collections ---
+        has_collections = all_record.collected_amount is not None and all_record.collected_amount > 0
+        if has_collections:
+            total_amount = all_record.collected_amount
+            total_count = all_record.collected_count or 0
+            rate = all_record.collection_rate or 0.0
+            fulfillment = all_record.plan_fulfillment or 0.0
+            
+            # Пытаемся достать по дням из raw_scores
+            by_day = {}
+            if all_record.raw_scores and isinstance(all_record.raw_scores, dict) and "by_day" in all_record.raw_scores:
+                by_day = all_record.raw_scores["by_day"]
+                
+            default_split_amount = total_amount / n_weeks
+            default_split_count = int(total_count / n_weeks)
+            
+            for wp in weekly_periods:
+                w_rec = periods[wp]
+                match = re.match(r"(\d+)-(\d+)", wp)
+                
+                period_amount = 0.0
+                period_count = 0
+                has_matching_days = False
+                
+                if match and by_day:
+                    start_day = int(match.group(1))
+                    end_day = int(match.group(2))
+                    
+                    for day, amt in by_day.items():
+                        try:
+                            day_int = int(day)
+                            if start_day <= day_int <= end_day:
+                                period_amount += amt
+                                period_count += 1
+                                has_matching_days = True
+                        except (ValueError, TypeError):
+                            pass
+                            
+                if has_matching_days:
+                    w_amount = round(period_amount, 2)
+                    w_count = period_count
+                else:
+                    if by_day:
+                        w_amount = 0.0
+                        w_count = 0
+                    else:
+                        w_amount = round(default_split_amount, 2)
+                        w_count = default_split_count
+                        
+                conn.execute(
+                    employee_scores.update()
+                    .where(employee_scores.c.id == w_rec.id)
+                    .values(
+                        collected_amount=w_amount,
+                        collected_count=w_count,
+                        collection_rate=rate,
+                        plan_fulfillment=fulfillment,
+                        updated_at=datetime.now(timezone.utc)
+                    )
+                )
 
 
-@app.post("/api/process-reports")
-def process_reports():
-    """Trigger report processing (calls auto_updater logic)."""
-    # This endpoint would trigger the auto_updater.py logic
-    # For now, it's a placeholder
-    return {"status": "processing_started", "message": "Report processing initiated"}
+def write_parsed_data_to_db(file_type: str, month: str, period: str, data: dict) -> int:
+    """
+    Записывает распарсенные данные в PostgreSQL.
+    Для каждого сотрудника — upsert (INSERT or UPDATE) по ключу (employee_name, month, period).
+    """
+    if not engine:
+        raise ValueError("Database not configured")
+    
+    count = 0
+    with engine.begin() as conn:
+        for employee_name, emp_data in data.items():
+            # Проверяем существование записи
+            select_stmt = select(employee_scores.c.id).where(
+                employee_scores.c.employee_name == employee_name,
+                employee_scores.c.month == month,
+                employee_scores.c.period == period,
+            )
+            existing = conn.execute(select_stmt).first()
+            
+            # Формируем поля для обновления в зависимости от типа файла
+            update_fields = {}
+            
+            if file_type == "quality":
+                update_fields = {
+                    "tqs": emp_data.get("tqs", 0.0),
+                    "aht": emp_data.get("aht", "N/A"),
+                    "activity_count": emp_data.get("activity_count", 0),
+                    "svp_scores": emp_data.get("svp", {}),
+                    "raw_scores": emp_data.get("raw_scores", {}),
+                }
+            elif file_type == "collections":
+                update_fields = {
+                    "collected_amount": emp_data.get("collected_amount", 0.0),
+                    "collected_count": emp_data.get("collected_count", 0),
+                    "collection_rate": emp_data.get("collection_rate", 0.0),
+                    "plan_fulfillment": emp_data.get("plan_fulfillment", 0.0),
+                }
+                if period == "Все" and "by_day" in emp_data:
+                    update_fields["raw_scores"] = {"by_day": emp_data["by_day"]}
+            elif file_type == "crm":
+                update_fields = {
+                    "crm_actions": emp_data.get("crm_actions", {}),
+                    "crm_actions_summary": emp_data.get("crm_actions_summary", ""),
+                    "crm_behavior_pattern": emp_data.get("crm_behavior_pattern", ""),
+                }
+            elif file_type == "report":
+                update_fields = {
+                    "tendencies": emp_data.get("tendencies", ""),
+                    "recommendations": emp_data.get("rec", ""),
+                }
+            
+            update_fields["updated_at"] = datetime.now(timezone.utc)
+            
+            if existing:
+                stmt = employee_scores.update().where(
+                    employee_scores.c.id == existing[0]
+                ).values(**update_fields)
+                conn.execute(stmt)
+            else:
+                # INSERT — создаём новую запись
+                insert_fields = {
+                    "employee_name": employee_name,
+                    "month": month,
+                    "period": period,
+                    "created_at": datetime.now(timezone.utc),
+                    **update_fields,
+                }
+                conn.execute(employee_scores.insert().values(**insert_fields))
+            
+            count += 1
+            
+        # Проводим перекрёстную синхронизацию после записи файлов
+        sync_db_data(conn, month)
+    
+    return count
+
+
+
+@app.post("/api/upload")
+async def upload_and_parse(files: List[UploadFile] = File(...)):
+    """
+    Загрузка и парсинг файлов. Автоматическое определение типа по содержимому.
+    Принимает несколько файлов одновременно.
+    """
+    results = []
+    
+    for file in files:
+        content = await file.read()
+        filename = file.filename or "unknown"
+        
+        # 1. Определить тип
+        file_type = detect_file_type(content, filename)
+        
+        if file_type == "unknown":
+            results.append({
+                "filename": filename,
+                "type": "unknown",
+                "status": "error",
+                "message": f"Не удалось определить тип файла '{filename}'"
+            })
+            continue
+        
+        try:
+            # 2. Парсинг
+            if file_type == "quality":
+                month, period, data = parse_quality_bytes(content, filename)
+            elif file_type == "collections":
+                month, period, data = parse_collections_bytes(content, filename)
+            elif file_type == "crm":
+                month, period, data = parse_crm_bytes(content, filename)
+            elif file_type == "report":
+                month, period, data = parse_report_pdf_bytes(content, filename)
+            else:
+                raise ValueError(f"Unknown type: {file_type}")
+            
+            # 3. Записать в БД
+            employees_count = write_parsed_data_to_db(file_type, month, period, data)
+            
+            results.append({
+                "filename": filename,
+                "type": file_type,
+                "month": month,
+                "period": period,
+                "employees_count": employees_count,
+                "status": "ok"
+            })
+        except Exception as e:
+            results.append({
+                "filename": filename,
+                "type": file_type,
+                "status": "error",
+                "message": str(e)
+            })
+    
+    return {"results": results}
+
+
+@app.get("/api/upload/status")
+def upload_status():
+    """
+    Возвращает статус загруженных данных по периодам и по месяцам.
+    """
+    if not engine:
+        return {"periods": [], "months": []}
+    
+    from sqlalchemy import func, exists, distinct
+    
+    with Session(engine) as session:
+        # 1. Попериодный статус
+        stmt = select(
+            employee_scores.c.month,
+            employee_scores.c.period,
+        ).distinct().order_by(
+            employee_scores.c.month.desc(),
+            employee_scores.c.period.desc()
+        )
+        rows = session.execute(stmt).fetchall()
+        
+        periods = []
+        for row in rows:
+            month, period = row
+            
+            # Проверяем наличие данных каждого типа через EXISTS
+            has_quality = session.execute(
+                select(exists().where(
+                    employee_scores.c.month == month,
+                    employee_scores.c.period == period,
+                    employee_scores.c.tqs > 0
+                ))
+            ).scalar()
+            
+            has_collections = session.execute(
+                select(exists().where(
+                    employee_scores.c.month == month,
+                    employee_scores.c.period == period,
+                    employee_scores.c.collected_amount > 0
+                ))
+            ).scalar()
+            
+            has_crm = session.execute(
+                select(exists().where(
+                    employee_scores.c.month == month,
+                    employee_scores.c.period == period,
+                    employee_scores.c.crm_actions_summary != '',
+                    employee_scores.c.crm_actions_summary.is_not(None)
+                ))
+            ).scalar()
+            
+            has_report = session.execute(
+                select(exists().where(
+                    employee_scores.c.month == month,
+                    employee_scores.c.period == period,
+                    employee_scores.c.tendencies != '',
+                    employee_scores.c.tendencies.is_not(None)
+                ))
+            ).scalar()
+            
+            emp_count = session.execute(
+                select(func.count(distinct(employee_scores.c.employee_name))).where(
+                    employee_scores.c.month == month,
+                    employee_scores.c.period == period
+                )
+            ).scalar() or 0
+            
+            periods.append({
+                "month": month,
+                "period": period,
+                "has_quality": bool(has_quality),
+                "has_collections": bool(has_collections),
+                "has_crm": bool(has_crm),
+                "has_report": bool(has_report),
+                "employees_count": emp_count,
+            })
+            
+        # 2. Помесячный агрегированный статус
+        month_stmt = select(employee_scores.c.month).distinct()
+        months_rows = session.execute(month_stmt).fetchall()
+        
+        months_status = []
+        for m_row in months_rows:
+            m = m_row[0]
+            
+            has_quality = session.execute(
+                select(exists().where(
+                    employee_scores.c.month == m,
+                    employee_scores.c.tqs > 0
+                ))
+            ).scalar()
+            
+            has_collections = session.execute(
+                select(exists().where(
+                    employee_scores.c.month == m,
+                    employee_scores.c.collected_amount > 0
+                ))
+            ).scalar()
+            
+            has_crm = session.execute(
+                select(exists().where(
+                    employee_scores.c.month == m,
+                    employee_scores.c.crm_actions_summary != '',
+                    employee_scores.c.crm_actions_summary.is_not(None)
+                ))
+            ).scalar()
+            
+            has_report = session.execute(
+                select(exists().where(
+                    employee_scores.c.month == m,
+                    employee_scores.c.tendencies != '',
+                    employee_scores.c.tendencies.is_not(None)
+                ))
+            ).scalar()
+            
+            emp_count = session.execute(
+                select(func.count(distinct(employee_scores.c.employee_name))).where(
+                    employee_scores.c.month == m
+                )
+            ).scalar() or 0
+            
+            months_status.append({
+                "month": m,
+                "has_quality": bool(has_quality),
+                "has_collections": bool(has_collections),
+                "has_crm": bool(has_crm),
+                "has_report": bool(has_report),
+                "employees_count": emp_count,
+            })
+            
+        return {"periods": periods, "months": months_status}
+
+
+@app.get("/api/metrics/months")
+def get_available_months():
+    """Возвращает список доступных месяцев и их периодов."""
+    if not engine:
+        return {"months": []}
+    
+    with Session(engine) as session:
+        stmt = select(
+            employee_scores.c.month,
+            employee_scores.c.period,
+        ).distinct().order_by(
+            employee_scores.c.month,
+            employee_scores.c.period
+        )
+        rows = session.execute(stmt).fetchall()
+        
+        months_dict = {}
+        for month, period in rows:
+            if month not in months_dict:
+                months_dict[month] = []
+            months_dict[month].append(period)
+        
+        # Сортировка по календарному порядку
+        MONTH_ORDER = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                        'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
+        sorted_months = sorted(
+            months_dict.items(),
+            key=lambda item: (
+                MONTH_ORDER.index(item[0].split(' ')[0]) if item[0].split(' ')[0] in MONTH_ORDER else 999,
+            ),
+            reverse=True
+        )
+        
+        return {
+            "months": [
+                {"month": m, "periods": sorted(ps)}
+                for m, ps in sorted_months
+            ]
+        }
+
+
+@app.delete("/api/data/{month}/{period}")
+def delete_period_data(month: str, period: str):
+    """Удаление данных за конкретный период (для перезагрузки)."""
+    if not engine:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    with engine.begin() as conn:
+        stmt = employee_scores.delete().where(
+            employee_scores.c.month == month,
+            employee_scores.c.period == period,
+        )
+        result = conn.execute(stmt)
+        return {"status": "ok", "deleted_rows": result.rowcount}
+
+
+@app.get("/api/dashboard-data")
+def get_dashboard_data():
+    """
+    Возвращает ВСЕ данные в формате DASHBOARD_DATA.
+    Формат: { "ИмяСотрудника": { "months": { "Месяц": { "periods": [...] } } } }
+    """
+    if not engine:
+        return {}
+    
+    with Session(engine) as session:
+        stmt = select(employee_scores).order_by(
+            employee_scores.c.employee_name,
+            employee_scores.c.month,
+            employee_scores.c.period
+        )
+        rows = session.execute(stmt).fetchall()
+        
+        result = {}
+        for row in rows:
+            name = row.employee_name
+            month = row.month
+            period = row.period
+            
+            if name not in result:
+                result[name] = {"months": {}}
+            if month not in result[name]["months"]:
+                result[name]["months"][month] = {"periods": []}
+            
+            period_data = {
+                "period": period,
+                "tqs": row.tqs or 0.0,
+                "aht": row.aht or "N/A",
+                "svp": row.svp_scores or {k: 1.0 for k in SVP_KEYS},
+                "raw_scores": row.raw_scores or {k: [] for k in SVP_KEYS},
+                "tendencies": row.tendencies or "",
+                "rec": row.recommendations or "",
+                "activity_count": row.activity_count or 0,
+                "collected_amount": row.collected_amount or 0.0,
+                "collected_count": row.collected_count or 0,
+                "collection_rate": row.collection_rate or 0.0,
+                "plan_fulfillment": row.plan_fulfillment or 0.0,
+                "crm_actions": row.crm_actions or {},
+                "crm_actions_summary": row.crm_actions_summary or "",
+                "crm_behavior_pattern": row.crm_behavior_pattern or "",
+            }
+            
+            result[name]["months"][month]["periods"].append(period_data)
+        
+        return result
 
 
 @app.get("/api/data-mode")

@@ -74,7 +74,7 @@ function initSidebar(activeId) {
       <div style="display:flex;align-items:center;gap:10px;">
         <img src="logo/New_logo1.1.jpg" alt="Логотип организации" class="sidebar-org-logo">
         <div class="bottom-text">
-          <div style="font-size:10px;color:#94a3b8;font-weight:600;">\u0424\u0435\u0432\u0440\u0430\u043b\u044c\u2013\u0410\u043f\u0440\u0435\u043b\u044c 2026</div>
+          <div style="font-size:10px;color:#94a3b8;font-weight:600;">QC Dashboard SC</div>
           <div style="font-size:9px;color:#4a5568;margin-top:1px;">Soft Collection Unit</div>
         </div>
       </div>
@@ -97,6 +97,8 @@ function initSidebar(activeId) {
     } catch (err) { /* skip if URL is invalid */ }
     // Normal navigation proceeds — no preventDefault
   });
+  
+  initMobileSidebar();
 }
 
 function toggleSidebar() {
@@ -125,4 +127,43 @@ function toggleSidebar() {
     url.searchParams.set('sidebar', state);
     window.history.replaceState({}, '', url);
   } catch (err) {}
+}
+
+// Mobile sidebar support
+function initMobileSidebar() {
+  // Hamburger button
+  if (!document.querySelector('.mobile-hamburger')) {
+    const btn = document.createElement('div');
+    btn.className = 'mobile-hamburger';
+    btn.style.display = 'none'; // hidden on desktop via media query
+    btn.innerHTML = '☰';
+    btn.onclick = () => toggleMobileSidebar();
+    document.body.appendChild(btn);
+  }
+  
+  // Backdrop
+  if (!document.querySelector('.sidebar-backdrop')) {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'sidebar-backdrop';
+    backdrop.onclick = () => closeMobileSidebar();
+    document.body.appendChild(backdrop);
+  }
+}
+
+function toggleMobileSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.querySelector('.sidebar-backdrop');
+  if (sidebar && backdrop) {
+    sidebar.classList.toggle('mobile-open');
+    backdrop.classList.toggle('active');
+  }
+}
+
+function closeMobileSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.querySelector('.sidebar-backdrop');
+  if (sidebar && backdrop) {
+    sidebar.classList.remove('mobile-open');
+    backdrop.classList.remove('active');
+  }
 }
